@@ -62,7 +62,8 @@
 
     if(DEMO){
       if(view==='login'||view==='signup'||view==='forgot'||view==='password'){ toast('Démonstration : l\'inscription fonctionne sur le site en ligne.'); return go('calculateur'); }
-      if(view==='admin-login'||view==='admin'||tab==='compte') return go('calculateur');
+      if(view==='admin-login') return go('admin/tableau');
+      if(tab==='compte') return go('calculateur');
     } else {
       var ok=session&&pwSet();
       if((view==='app'||view==='admin')&&!session) return go('connexion');
@@ -285,7 +286,24 @@
 
   /* ---------- Tableau de bord admin ---------- */
   var admUsers=[], admCons={};
+  /* Démonstration : tableau de bord rempli d'exemples fictifs, sans base de données */
+  function loadAdminDemo(){
+    $('admWho').textContent='Aperçu (démonstration)';
+    var now=Date.now(), d=function(h){ return new Date(now-h*3600e3).toISOString(); };
+    admUsers=[
+      {id:'d1',prenom:'Camille',nom:'Exemple',societe:'Société A',departement:'Qualité',role:'admin',created_at:d(400)},
+      {id:'d2',prenom:'Julien',nom:'Exemple',societe:'Société B',departement:'Bureau d\'études',role:'editeur_catalogue',created_at:d(120)},
+      {id:'d3',prenom:'Sarah',nom:'Exemple',societe:'Société C',departement:'Intégration, projets',role:'utilisateur',created_at:d(30)},
+      {id:'d4',prenom:'Marc',nom:'Exemple',societe:'Société D',departement:'Production',role:'utilisateur',created_at:d(5)}
+    ];
+    admCons={d2:['ia','bureau_etudes'],d3:['ia']};
+    $('stUsers').textContent='4'; $('stAdmins').textContent='2'; $('stIa').textContent='2'; $('stBe').textContent='1';
+    var A=[[0.2,'connexion admin','Camille Exemple'],[3,'projet enregistré','Sarah Exemple'],[5,'compte activé','Marc Exemple'],[26,'accord donné','Julien Exemple']];
+    $('admAudit').innerHTML=A.map(function(a){ return '<li>'+esc(date(d(a[0])))+' · '+a[1]+' · '+a[2]+'</li>'; }).join('');
+    renderUsers();
+  }
   function loadAdmin(){
+    if(DEMO) return loadAdminDemo();
     var p=profile||{}; $('admWho').textContent=((p.prenom||'')+' '+(p.nom||'')).trim()||'Administrateur';
     Promise.all([
       sb.from('profiles').select('*').order('created_at',{ascending:false}),
@@ -363,6 +381,8 @@
   /* ---------- Démarrage ---------- */
   if(DEMO){
     $('demoBand').hidden=false; setWho();
+    $('admDemo').hidden=false;
+    document.querySelector('.app-head .tabs').insertAdjacentHTML('beforeend','<a href="#/admin/tableau"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/></svg>Aperçu admin</a>');
     [].forEach.call(document.querySelectorAll('[data-logout],[data-tab="compte"]'),function(el){ el.hidden=true; });
     route(); return;
   }
