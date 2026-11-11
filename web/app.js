@@ -25,7 +25,11 @@
       [/invalid totp|invalid code|expired/i,'Code incorrect ou expiré. Saisissez le code affiché maintenant dans l\'application.'],
       [/signups not allowed|not allowed for otp/i,'Les inscriptions sont fermées pour le moment.'],
       [/failed to fetch|network/i,'Connexion au serveur impossible. Vérifiez votre réseau.'],
-      [/error sending/i,'L\'e-mail n\'a pas pu être envoyé. Réessayez plus tard ou contactez l\'administrateur.']
+      [/error sending/i,'L\'e-mail n\'a pas pu être envoyé. Réessayez plus tard ou contactez l\'administrateur.'],
+      [/not authorized|not allowed to send/i,'Cette adresse ne peut pas encore recevoir nos e-mails : l\'envoi est en cours de configuration. Contactez l\'administrateur.'],
+      [/email address .* is invalid|invalid email|unable to validate email/i,'Adresse e-mail refusée. Vérifiez-la, ou utilisez votre adresse professionnelle.'],
+      [/user already registered|already been registered/i,'Un compte existe déjà avec cette adresse. Connectez-vous ou utilisez « Mot de passe oublié ».'],
+      [/otp_expired|link is invalid|has expired/i,'Ce lien a expiré ou a déjà servi. Demandez-en un nouveau.']
     ];
     for(var i=0;i<map.length;i++) if(map[i][0].test(m)) return map[i][1];
     return m||'Une erreur est survenue.';
