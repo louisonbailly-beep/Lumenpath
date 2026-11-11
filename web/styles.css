@@ -449,3 +449,59 @@ pre.spec-txt{margin:0 22px 22px;padding:16px 18px;border-radius:var(--r);border:
 @media (max-width:860px){.toast{bottom:calc(76px + env(safe-area-inset-bottom,0px))}}
 @media (max-width:520px){.sample .top span:last-child{display:none}.sample svg{padding:8px 12px 0}}
 .brand svg{height:21px}
+
+/* ---------- Animations (désactivées si l'appareil demande moins de mouvement) ---------- */
+@media (prefers-reduced-motion:no-preference){
+  @keyframes lp-draw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+  @keyframes lp-bar{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
+  @keyframes lp-rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  @keyframes lp-fade{from{opacity:0}to{opacity:1}}
+  @keyframes lp-grow{from{width:0}}
+  .anim .gauge line{transform-box:fill-box;transform-origin:center;animation:lp-bar .45s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i) * 28ms)}
+  .anim .gauge text{animation:lp-fade .5s .35s both}
+  .anim .chart .curve{stroke-dasharray:1;animation:lp-draw 1.2s .15s cubic-bezier(.4,0,.2,1) both}
+  .anim .chart .area{animation:lp-fade .8s .9s both}
+  .anim .chart .nyq,.anim .chart .req{animation:lp-fade .5s 1.1s both}
+  .anim .bar i{animation:lp-grow .7s cubic-bezier(.2,.8,.2,1) both}
+  .anim>section{animation:lp-rise .5s cubic-bezier(.2,.8,.2,1) both}
+  .anim>section:nth-child(2){animation-delay:.05s}.anim>section:nth-child(3){animation-delay:.1s}.anim>section:nth-child(4){animation-delay:.15s}.anim>section:nth-child(5){animation-delay:.2s}
+  .sample .ray{stroke-dasharray:1;animation:lp-draw 1.1s .3s cubic-bezier(.4,0,.2,1) both}
+  .sample .ray:nth-of-type(odd){animation-delay:.15s}
+  .sample dl>div{animation:lp-rise .5s both}
+  .sample dl>div:nth-child(2){animation-delay:.06s}.sample dl>div:nth-child(3){animation-delay:.12s}.sample dl>div:nth-child(4){animation-delay:.18s}.sample dl>div:nth-child(5){animation-delay:.24s}.sample dl>div:nth-child(6){animation-delay:.3s}
+  .hero>*{animation:lp-rise .6s cubic-bezier(.2,.8,.2,1) both}
+  .hero>*:nth-child(2){animation-delay:.05s}.hero>*:nth-child(3){animation-delay:.1s}.hero>*:nth-child(4){animation-delay:.15s}.hero>*:nth-child(5){animation-delay:.2s}.hero>*:nth-child(6){animation-delay:.25s}
+}
+
+/* ---------- Mobile : textes plus petits, plus d'air ---------- */
+@media (max-width:620px){
+  body{font-size:16px;line-height:1.5}
+  .hero{padding-top:48px;padding-bottom:40px;gap:16px}
+  .hero .eyebrow{font-size:15px}
+  .hero h1{font-size:32px;line-height:1.1;letter-spacing:-.03em}
+  .hero .lead{font-size:16px;line-height:1.5}
+  .btn.lg{min-height:46px;padding:11px 22px;font-size:16px}
+  .sample{margin-top:16px}
+  .sample dd{font-size:17px}
+  .sec{padding-top:56px;padding-bottom:56px;gap:24px}
+  .sec .eyebrow{font-size:15px}
+  .sec h2{font-size:27px;line-height:1.15}
+  .sec .sub{font-size:16px;line-height:1.5}
+  .tools{gap:12px}
+  .tools .t{font-size:20px}
+  .tools .d,.steps3 .d,.lines .d{font-size:15px;line-height:1.5}
+  .steps3 .t{font-size:18px}
+  .cta-band h2{font-size:25px}
+  .box h1,.reg-main h1,.page>.head2 h1,.adm h1{font-size:27px;letter-spacing:-.03em}
+  .reg-main .cap{font-size:15px}
+  .verdict h1{font-size:20px;line-height:1.25}
+  .verdict p{font-size:15px;line-height:1.5}
+  .ch b,.ch h2{font-size:17px}
+  .cell .v{font-size:21px}
+  .spec .big,.lens .f{font-size:19px}
+  .stats b{font-size:26px}
+  .step{font-size:16px}
+  .main{gap:20px}
+  .results{gap:20px}
+  ul.flags{font-size:14px}
+}

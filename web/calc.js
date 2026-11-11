@@ -1,7 +1,7 @@
 /* Calculateur complet : capteur, objectif, lumière. Interface seule : tout le calcul est dans OptiCalc (app/src/core.js). */
 (function(){
   var C = OptiCalc, $ = function(id){return document.getElementById(id)};
-  var sel = null, picked = false, imported = [], last = null;
+  var sel = null, picked = false, imported = [], last = null, animNext = true;
   function n(x, d){ if(x==null||!isFinite(x)) return '∞'; return x.toLocaleString('fr-FR',{minimumFractionDigits:d==null?0:d, maximumFractionDigits:d==null?0:d}); }
   function num(id){ return parseFloat($(id).value); }
   function esc(t){return String(t).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
@@ -57,7 +57,7 @@
     [0,0.2,0.5,1].forEach(function(v){ s+='<line class="'+(v===0?'axis':'grid')+'" x1="'+l+'" x2="'+(W-r)+'" y1="'+Y(v)+'" y2="'+Y(v)+'"/><text x="'+(l-8)+'" y="'+(Y(v)+4)+'" text-anchor="end">'+Math.round(v*100)+' %</text>'; });
     for(i=0;i<=4;i++){ var fv=xmax*i/4; s+='<line class="axis" x1="'+X(fv)+'" x2="'+X(fv)+'" y1="'+(t+ph)+'" y2="'+(t+ph+4)+'"/><text x="'+X(fv)+'" y="'+(t+ph+18)+'" text-anchor="middle">'+n(fv,0)+'</text>'; }
     s+='<text x="'+(l+pw/2)+'" y="'+(H-6)+'" text-anchor="middle">fréquence spatiale côté image, lp/mm</text>';
-    s+='<polygon class="area" points="'+l+','+Y(0)+' '+pts.join(' ')+' '+X(xmax)+','+Y(0)+'"/><polyline class="curve" points="'+pts.join(' ')+'"/>';
+    s+='<polygon class="area" points="'+l+','+Y(0)+' '+pts.join(' ')+' '+X(xmax)+','+Y(0)+'"/><polyline class="curve" pathLength="1" points="'+pts.join(' ')+'"/>';
     var nq=L.nuN, rq=L.nuReq, nqLeft=nq>xmax*0.6;
     s+='<line class="nyq" x1="'+X(nq)+'" x2="'+X(nq)+'" y1="'+t+'" y2="'+(t+ph)+'"/>';
     s+='<text x="'+(X(nq)+(nqLeft?-6:6))+'" y="'+(t+12)+'" text-anchor="'+(nqLeft?'end':'start')+'" style="fill:var(--ink)">Nyquist '+n(nq,0)+'</text>';
@@ -69,7 +69,7 @@
   function gauge(frac, value, sub, st, label){
     var N=23, cx=110, cy=112, r1=72, r2=98, on=Math.round(Math.max(0,Math.min(1,frac))*N), s='';
     for(var i=0;i<N;i++){ var a=Math.PI*(1-i/(N-1)), c=Math.cos(a), si=Math.sin(a);
-      s+='<line class="'+(i<on?'g-on':'g-off')+'" x1="'+(cx+r1*c).toFixed(1)+'" y1="'+(cy-r1*si).toFixed(1)+'" x2="'+(cx+r2*c).toFixed(1)+'" y2="'+(cy-r2*si).toFixed(1)+'" stroke-width="8" stroke-linecap="round"/>'; }
+      s+='<line class="'+(i<on?'g-on':'g-off')+'" style="--i:'+i+'" x1="'+(cx+r1*c).toFixed(1)+'" y1="'+(cy-r1*si).toFixed(1)+'" x2="'+(cx+r2*c).toFixed(1)+'" y2="'+(cy-r2*si).toFixed(1)+'" stroke-width="8" stroke-linecap="round"/>'; }
     return '<svg class="gauge '+st+'" viewBox="0 0 220 124" role="img" aria-label="'+esc(label)+'">'+s+'<text class="g-v" x="110" y="100" text-anchor="middle">'+esc(value)+'</text><text class="g-s" x="110" y="118" text-anchor="middle">'+esc(sub)+'</text></svg>';
   }
   window.LumenGauge = gauge;
@@ -208,7 +208,9 @@
       +row('Décalage du filtre','Δλ = λ₀ (1 − √(1 − (sin θ ÷ n*)²))','= '+n(L.shift,1)+' nm à '+n(L.thetaDeg,1)+'°')
       +'</div></details></div></section>';
     out.innerHTML = h;
+    out.classList.toggle('anim', animNext); animNext = false;
   }
+  window.LumenAnimate = function(){ animNext = true; render(); };
   function setMsg(t){ $('csvMsg').textContent=t; }
   function loadCsv(text){
     var r=C.parseCatalog(text);
@@ -223,12 +225,12 @@
   });
   document.addEventListener('click', function(e){
     if(!e.target.closest) return;
-    var p=e.target.closest('[data-p]'); if(p){ apply(PRESETS[p.dataset.p]); clearPreset(); p.classList.add('on'); picked=false; render(); return; }
+    var p=e.target.closest('[data-p]'); if(p){ apply(PRESETS[p.dataset.p]); clearPreset(); p.classList.add('on'); picked=false; animNext=true; render(); return; }
     var tk=e.target.closest('[data-task]'); if(tk){ $('task').value=tk.dataset.task; syncTask(); clearPreset(); render(); return; }
     if(e.target.id==='csvLoad'){ loadCsv($('csvText').value); return; }
     if(e.target.id==='csvTpl'){ $('csvText').value=C.CSV_TEMPLATE; setMsg('Modèle collé : remplacez par vos lignes puis chargez.'); return; }
     if(e.target.id==='csvClear'){ imported=[]; $('csvText').value=''; setMsg('Aucun catalogue importé.'); render(); return; }
-    var tr=e.target.closest('#out tr[data-id]'); if(tr){ sel=tr.dataset.id; picked=true; render(); return; }
+    var tr=e.target.closest('#out tr[data-id]'); if(tr){ sel=tr.dataset.id; picked=true; animNext=true; render(); return; }
     var a=e.target.closest('#out .anchors a'); if(a){ e.preventDefault(); var t=document.querySelector(a.getAttribute('href')); if(t) t.scrollIntoView({behavior:'smooth',block:'start'}); }
   });
   document.addEventListener('keydown', function(e){

@@ -81,6 +81,8 @@
       [].forEach.call(document.querySelectorAll('[data-tab-view]'),function(el){ el.hidden=el.dataset.tabView!==tab; });
       [].forEach.call(document.querySelectorAll('[data-tab]'),function(el){ el.classList.toggle('on',el.dataset.tab===tab); });
       if(tab==='compte') loadAccount();
+      if(tab==='calculateur'&&window.LumenAnimate) window.LumenAnimate();
+      if(tab==='optique'&&window.LumenOptique&&window.LumenOptique.animate) window.LumenOptique.animate();
     }
     if(view==='admin') loadAdmin();
     if(view==='password'){ $('pwMail').textContent=session&&session.user.email||''; $('pwCap').textContent=recovery?'Nouveau mot de passe':'Étape 3 sur 3 · Mot de passe'; }

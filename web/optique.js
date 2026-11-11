@@ -26,7 +26,7 @@
   function syncTask(){ var v=$('o_task').value; [].forEach.call(document.querySelectorAll('[data-otask]'),function(b){ b.classList.toggle('on', b.dataset.otask===v); b.setAttribute('aria-pressed', b.dataset.otask===v); }); }
   function snapshot(){ var o={}; FIELDS.forEach(function(k){ var el=$(k); if(el) o[k]=el.type==='checkbox'?el.checked:el.value; }); return o; }
   function apply(o){ Object.keys(o).forEach(function(k){var el=$(k); if(!el) return; if(el.type==='checkbox') el.checked=!!o[k]; else el.value=o[k];}); syncTask(); }
-  var last=null;
+  var last=null, animNext=true;
   function pill(c,t){return '<span class="pill '+c+'">'+t+'</span>'}
   function fl(a){return '<ul class="flags">'+a.map(function(f){return '<li class="'+(f.t==='good'?'good':f.t)+'">'+(f.n?'<b>'+esc(f.n)+'.</b> ':'')+esc(f.m)+'</li>'}).join('')+'</ul>'}
   function render(){
@@ -101,6 +101,7 @@
       +'<div><span><b>Erreur de perspective</b><br><code>Δ = FOV × Δz ÷ WD</code></span><span class="res">'+n(lt.perr||0,2)+' mm</span></div>'
       +'</div><p class="note">Approximation lentille mince. La distorsion, la mise au point minimale et les focales de série sont des valeurs de travail : la fiche de l\'objectif fait foi.</p></details></section>';
     out.innerHTML=h;
+    out.classList.toggle('anim', animNext); animNext=false;
   }
   function clearPreset(){ [].forEach.call(document.querySelectorAll('[data-o]'),function(b){b.classList.remove('on')}); }
   document.addEventListener('input',function(e){
@@ -111,9 +112,9 @@
   document.addEventListener('click',function(e){
     if(!e.target.closest) return;
     var p=e.target.closest('[data-o]');
-    if(p){ apply(PRE[p.dataset.o]); fromSel(); $('o_imx').value=''; $('o_imxMsg').textContent=''; clearPreset(); p.classList.add('on'); render(); return; }
+    if(p){ animNext=true; apply(PRE[p.dataset.o]); fromSel(); $('o_imx').value=''; $('o_imxMsg').textContent=''; clearPreset(); p.classList.add('on'); render(); return; }
     var tk=e.target.closest('[data-otask]'); if(tk){ $('o_task').value=tk.dataset.otask; syncTask(); clearPreset(); render(); }
   });
-  window.LumenOptique = { state:function(){return last}, load:function(o){ apply(o); clearPreset(); render(); } };
+  window.LumenOptique = { state:function(){return last}, load:function(o){ apply(o); clearPreset(); animNext=true; render(); }, animate:function(){ animNext=true; render(); } };
   fromSel(); render();
 })();
