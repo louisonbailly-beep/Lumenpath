@@ -65,6 +65,14 @@
     else { s+='<text x="'+(W-r)+'" y="'+(t+28)+'" text-anchor="end" style="fill:var(--bad)">requis '+n(rq,0)+' lp/mm, au-delà de la diffraction</text>'; }
     return s+'</svg>';
   }
+  /* Jauge en arc : frac de 0 à 1, valeur et légende au centre */
+  function gauge(frac, value, sub, st, label){
+    var N=23, cx=110, cy=112, r1=72, r2=98, on=Math.round(Math.max(0,Math.min(1,frac))*N), s='';
+    for(var i=0;i<N;i++){ var a=Math.PI*(1-i/(N-1)), c=Math.cos(a), si=Math.sin(a);
+      s+='<line class="'+(i<on?'g-on':'g-off')+'" x1="'+(cx+r1*c).toFixed(1)+'" y1="'+(cy-r1*si).toFixed(1)+'" x2="'+(cx+r2*c).toFixed(1)+'" y2="'+(cy-r2*si).toFixed(1)+'" stroke-width="8" stroke-linecap="round"/>'; }
+    return '<svg class="gauge '+st+'" viewBox="0 0 220 124" role="img" aria-label="'+esc(label)+'">'+s+'<text class="g-v" x="110" y="100" text-anchor="middle">'+esc(value)+'</text><text class="g-s" x="110" y="118" text-anchor="middle">'+esc(sub)+'</text></svg>';
+  }
+  window.LumenGauge = gauge;
   function row(a,b,c){ return '<div><span><b>'+a+'</b><br><code>'+b+'</code></span><span class="res">'+c+'</span></div>'; }
   function flagsHtml(fl, empty){ return '<ul class="flags">'+(fl.length?fl.map(function(f){return '<li class="'+f.t+'">'+esc(f.m)+'</li>'}).join(''):(empty?'<li class="good">'+empty+'</li>':''))+'</ul>'; }
   function catalog(){ var c=[]; if($('useDemo').checked) c=c.concat(C.DEMO_CATALOG); return c.concat(imported); }
@@ -121,7 +129,9 @@
     ].join('\n');
     last = { inputs: snapshot(), spec: spec, summary: { capteur: ev.sensor.id, statut: st, type: lt.label, focale: sp.f||null, grandissement: sp.m, resolution_lpmm: sp.nuK, cercle_mm: sp.circleMin, lambda_nm: L.lam }, title: title.replace(/&[^;]+;/g,'') };
 
-    var h = '<section class="card verdict '+st+'"><div class="l"><span class="dot" aria-hidden="true">'+(st==='ok'?'✓':'!')+'</span><div><h1>'+title+'</h1><p>'+fTxt+apTxt+', résolution d\'au moins '+n(sp.nuK,0)+' lp/mm.</p></div></div>'
+    var ratio = ev.ppd/ev.kEff;
+    var h = '<section class="card verdict '+st+'"><div class="l">'+gauge(ratio/2, n(ev.ppd,1)+' px', 'sur le défaut · '+n(ev.kEff)+' requis', st, n(ev.ppd,1)+' pixels sur le défaut pour '+n(ev.kEff)+' requis')
+      + '<div><span class="eyebrow">'+(st==='ok'?'Capteur suffisant':st==='limite'?'À la limite':'Insuffisant')+'</span><h1 style="margin-top:6px">'+title+'</h1><p>'+fTxt+apTxt+', résolution d\'au moins '+n(sp.nuK,0)+' lp/mm.</p></div></div>'
       + '<div class="btns"><button type="button" class="btn" data-act="copy-calc">Copier la spécification</button><button type="button" class="btn pri" data-act="save-calc">Enregistrer le projet</button></div></section>';
     h += '<nav class="anchors" aria-label="Sections"><a class="chip" href="#c-resume">Résumé</a><a class="chip" href="#c-capteurs">Capteurs</a><a class="chip" href="#c-objectif">Objectif</a><a class="chip" href="#c-lumiere">Lumière</a><a class="chip" href="#c-contraste">Contraste</a></nav>';
 

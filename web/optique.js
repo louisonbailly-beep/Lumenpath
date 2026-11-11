@@ -57,9 +57,10 @@
     var text=lines.map(function(l){ var k=l[0]; while(k.length<16) k+=' '; return k+l[1]; }).join('\n');
     last={ inputs:snapshot(), spec:text, summary:{ type:lt.label, objectif:R.headline, grandissement:R.m, focale:kind==='telecentrique'?null:R.fNeed, resolution_lpmm:sp.nuK, cercle_mm:sp.circleMin, statut:st }, title:R.headline };
 
-    var h='<section class="card verdict reco" style="flex-direction:column;align-items:stretch;gap:12px"><span class="cap" style="color:var(--accent)">Recommandation</span>'
-      +'<h1 style="font-size:28px;letter-spacing:-.03em">'+esc(R.headline)+'</h1>'
-      +'<p>'+(R.meas?'Pour une mesure à '+n(s.prec,1)+' µm':'Pour voir un défaut de '+n(s.defect)+' µm')+', le pixel objet doit rester sous '+n(R.reqPix,1)+' µm. Ici il vaut '+n(R.pixObj,1)+' µm : '+stTxt+'.</p>'
+    var g=window.LumenGauge?window.LumenGauge(R.reqPix/R.pixObj/2, n(R.pixObj,1)+' µm', 'pixel objet · max '+n(R.reqPix,1), st, 'Pixel objet '+n(R.pixObj,1)+' µm pour un maximum de '+n(R.reqPix,1)+' µm'):'';
+    var h='<section class="card verdict '+st+'"><div class="l">'+g+'<div><span class="eyebrow">Recommandation · '+stTxt+'</span>'
+      +'<h1 style="margin-top:6px">'+esc(R.headline)+'</h1>'
+      +'<p>'+(R.meas?'Pour une mesure à '+n(s.prec,1)+' µm':'Pour voir un défaut de '+n(s.defect)+' µm')+', le pixel objet doit rester sous '+n(R.reqPix,1)+' µm. Ici il vaut '+n(R.pixObj,1)+' µm.</p></div></div>'
       +'<div class="btns"><button type="button" class="btn" data-act="copy-opt">Copier la spécification</button><button type="button" class="btn pri" data-act="save-opt">Enregistrer le projet</button></div></section>';
     h+='<section class="card grid">'
       +'<div class="cell"><span class="cap">Grandissement</span><span class="v">'+n(R.m,4)+'×</span><span class="n">'+(kind==='telecentrique'?'objectif télécentrique':'focale calculée ≈ '+n(R.fNeed,1)+' mm')+'</span></div>'

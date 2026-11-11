@@ -25,7 +25,7 @@ page = (
     "<title>Lumenpath</title>\n"
     '<link rel="preconnect" href="https://fonts.googleapis.com">\n'
     '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n'
-    '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400..600&display=swap">\n'
+    '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400..700&display=swap">\n'
     "<style>\n" + css + "\n</style>\n"
     + body.strip() + "\n"
     + script("window.LUMENPATH_DEMO = true;")
