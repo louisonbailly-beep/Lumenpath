@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Calculateur complet</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400..600&display=swap">
+<style>
+body{margin:0}
+a{color:inherit;text-decoration:none}
+a:hover{color:var(--accent)}
+.lp *{box-sizing:border-box}
+.lp :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.lp .cap{font-family:'Geist Mono',monospace;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.lp .mono{font-family:'Geist Mono',monospace}
+.lp .card{border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+.lp .ch{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:6px 16px}
+.lp .ch b{font-weight:500;font-size:16px}
+.lp .ch span{font-size:14px;color:var(--muted)}
+.lp .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.lp .cell{padding:18px 20px;display:flex;flex-direction:column;gap:6px;min-width:0;border-right:1px solid var(--line)}
+.lp .cell .v{font-family:'Geist Mono',monospace;font-size:22px;line-height:1.2}
+.lp .cell .n{font-size:14px;color:var(--muted)}
+.lp label.f{display:flex;flex-direction:column;gap:6px;font-size:14px;color:var(--ink);font-weight:500}
+.lp label.f small{font-weight:400;color:var(--muted);font-size:13px}
+.lp .inp{display:flex;align-items:center;border:1px solid var(--line-strong);border-radius:8px;background:var(--bg);min-height:44px}
+.lp .inp input{flex:1;min-width:0;border:0;background:transparent;color:var(--ink);font-family:'Geist Mono',monospace;font-size:16px;padding:10px 12px;outline:none}
+.lp .inp:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 20%,transparent)}
+.lp .inp i{font-style:normal;padding-right:12px;font-family:'Geist Mono',monospace;font-size:13px;color:var(--muted)}
+.lp select{min-height:44px;padding:8px 10px;border:1px solid var(--line-strong);border-radius:8px;background:var(--bg);color:var(--ink);font-size:15px;font-family:inherit}
+.lp .chip{padding:8px 14px;border:1px solid var(--line-strong);border-radius:99px;font-size:14px;color:var(--muted);background:var(--panel);cursor:pointer;white-space:nowrap}
+.lp .chip.on{border-color:var(--accent);color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,transparent);font-weight:500}
+.lp .step{display:flex;gap:12px;align-items:center;font-weight:500}
+.lp .step em{font-style:normal;width:24px;height:24px;border-radius:50%;border:1px solid var(--line-strong);display:grid;place-items:center;font-family:'Geist Mono',monospace;font-size:12px;color:var(--muted)}
+.lp .btn{min-height:44px;padding:10px 16px;border-radius:8px;border:1px solid var(--line-strong);background:var(--panel);color:var(--ink);font-size:15px;font-family:inherit;cursor:pointer}
+.lp .btn.pri{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:500}
+.lp .srow{display:grid;grid-template-columns:1.3fr 1fr .7fr .7fr .9fr .8fr;gap:8px;align-items:center;padding:14px 20px;border-top:1px solid var(--line);font-size:15px}
+.lp .srow.h{border-top:0;padding:10px 20px}
+.lp .srow.sel{background:color-mix(in srgb,var(--accent) 6%,var(--panel));box-shadow:inset 3px 0 0 var(--accent)}
+.lp .pill{justify-self:start;padding:3px 10px;border-radius:99px;border:1px solid var(--ok);color:var(--ok);font-size:13px}
+.lp .tabs{display:flex;gap:4px;font-size:15px}
+.lp .tabs a{padding:9px 16px;border-radius:8px;border:1px solid transparent;color:var(--muted)}
+.lp .tabs a.on{background:var(--bg);border-color:var(--line);color:var(--ink);font-weight:500}
+.lp .anchors{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px}
+.lp .bottom{display:none}
+.lp .lbl{display:none}
+@media (max-width:860px){
+.lp .tabs.top,.lp .user{display:none}
+.lp .main{padding:16px !important;gap:16px !important}
+.lp .form{flex:1 1 100% !important}
+.lp .cell{border-right:0;border-bottom:1px solid var(--line)}
+.lp .srow{grid-template-columns:1fr 1fr;padding:14px 16px}
+.lp .srow.h{display:none}
+.lp .srow .lbl{display:inline;color:var(--muted);font-size:13px}
+.lp .bottom{display:grid;grid-template-columns:1fr 1fr 1fr;position:sticky;bottom:0;background:var(--panel);border-top:1px solid var(--line);padding:8px 8px calc(8px + env(safe-area-inset-bottom))}
+.lp .bottom a{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px;font-size:13px;color:var(--muted);min-height:44px}
+.lp .bottom a.on{color:var(--accent);font-weight:500}
+}
+</style>
+</helmet>
+<div class="lp" style="{{vars}} background: var(--bg); color: var(--ink); font-family: 'Geist', 'Helvetica Neue', Arial, sans-serif; font-size: 16px; line-height: 1.5; min-height: 1700px; display: flex; flex-direction: column">
+
+<header style="border-bottom: 1px solid var(--line); background: var(--panel); padding: 10px 32px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px">
+<a href="Main.dc.html" style="display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 600; letter-spacing: -0.02em">
+<svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13.5" fill="none" stroke="var(--ink)" stroke-width="2"/><path d="M8.5 9.5 16 20.5 23.5 9.5" fill="none" stroke="var(--accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><rect x="13.8" y="18.3" width="4.4" height="4.4" fill="var(--ink)"/></svg>
+<span>lumen<span style="font-weight: 300; color: var(--muted)">path</span></span>
+</a>
+<nav class="tabs top" aria-label="Outils"><a class="on" href="Calculateur.dc.html">Calculateur complet</a><a href="Optique.dc.html">Optique conseillée</a></nav>
+<div class="user" style="display: flex; align-items: center; gap: 12px; font-size: 14px; color: var(--muted)"><span>Prénom Nom · Société A</span><a class="btn" href="Connexion.dc.html" style="display: grid; place-items: center">Se déconnecter</a></div>
+</header>
+
+<div class="main" style="width: 100%; max-width: 1360px; margin: 0 auto; padding: 28px 32px 48px; display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start">
+
+<form class="form card" style="flex: 0 1 360px; min-width: 280px; padding: 22px; display: flex; flex-direction: column; gap: 22px; position: sticky; top: 16px" onsubmit="return false">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span class="cap">Partir d'un exemple</span>
+<div class="anchors"><span class="chip on">Aspect pièce</span><span class="chip">Mesure de cote</span><span class="chip">DataMatrix</span><span class="chip">Colle UV</span></div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 14px">
+<div class="step"><em>1</em>Scène à observer</div>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px">
+<label class="f" for="fh">Largeur<span class="inp"><input id="fh" inputmode="decimal" value="100"><i>mm</i></span></label>
+<label class="f" for="fv">Hauteur<span class="inp"><input id="fv" inputmode="decimal" value="80"><i>mm</i></span></label>
+</div>
+<label class="f" for="wd">Distance de travail<small>De l'avant de l'objectif à la pièce.</small><span class="inp"><input id="wd" inputmode="decimal" value="300"><i>mm</i></span></label>
+<label class="f" for="dz">Variation de hauteur<small>Profondeur à garder nette.</small><span class="inp"><input id="dz" inputmode="decimal" value="5"><i>mm</i></span></label>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 14px; border-top: 1px solid var(--line); padding-top: 18px">
+<div class="step"><em>2</em>Ce qu'il faut voir</div>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px"><span class="chip on" style="text-align: center">Détection</span><span class="chip" style="text-align: center">Mesure</span></div>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px">
+<label class="f" for="df">Plus petit défaut<span class="inp"><input id="df" inputmode="decimal" value="200"><i>µm</i></span></label>
+<label class="f" for="k">Pixels dessus<select id="k"><option>3 (conseillé)</option><option>2</option><option>4</option></select></label>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 14px; border-top: 1px solid var(--line); padding-top: 18px">
+<div class="step"><em>3</em>Matière et lumière</div>
+<label class="f" for="mat">Matière<select id="mat"><option>Métal brillant</option><option>Colle (fluorescence UV)</option><option>Silicium (fissures)</option></select></label>
+</div>
+
+<details style="border-top: 1px solid var(--line); padding-top: 14px">
+<summary style="cursor: pointer; font-weight: 500; min-height: 32px">Options avancées</summary>
+<div style="display: flex; flex-direction: column; gap: 12px; padding-top: 10px; font-size: 14px; color: var(--muted)">
+<label style="display: flex; gap: 10px; align-items: center; min-height: 32px"><input type="checkbox" checked> Exemples d'objectifs sans marque</label>
+<label style="display: flex; gap: 10px; align-items: center; min-height: 32px"><input type="checkbox"> Afficher fabricant et référence</label>
+<button type="button" class="btn">Importer un catalogue CSV</button>
+</div>
+</details>
+<p style="margin: 0; font-size: 13px; color: var(--muted)">Les résultats se mettent à jour en direct. Rien à valider.</p>
+</form>
+
+<div style="flex: 1 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 18px">
+
+<section class="card" style="padding: 22px 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; border-color: var(--ok)">
+<div style="display: flex; gap: 14px; align-items: flex-start; min-width: 0; flex: 1 1 320px">
+<span aria-hidden="true" style="flex: none; width: 28px; height: 28px; border-radius: 50%; background: var(--ok); color: var(--bg); display: grid; place-items: center; font-weight: 700">✓</span>
+<div>
+<h1 style="margin: 0; font-size: 24px; font-weight: 500; letter-spacing: -0.02em">Le capteur IMX250 convient</h1>
+<p style="margin: 4px 0 0; color: var(--muted)">Objectif standard de 25 mm environ, ouvert entre f/2,4 et f/7,9, résolution d'au moins 89 lp/mm.</p>
+</div>
+</div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap"><button type="button" class="btn">Copier la spécification</button><button type="button" class="btn pri">Enregistrer le projet</button></div>
+</section>
+
+<nav class="anchors" aria-label="Sections"><a class="chip on" href="#a">Résumé</a><a class="chip" href="#b">Capteurs</a><a class="chip" href="#c">Objectif</a><a class="chip" href="#d">Lumière</a><a class="chip" href="#e">Contraste</a></nav>
+
+<section id="a" class="card grid" style="overflow: hidden">
+<div class="cell"><span class="cap">Pixels requis</span><span class="v">1500 × 1200</span><span class="n">1,8 Mpx au minimum</span></div>
+<div class="cell"><span class="cap">Pixel objet visé</span><span class="v">66,7 µm</span><span class="n">200 µm ÷ 3 pixels</span></div>
+<div class="cell"><span class="cap">Capteur retenu</span><span class="v">IMX250</span><span class="n">2448 × 2048 · 3,45 µm</span></div>
+<div class="cell" style="border-right: 0"><span class="cap">Type d'objectif</span><span class="v">standard</span><span class="n">pas besoin de télécentrique</span></div>
+</section>
+
+<section id="b" class="card" style="overflow: hidden">
+<div class="ch"><b>Capteurs possibles</b><span>Du plus petit suffisant au plus grand. Prix indicatif d'une caméra mono USB3.</span></div>
+<div class="srow h cap"><span>Capteur</span><span>Résolution</span><span>Pixel</span><span>Px/défaut</span><span>Verdict</span><span>Caméra</span></div>
+<sc-for list="{{sensors}}" as="s" hint-placeholder-count="5">
+<div class="srow {{s.cls}}"><span style="font-weight: 500">{{s.id}} <span style="font-weight: 400; color: var(--muted); font-size: 13px">{{s.fmt}}</span></span><span class="mono" style="font-size: 14px"><span class="lbl">Résolution </span>{{s.res}}</span><span class="mono" style="font-size: 14px"><span class="lbl">Pixel </span>{{s.pix}}</span><span class="mono" style="font-size: 14px"><span class="lbl">Px/défaut </span>{{s.ppd}}</span><span class="pill">suffisant</span><span class="mono" style="font-size: 14px"><span class="lbl">Caméra </span>≈ {{s.price}} $</span></div>
+</sc-for>
+</section>
+
+<section id="c" class="card" style="overflow: hidden">
+<div class="ch"><b>Objectif à spécifier</b><span>Neutre, valable pour toute marque</span></div>
+<div class="grid">
+<div class="cell"><span class="cap">Focale</span><span class="v">≈ 23,4 mm</span><span class="n">Séries voisines : 16 mm, 25 mm.</span></div>
+<div class="cell"><span class="cap">Résolution</span><span class="v">≥ 89 lp/mm</span><span class="n">Nyquist du capteur : 145 lp/mm.</span></div>
+<div class="cell"><span class="cap">Cercle d'image</span><span class="v">≥ 11,0 mm</span><span class="n">Équivalent 2/3 de pouce.</span></div>
+<div class="cell" style="border-right: 0"><span class="cap">Ouverture</span><span class="v">f/2,4 à f/7,9</span><span class="n">Profondeur de champ contre diffraction.</span></div>
+</div>
+</section>
+
+<section id="d" class="card" style="overflow: hidden">
+<div class="ch"><b>Longueur d'onde et filtre</b><span>Métal brillant · 550 nm</span></div>
+<div class="grid">
+<div class="cell"><span class="cap">Filtre · optionnel</span><span class="v">Passe-bande</span><span class="n">Centre 552 nm, largeur à mi-hauteur 28 nm au moins (décalage de 3,0 nm en bord de champ).</span></div>
+<div class="cell"><span class="cap">Polarisation</span><span class="v">Conseillée</span><span class="n">Polariseur sur l'éclairage, analyseur à 90° sur l'objectif. Prévoir 50 à 65 % de lumière en moins.</span></div>
+<div class="cell" style="border-right: 0"><span class="cap">Lumière ambiante</span><span class="v">Maîtrisée</span><span class="n">Le filtre devient utile dès que la lumière du jour entre dans le champ.</span></div>
+</div>
+</section>
+
+<section id="e" class="card">
+<div class="ch"><b>Contraste limité par la diffraction</b><span>f/5,6 · 550 nm</span></div>
+<div style="padding: 16px 20px 20px">
+<svg viewBox="0 0 720 240" role="img" aria-label="Contraste théorique selon la fréquence spatiale, avec le Nyquist à 145 lp/mm et la fréquence requise à 89 lp/mm" style="display: block; width: 100%; height: auto">
+<line x1="56" y1="20" x2="704" y2="20" stroke="var(--line)"/><line x1="56" y1="76" x2="704" y2="76" stroke="var(--line)" stroke-dasharray="3 3"/><line x1="56" y1="132" x2="704" y2="132" stroke="var(--line)"/><line x1="56" y1="188" x2="704" y2="188" stroke="var(--line-strong)"/>
+<text x="48" y="24" text-anchor="end" font-family="Geist Mono, monospace" font-size="12" fill="var(--muted)">100 %</text><text x="48" y="80" text-anchor="end" font-family="Geist Mono, monospace" font-size="12" fill="var(--muted)">70 %</text><text x="48" y="136" text-anchor="end" font-family="Geist Mono, monospace" font-size="12" fill="var(--muted)">40 %</text><text x="48" y="192" text-anchor="end" font-family="Geist Mono, monospace" font-size="12" fill="var(--muted)">0 %</text>
+<path d="{{chart.area}}" fill="var(--accent)" opacity="0.08"/>
+<path d="{{chart.line}}" fill="none" stroke="var(--accent)" stroke-width="2"/>
+<line x1="{{chart.nyq}}" y1="20" x2="{{chart.nyq}}" y2="188" stroke="var(--ink)" stroke-dasharray="4 3"/><text x="{{chart.nyqT}}" y="36" font-family="Geist Mono, monospace" font-size="12" fill="var(--ink)">Nyquist 145</text>
+<line x1="{{chart.req}}" y1="20" x2="{{chart.req}}" y2="188" stroke="var(--warn)" stroke-dasharray="4 3"/><text x="{{chart.reqT}}" y="52" text-anchor="end" font-family="Geist Mono, monospace" font-size="12" fill="var(--warn)">requis 89</text>
+<text x="380" y="222" text-anchor="middle" font-family="Geist Mono, monospace" font-size="12" fill="var(--muted)">fréquence spatiale côté image, lp/mm</text>
+</svg>
+<p style="margin: 10px 0 0; font-size: 14px; color: var(--muted)">Un objectif réel reste sous cette courbe : c'est le plafond de la physique. Contraste théorique de 41 % au Nyquist.</p>
+</div>
+</section>
+
+</div>
+</div>
+
+<nav class="bottom" aria-label="Navigation"><a class="on" href="Calculateur.dc.html"><span aria-hidden="true">▦</span>Calcul</a><a href="Optique.dc.html"><span aria-hidden="true">◎</span>Optique</a><a href="Connexion.dc.html"><span aria-hidden="true">●</span>Compte</a></nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"mode":{"editor":"enum","options":["light","dark"],"default":"light","section":"Thème"},"$preview":{"width":1440,"height":1700}}'>
+class Component extends DCLogic {
+renderVals() {
+const dark = (this.props.mode ?? 'light') === 'dark';
+const L = '--bg:#F6F7F8;--panel:#FFFFFF;--ink:#0E1116;--muted:#4B5563;--line:#E3E6EA;--line-strong:#BCC3CB;--accent:#0B5FFF;--on-accent:#FFFFFF;--ok:#0F7A55;--warn:#9A5B00;--bad:#C4321F;';
+const D = '--bg:#0B0D10;--panel:#12151A;--ink:#E9ECF0;--muted:#9AA4B1;--line:#242A32;--line-strong:#3A424C;--accent:#6C9BFF;--on-accent:#0B0D10;--ok:#4CC596;--warn:#E3A84A;--bad:#F2806C;';
+const mtf = (x) => x <= 0 ? 1 : x >= 1 ? 0 : (2 / Math.PI) * (Math.acos(x) - x * Math.sqrt(1 - x * x));
+const cut = 299, X0 = 56, X1 = 704, Y0 = 188, YH = 168;
+const X = (f) => X0 + (X1 - X0) * f / cut, Y = (v) => Y0 - YH * v;
+let line = '', area = 'M' + X0 + ' ' + Y0;
+for (let i = 0; i <= 100; i++) { const f = cut * i / 100, p = X(f).toFixed(1) + ' ' + Y(mtf(f / cut)).toFixed(1); line += (i ? 'L' : 'M') + p; area += 'L' + p; }
+area += 'L' + X1 + ' ' + Y0 + 'Z';
+const sensors = [
+{ id: 'IMX174', fmt: '1/1,2"', res: '1920 × 1200', pix: '5,86 µm', ppd: '3,0', price: '360', cls: '' },
+{ id: 'IMX421', fmt: '2/3"', res: '1936 × 1464', pix: '4,50 µm', ppd: '3,7', price: '420', cls: '' },
+{ id: 'IMX252', fmt: '1/1,8"', res: '2048 × 1536', pix: '3,45 µm', ppd: '3,8', price: '460', cls: '' },
+{ id: 'IMX250', fmt: '2/3"', res: '2448 × 2048', pix: '3,45 µm', ppd: '4,9', price: '670', cls: 'sel' },
+{ id: 'IMX420', fmt: '1,1"', res: '3208 × 2200', pix: '4,50 µm', ppd: '5,5', price: '710', cls: '' }
+];
+return { vars: dark ? D : L, sensors, chart: { line, area, nyq: X(145).toFixed(1), nyqT: (X(145) + 6).toFixed(1), req: X(89).toFixed(1), reqT: (X(89) - 6).toFixed(1) } };
+}
+}
+</script>
+</body>
+</html>

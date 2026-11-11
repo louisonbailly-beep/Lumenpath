@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Accueil Lumenpath</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400..600&display=swap">
+<style>
+body{margin:0}
+a{color:inherit;text-decoration:none}
+a:hover{color:var(--accent)}
+</style>
+</helmet>
+<div style="{{vars}} background: var(--bg); color: var(--ink); font-family: 'Geist', 'Helvetica Neue', Arial, sans-serif; font-size: 16px; line-height: 1.55; min-height: 1800px; display: flex; flex-direction: column; align-items: center">
+
+<header style="width: 100%; box-sizing: border-box; border-bottom: 1px solid var(--line); display: flex; justify-content: center">
+<div style="width: 100%; max-width: 1200px; box-sizing: border-box; padding: 18px 32px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px">
+<a href="Main.dc.html" style="display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 600; letter-spacing: -0.02em; color: var(--ink)">
+<svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13.5" fill="none" stroke="var(--ink)" stroke-width="2"/><path d="M8.5 9.5 16 20.5 23.5 9.5" fill="none" stroke="var(--accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><rect x="13.8" y="18.3" width="4.4" height="4.4" fill="var(--ink)"/></svg>
+<span>lumen<span style="font-weight: 300; color: var(--muted)">path</span></span>
+</a>
+<nav aria-label="Navigation" style="display: flex; flex-wrap: wrap; gap: 28px; font-size: 14px; color: var(--muted)">
+<a href="#outils">Outils</a><a href="#methode">Méthode</a><a href="#donnees">Données</a>
+</nav>
+<div style="display: flex; gap: 10px; flex-wrap: wrap">
+<a href="Connexion.dc.html" style="padding: 9px 16px; font-size: 14px; border: 1px solid var(--line); border-radius: 6px; color: var(--ink); background: var(--panel)">Se connecter</a>
+<a href="Inscription.dc.html" style="padding: 9px 16px; font-size: 14px; border-radius: 6px; background: var(--accent); color: var(--on-accent); font-weight: 500">Créer un accès</a>
+</div>
+</div>
+</header>
+
+<section style="width: 100%; max-width: 1200px; box-sizing: border-box; padding: 96px 32px 80px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 64px; align-items: center">
+<div style="display: flex; flex-direction: column; gap: 28px; min-width: 0">
+<div style="font-family: 'Geist Mono', monospace; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted)">Calcul optique pour la vision industrielle</div>
+<h1 style="margin: 0; font-size: 60px; line-height: 1.02; letter-spacing: -0.04em; font-weight: 500; text-wrap: balance">Du champ de vue à l'objectif, au capteur et au filtre.</h1>
+<p style="margin: 0; font-size: 18px; color: var(--muted); max-width: 520px">Décrivez votre inspection : distance, champ, plus petit défaut, matière. Lumenpath calcule la résolution requise et spécifie l'objectif, la monture, le capteur et la lumière, formules à l'appui.</p>
+<div style="display: flex; flex-wrap: wrap; gap: 12px">
+<a href="Inscription.dc.html" style="padding: 13px 22px; border-radius: 6px; background: var(--accent); color: var(--on-accent); font-weight: 500">Créer un accès</a>
+<a href="Connexion.dc.html" style="padding: 13px 22px; border-radius: 6px; border: 1px solid var(--line); background: var(--panel); color: var(--ink)">Se connecter</a>
+</div>
+<div style="font-family: 'Geist Mono', monospace; font-size: 12px; color: var(--muted)">Accès réservé aux professionnels · Chaque résultat affiche sa formule</div>
+</div>
+
+<div style="border: 1px solid var(--line); border-radius: 10px; background: var(--panel); overflow: hidden; min-width: 0">
+<div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; border-bottom: 1px solid var(--line); font-family: 'Geist Mono', monospace; font-size: 12px; color: var(--muted)"><span>exemple de calcul</span><span>lumenpath / optique</span></div>
+<svg viewBox="0 0 520 170" role="img" aria-label="Schéma : pièce, objectif, capteur, distance de travail" style="display: block; width: 100%; height: auto; border-bottom: 1px solid var(--line)">
+<rect x="40" y="48" width="8" height="74" fill="var(--muted)" opacity="0.5"/>
+<line x1="44" y1="140" x2="250" y2="140" stroke="var(--line-strong)" stroke-dasharray="3 3"/>
+<ellipse cx="250" cy="85" rx="9" ry="44" fill="none" stroke="var(--ink)" stroke-width="1.5"/>
+<line x1="48" y1="48" x2="250" y2="42" stroke="var(--accent)" stroke-width="1.2"/><line x1="250" y1="42" x2="452" y2="104" stroke="var(--accent)" stroke-width="1.2"/>
+<line x1="48" y1="122" x2="250" y2="128" stroke="var(--accent)" stroke-width="1.2"/><line x1="250" y1="128" x2="452" y2="66" stroke="var(--accent)" stroke-width="1.2"/>
+<rect x="452" y="58" width="7" height="54" fill="none" stroke="var(--ink)" stroke-width="1.5"/>
+<text x="146" y="158" text-anchor="middle" font-family="Geist Mono, monospace" font-size="10" fill="var(--muted)">WD 300 mm</text>
+<text x="44" y="36" text-anchor="middle" font-family="Geist Mono, monospace" font-size="10" fill="var(--muted)">100 × 80 mm</text>
+<text x="455" y="48" text-anchor="middle" font-family="Geist Mono, monospace" font-size="10" fill="var(--muted)">2448 × 2048</text>
+</svg>
+<dl style="margin: 0; padding: 18px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 24px; font-family: 'Geist Mono', monospace; font-size: 13px">
+<div><dt style="color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em">Grandissement</dt><dd style="margin: 2px 0 0">0,0845×</dd></div>
+<div><dt style="color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em">Focale</dt><dd style="margin: 2px 0 0">≈ 23,4 mm, soit 25 mm</dd></div>
+<div><dt style="color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em">Type</dt><dd style="margin: 2px 0 0">standard</dd></div>
+<div><dt style="color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em">Résolution objectif</dt><dd style="margin: 2px 0 0">≥ 89 lp/mm</dd></div>
+<div><dt style="color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em">Cercle d'image</dt><dd style="margin: 2px 0 0">≥ 11,0 mm</dd></div>
+<div><dt style="color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em">Ouverture</dt><dd style="margin: 2px 0 0">f/2,4 à f/7,9</dd></div>
+</dl>
+</div>
+</section>
+
+<section id="outils" style="width: 100%; max-width: 1200px; box-sizing: border-box; padding: 40px 32px 72px; display: flex; flex-direction: column; gap: 28px">
+<div style="display: flex; flex-direction: column; gap: 8px"><div style="font-family: 'Geist Mono', monospace; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted)">Outils</div><h2 style="margin: 0; font-size: 34px; letter-spacing: -0.03em; font-weight: 500">Trois calculateurs, une même méthode.</h2></div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid var(--line); border-radius: 10px; background: var(--panel); overflow: hidden">
+<a href="Calculateur.dc.html" style="padding: 28px; display: flex; flex-direction: column; gap: 12px; color: var(--ink); border-right: 1px solid var(--line)">
+<span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: var(--accent)">calculateur complet</span>
+<span style="font-size: 20px; font-weight: 500; letter-spacing: -0.02em">Capteur, objectif, lumière</span>
+<span style="color: var(--muted); font-size: 15px">Classement des capteurs, spécification d'objectif sans marque, catalogue importable, prix indicatif des caméras.</span>
+</a>
+<a href="Optique.dc.html" style="padding: 28px; display: flex; flex-direction: column; gap: 12px; color: var(--ink); border-right: 1px solid var(--line)">
+<span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: var(--accent)">optique conseillée</span>
+<span style="font-size: 20px; font-weight: 500; letter-spacing: -0.02em">À partir de votre capteur</span>
+<span style="color: var(--muted); font-size: 15px">Focale, standard, macro ou télécentrique, doubleur, allonge et monture. Détection ou mesure.</span>
+</a>
+<div style="padding: 28px; display: flex; flex-direction: column; gap: 12px">
+<span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: var(--accent)">lumière et filtre</span>
+<span style="font-size: 20px; font-weight: 500; letter-spacing: -0.02em">Longueur d'onde et filtre</span>
+<span style="color: var(--muted); font-size: 15px">De la matière inspectée à la longueur d'onde, au filtre et à la polarisation, avec le décalage en bord de champ.</span>
+</div>
+</div>
+</section>
+
+<section id="methode" style="width: 100%; max-width: 1200px; box-sizing: border-box; padding: 0 32px 72px; display: flex; flex-direction: column; gap: 28px">
+<div style="display: flex; flex-direction: column; gap: 8px"><div style="font-family: 'Geist Mono', monospace; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted)">Méthode</div><h2 style="margin: 0; font-size: 34px; letter-spacing: -0.03em; font-weight: 500">Trois étapes, de la contrainte à la fiche.</h2></div>
+<ol style="list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px">
+<li style="border-top: 1px solid var(--ink); padding-top: 16px; display: flex; flex-direction: column; gap: 8px"><span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: var(--muted)">01</span><span style="font-size: 18px; font-weight: 500">Décrire</span><span style="color: var(--muted); font-size: 15px">Capteur, champ de vue, distance de travail, taille du défaut ou précision de mesure.</span></li>
+<li style="border-top: 1px solid var(--ink); padding-top: 16px; display: flex; flex-direction: column; gap: 8px"><span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: var(--muted)">02</span><span style="font-size: 18px; font-weight: 500">Calculer</span><span style="color: var(--muted); font-size: 15px">Grandissement, focale, Nyquist, diffraction, profondeur de champ, distorsion.</span></li>
+<li style="border-top: 1px solid var(--ink); padding-top: 16px; display: flex; flex-direction: column; gap: 8px"><span style="font-family: 'Geist Mono', monospace; font-size: 12px; color: var(--muted)">03</span><span style="font-size: 18px; font-weight: 500">Spécifier</span><span style="color: var(--muted); font-size: 15px">Un cahier des charges d'objectif neutre, à envoyer à un fabricant ou à votre bureau d'études.</span></li>
+</ol>
+</section>
+
+<section id="donnees" style="width: 100%; max-width: 1200px; box-sizing: border-box; padding: 0 32px 72px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 64px">
+<div style="display: flex; flex-direction: column; gap: 8px"><div style="font-family: 'Geist Mono', monospace; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted)">Données</div><h2 style="margin: 0; font-size: 34px; letter-spacing: -0.03em; font-weight: 500">Vos projets restent les vôtres.</h2></div>
+<ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column">
+<li style="padding: 16px 0; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 4px"><span style="font-weight: 500">Confidentiel par défaut</span><span style="color: var(--muted); font-size: 15px">Un projet n'est visible que de son auteur et des administrateurs habilités.</span></li>
+<li style="padding: 16px 0; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 4px"><span style="font-weight: 500">Deux accords séparés et révocables</span><span style="color: var(--muted); font-size: 15px">L'entraînement de l'IA et la transmission à un intégrateur ou à un bureau d'études demandent chacun votre accord.</span></li>
+<li style="padding: 16px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); display: flex; flex-direction: column; gap: 4px"><span style="font-weight: 500">Calculs vérifiables</span><span style="color: var(--muted); font-size: 15px">L'IA conseille, mais ne remplace jamais une formule affichée.</span></li>
+</ul>
+</section>
+
+<section style="width: 100%; max-width: 1200px; box-sizing: border-box; padding: 0 32px 80px">
+<div style="border: 1px solid var(--line); border-radius: 10px; background: var(--panel); padding: 40px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 24px">
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 26px; letter-spacing: -0.03em; font-weight: 500">Prêt à dimensionner votre prochain poste ?</span><span style="color: var(--muted)">Créez un accès professionnel en deux minutes.</span></div>
+<a href="Inscription.dc.html" style="padding: 13px 22px; border-radius: 6px; background: var(--accent); color: var(--on-accent); font-weight: 500">Créer un accès</a>
+</div>
+</section>
+
+<footer style="width: 100%; border-top: 1px solid var(--line); display: flex; justify-content: center">
+<div style="width: 100%; max-width: 1200px; box-sizing: border-box; padding: 24px 32px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; font-family: 'Geist Mono', monospace; font-size: 12px; color: var(--muted)"><span>lumenpath · conseil optique pour la vision industrielle</span><span>Confidentialité · Conditions · Contact</span></div>
+</footer>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"mode":{"editor":"enum","options":["light","dark"],"default":"light","section":"Thème"},"$preview":{"width":1440,"height":1800}}'>
+class Component extends DCLogic {
+renderVals() {
+const dark = (this.props.mode ?? 'light') === 'dark';
+const L = '--bg:#F6F7F8;--panel:#FFFFFF;--ink:#0E1116;--muted:#5B6571;--line:#E3E6EA;--line-strong:#C3C9D0;--accent:#0B5FFF;--on-accent:#FFFFFF;--ok:#0F7A55;--warn:#9A5B00;--bad:#C4321F;';
+const D = '--bg:#0B0D10;--panel:#12151A;--ink:#E9ECF0;--muted:#8C96A3;--line:#242A32;--line-strong:#3A424C;--accent:#6C9BFF;--on-accent:#0B0D10;--ok:#4CC596;--warn:#E3A84A;--bad:#F2806C;';
+return { vars: dark ? D : L };
+}
+}
+</script>
+</body>
+</html>

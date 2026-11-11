@@ -1,0 +1,1586 @@
+<title>Lumenpath</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400..700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Plan : atelier d'optique. Écran d'accueil en deux plans (banc optique sombre à gauche, formulaire à droite), puis l'outil. Accent unique : le magenta du traitement antireflet. */
+:root{
+  --bg:#edeff2; --panel:#ffffff; --sunk:#f3f5f7; --ink:#111a24; --muted:#5a6773; --line:#d5dbe1;
+  --accent:#a3205f; --accent-soft:#f6e3ec; --on-accent:#ffffff; --coat:#1f8a63;
+  --ok:#1b7447; --ok-soft:#dff0e6; --warn:#8f5608; --warn-soft:#f8ecd2; --bad:#a8321d; --bad-soft:#f7e0da;
+  --hero-bg:#0f1a26; --hero-ink:#e9eef3; --hero-mute:#97a7b6; --hero-line:#5f7388;
+  --font-ui:'Schibsted Grotesk','Helvetica Neue',Arial,sans-serif;
+  --font-num:'JetBrains Mono','SFMono-Regular',Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0c131a; --panel:#141e27; --sunk:#0f1820; --ink:#e7edf2; --muted:#94a4b2; --line:#26343f;
+    --accent:#f07fb2; --accent-soft:#3a1828; --on-accent:#1b0a13; --coat:#5fd1a3;
+    --ok:#57c28b; --ok-soft:#163626; --warn:#e3aa45; --warn-soft:#3b2d12; --bad:#f07f69; --bad-soft:#3d1d17;
+    --hero-bg:#0a1119; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0c131a; --panel:#141e27; --sunk:#0f1820; --ink:#e7edf2; --muted:#94a4b2; --line:#26343f;
+  --accent:#f07fb2; --accent-soft:#3a1828; --on-accent:#1b0a13; --coat:#5fd1a3;
+  --ok:#57c28b; --ok-soft:#163626; --warn:#e3aa45; --warn-soft:#3b2d12; --bad:#f07f69; --bad-soft:#3d1d17;
+  --hero-bg:#0a1119; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:14px/1.5 var(--font-ui);padding-block:20px 40px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-weight:650;line-height:1.2;margin:0;text-wrap:balance}
+h1{font-size:22px;letter-spacing:-.01em}
+h2{font-size:15px;letter-spacing:.01em}
+h3{font-size:13px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+.shell{max-width:1240px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.top{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:baseline;justify-content:space-between}
+.top p{margin:0;color:var(--muted);max-width:70ch}
+.proto{background:var(--warn-soft);color:var(--warn);border:1px solid color-mix(in srgb,var(--warn) 35%,transparent);padding:8px 12px;border-radius:6px;font-size:13px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-items:start}
+@media (min-width:980px){.layout{grid-template-columns:340px minmax(0,1fr)}.aside{position:sticky;top:12px}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px;min-width:0}
+.aside{display:flex;flex-direction:column;gap:12px}
+fieldset{border:0;margin:0;padding:0;min-width:0}
+legend{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:0;margin-bottom:8px;font-weight:600}
+.group{display:flex;flex-direction:column;gap:10px;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.group:last-child{border:0;margin:0;padding:0}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);min-width:0}
+label.check{flex-direction:row;align-items:flex-start;gap:8px;color:var(--ink);font-size:13px}
+input[type=number],select{font:inherit;font-family:var(--font-num);color:var(--ink);background:var(--sunk);border:1px solid var(--line);border-radius:5px;padding:7px 8px;width:100%;min-width:0}
+select{font-family:var(--font-ui)}
+input[type=checkbox]{margin-top:3px;accent-color:var(--accent)}
+input:focus-visible,select:focus-visible,button:focus-visible,summary:focus-visible,tr[tabindex]:focus-visible,.pick:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.unit{font-family:var(--font-num);font-size:11px;color:var(--muted)}
+.presets{display:flex;flex-wrap:wrap;gap:6px}
+button.preset{font:inherit;font-size:12px;background:var(--accent-soft);color:var(--accent);border:1px solid transparent;border-radius:5px;padding:6px 9px;cursor:pointer}
+button.preset:hover{border-color:var(--accent)}
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:0;padding:0;overflow:hidden}
+.summary>div{padding:14px 16px;border-left:1px solid var(--line);min-width:0}
+.summary>div:first-child{border-left:0}
+@media (max-width:620px){.summary>div{border-left:0;border-top:1px solid var(--line)}.summary>div:first-child{border-top:0}}
+.k{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+.v{font-family:var(--font-num);font-size:20px;margin-top:4px;overflow-wrap:anywhere}
+.s{font-size:12px;color:var(--muted);margin-top:2px}
+.sec-head{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 12px;align-items:baseline;margin-bottom:10px}
+.sec-head p{margin:0;font-size:12px;color:var(--muted)}
+.scroll{overflow-x:auto;margin:0 -16px;padding:0 16px}
+table{border-collapse:collapse;width:100%;min-width:720px;font-size:13px}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:8px;border-bottom:1px solid var(--line);vertical-align:middle;white-space:nowrap}
+td.n,th.n{text-align:right}
+tr[data-id]{cursor:pointer}
+tr[data-id]:hover td{background:var(--sunk)}
+tr.sel td{background:var(--accent-soft)}
+tr.sel td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
+tr.off td{opacity:.5}
+.chip{display:inline-block;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:99px;white-space:nowrap}
+.chip.ok{background:var(--ok-soft);color:var(--ok)}
+.chip.limite{background:var(--warn-soft);color:var(--warn)}
+.chip.insuffisant,.chip.bad{background:var(--bad-soft);color:var(--bad)}
+.chip.off{background:var(--sunk);color:var(--muted)}
+.bar{display:inline-block;vertical-align:middle;width:56px;height:6px;background:var(--sunk);border-radius:3px;margin-left:8px;overflow:hidden;border:1px solid var(--line)}
+.bar i{display:block;height:100%;background:var(--accent)}
+.lenses{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.lens{border:1px solid var(--line);border-radius:7px;padding:12px;display:flex;flex-direction:column;gap:10px;background:var(--sunk);min-width:0;cursor:pointer;text-align:left;font:inherit;color:inherit}
+.lens.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.lens .h{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.lens .f{font-family:var(--font-num);font-size:20px}
+.lens .fam{font-size:12px;color:var(--muted)}
+dl{display:grid;grid-template-columns:auto 1fr;gap:3px 14px;margin:0;font-size:12.5px}
+dt{color:var(--muted)}
+dd{margin:0;font-family:var(--font-num);text-align:right;overflow-wrap:anywhere}
+ul.flags{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px;font-size:12.5px}
+ul.flags li{padding:5px 8px;border-radius:5px;border-left:3px solid}
+ul.flags li.warn{background:var(--warn-soft);color:var(--warn);border-color:var(--warn)}
+ul.flags li.bad{background:var(--bad-soft);color:var(--bad);border-color:var(--bad)}
+ul.flags li.good{background:var(--ok-soft);color:var(--ok);border-color:var(--ok)}
+.adj{font-size:12.5px;padding:8px 10px;border-radius:5px;border-left:3px solid}
+.adj.ok{background:var(--ok-soft);color:var(--ok);border-color:var(--ok)}
+.adj.warn{background:var(--warn-soft);color:var(--warn);border-color:var(--warn)}
+.note{font-size:12.5px;color:var(--muted);margin:10px 0 0}
+.chart{width:100%;height:auto;display:block}
+.chart text{fill:var(--muted);font:11px var(--font-num)}
+.chart .axis{stroke:var(--line);stroke-width:1}
+.chart .grid{stroke:var(--line);stroke-width:1;stroke-dasharray:2 3}
+.chart .curve{fill:none;stroke:var(--accent);stroke-width:2.2}
+.chart .area{fill:var(--accent);opacity:.1}
+.chart .nyq{stroke:var(--ink);stroke-width:1.4;stroke-dasharray:5 4}
+.chart .req{stroke:var(--warn);stroke-width:1.6}
+details{border-top:1px solid var(--line);padding-top:10px;margin-top:10px}
+summary{cursor:pointer;font-weight:600;font-size:13px}
+.calc{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;margin-top:10px}
+.calc div{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1.4fr);gap:4px 14px;font-size:12.5px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+@media (max-width:620px){.calc div{grid-template-columns:minmax(0,1fr)}}
+.calc b{font-weight:600}
+.calc code{font-family:var(--font-num);color:var(--muted);font-size:12px;overflow-wrap:anywhere}
+.calc .res{font-family:var(--font-num);color:var(--accent);overflow-wrap:anywhere}
+.empty{padding:24px;text-align:center;color:var(--muted)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:var(--muted);margin-top:6px}
+.legend span::before{content:"";display:inline-block;width:18px;border-top:2px solid;margin-right:6px;vertical-align:middle}
+.legend .l1::before{border-color:var(--accent)}
+.legend .l2::before{border-top:2px dashed var(--ink)}
+.legend .l3::before{border-color:var(--warn)}
+.legend .l4::before{border-top:1px dotted var(--muted)}
+.hidden{display:none!important}
+textarea{font:12px/1.4 var(--font-num);color:var(--ink);background:var(--sunk);border:1px solid var(--line);border-radius:5px;padding:7px 8px;width:100%;min-height:90px;resize:vertical}
+button.btn{font:inherit;font-size:12px;background:var(--sunk);color:var(--ink);border:1px solid var(--line);border-radius:5px;padding:6px 10px;cursor:pointer}
+button.btn:hover{border-color:var(--accent)}
+.btns{display:flex;flex-wrap:wrap;gap:6px}
+.spec{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.spec>div{background:var(--sunk);border:1px solid var(--line);border-radius:7px;padding:12px;min-width:0}
+.big{font-family:var(--font-num);font-size:19px}
+ul.flags li.info{background:var(--sunk);color:var(--ink);border-color:var(--muted)}
+.chip.good{background:var(--ok-soft);color:var(--ok)}
+.chip.neutral{background:var(--accent-soft);color:var(--accent)}
+.swatch{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:middle;border:1px solid var(--line)}
+.refs{font-size:12px;color:var(--muted);overflow-wrap:anywhere}
+.srcs{font-size:12px;color:var(--muted);margin:10px 0 0;padding-left:18px}
+.srcs a{color:var(--accent)}
+@media (prefers-reduced-motion:no-preference){.bar i{transition:width .2s}}
+input[type=text],input[type=email],input[type=tel],input[type=password]{font:inherit;color:var(--ink);background:var(--sunk);border:1px solid var(--line);border-radius:5px;padding:9px 10px;width:100%;min-width:0}
+input[type=text]:focus-visible,input[type=email]:focus-visible,input[type=tel]:focus-visible,input[type=password]:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.gate{max-width:1240px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr);gap:0;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--panel)}
+@media (min-width:900px){.gate{grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);min-height:640px}}
+.hero{background:var(--hero-bg);color:var(--hero-ink);padding:32px;display:flex;flex-direction:column;gap:22px;min-width:0}
+.brand{display:flex;align-items:center;gap:10px}
+.logo{flex:none;display:block}
+.logo .lr{fill:none;stroke:currentColor;stroke-width:2.6}
+.logo .lv{fill:none;stroke:var(--accent);stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.logo .lp{fill:var(--coat)}
+.hero .logo .lv{stroke:#f07fb2}
+.hero .logo .lp{fill:#5fd1a3}
+.wm{font-size:18px;font-weight:400;letter-spacing:.005em}
+.wm b{font-weight:700;letter-spacing:-.005em}
+.hero h1{font-size:clamp(26px,3.4vw,38px);line-height:1.08;letter-spacing:-.02em;max-width:18ch}
+.hero p{margin:0;color:var(--hero-mute);max-width:52ch}
+.bench{width:100%;height:auto;display:block}
+.bench text{fill:var(--hero-mute);font:11px var(--font-num)}
+.bench .ln{stroke:var(--hero-line);stroke-width:1.2;fill:none}
+.bench .ray{stroke:var(--hero-ink);stroke-width:1.2;fill:none;opacity:.85}
+.bench .dim{stroke:var(--hero-line);stroke-width:1;stroke-dasharray:3 3;fill:none}
+.bench .lensA{stroke:var(--accent);stroke-width:2.4;fill:none}
+.bench .lensB{stroke:var(--coat);stroke-width:2.4;fill:none}
+.bench .part{fill:var(--hero-line);opacity:.55}
+.facts{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px 22px}
+.facts li{border-top:1px solid var(--hero-line);padding-top:8px;font-size:13px;color:var(--hero-mute)}
+.facts b{display:block;color:var(--hero-ink);font-weight:600;font-size:14px}
+.reg{padding:32px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.reg h2{font-size:22px;letter-spacing:-.01em}
+.reg .sub{margin:0;color:var(--muted)}
+.steps{display:flex;gap:6px;list-style:none;margin:0;padding:0;font-size:12px;color:var(--muted);flex-wrap:wrap}
+.steps li{display:flex;align-items:center;gap:6px;padding:4px 9px;border-radius:99px;border:1px solid var(--line)}
+.steps li.on{background:var(--accent-soft);color:var(--accent);border-color:transparent;font-weight:600}
+.steps li.done{color:var(--ok)}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:520px){.fg{grid-template-columns:minmax(0,1fr)}}
+.fg .full{grid-column:1/-1}
+.err{color:var(--bad);font-size:12px;min-height:0}
+.err:empty{display:none}
+button.cta{font:inherit;font-weight:600;background:var(--accent);color:var(--on-accent);border:0;border-radius:6px;padding:11px 16px;cursor:pointer}
+button.cta:hover{filter:brightness(1.08)}
+button.cta:focus-visible,button.ghost:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.ghost{font:inherit;background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:10px 14px;cursor:pointer}
+button.ghost:hover{border-color:var(--accent)}
+.demo{background:var(--warn-soft);color:var(--warn);border:1px solid color-mix(in srgb,var(--warn) 35%,transparent);border-radius:6px;padding:8px 10px;font-size:12.5px}
+.mail{border:1px solid var(--line);border-radius:8px;background:var(--sunk);padding:14px;display:flex;flex-direction:column;gap:8px;font-size:13px}
+.mail .hd{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font-size:12px;color:var(--muted)}
+.mail .hd b{color:var(--ink);font-weight:600;overflow-wrap:anywhere}
+.mail .lnk{display:inline-block;align-self:flex-start;background:var(--accent);color:var(--on-accent);padding:8px 12px;border-radius:5px;font-weight:600;font-size:13px}
+.meter{display:flex;gap:4px}
+.meter i{flex:1;height:5px;border-radius:3px;background:var(--line)}
+.meter i.on1{background:var(--bad)}.meter i.on2{background:var(--warn)}.meter i.on3,.meter i.on4{background:var(--ok)}
+.appbar{max-width:1240px;margin:0 auto 14px;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between}
+.appbar .brand{color:var(--ink)}
+.who{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted);flex-wrap:wrap}
+.who b{color:var(--ink)}
+[hidden]{display:none!important}
+.tabs{display:flex;gap:4px;flex-wrap:wrap}
+.tabs a{font-size:13px;padding:6px 12px;border-radius:99px;border:1px solid var(--line);color:var(--muted);text-decoration:none}
+.tabs a[aria-current=page]{background:var(--accent-soft);color:var(--accent);border-color:transparent;font-weight:600}
+.tabs a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.small{font-size:12px;color:var(--muted);margin:0}
+</style>
+
+<main id="gate">
+<div class="gate">
+  <section class="hero" aria-label="Présentation">
+    <div class="brand"><svg class="logo" viewBox="0 0 32 32" width="30" height="30" aria-hidden="true"><circle class="lr" cx="16" cy="16" r="13.5"/><path class="lv" d="M8.5 9.5 16 20.5 23.5 9.5"/><rect class="lp" x="13.6" y="18.1" width="4.8" height="4.8" rx="0.6"/></svg><span class="wm">Lumen<b>path</b></span></div>
+    <h1>Du champ de vue à l'objectif, au capteur et au filtre.</h1>
+    <p>Décrivez votre inspection : distance, champ, plus petit défaut, matière. L'outil calcule la résolution requise et spécifie l'objectif, le capteur et la lumière, formules à l'appui.</p>
+    <svg class="bench" viewBox="0 0 520 210" role="img" aria-label="Schéma : pièce, objectif, capteur, distance de travail et champ de vue">
+      <rect class="part" x="40" y="62" width="14" height="86"/>
+      <line class="dim" x1="47" y1="170" x2="256" y2="170"/><text x="152" y="188" text-anchor="middle">distance de travail</text>
+      <line class="dim" x1="28" y1="62" x2="28" y2="148"/><text x="22" y="108" text-anchor="end" transform="rotate(-90 22 108)">champ de vue</text>
+      <ellipse class="lensA" cx="256" cy="105" rx="13" ry="52"/><ellipse class="lensB" cx="261" cy="105" rx="13" ry="52"/>
+      <line class="ray" x1="54" y1="62" x2="256" y2="56"/><line class="ray" x1="256" y1="56" x2="446" y2="125"/>
+      <line class="ray" x1="54" y1="148" x2="256" y2="154"/><line class="ray" x1="256" y1="154" x2="446" y2="85"/>
+      <line class="ray" x1="54" y1="105" x2="446" y2="105" opacity=".45"/>
+      <rect x="446" y="70" width="10" height="70" rx="1" fill="none" stroke="var(--hero-ink)" stroke-width="1.6"/>
+      <text x="451" y="62" text-anchor="middle">capteur</text>
+      <text x="258" y="28" text-anchor="middle">objectif</text>
+    </svg>
+    <ul class="facts">
+      <li><b>Résolution</b>pixels requis, lp/mm, Nyquist, diffraction</li>
+      <li><b>Objectif neutre</b>focale, standard, macro ou télécentrique</li>
+      <li><b>Lumière</b>longueur d'onde, filtre, polarisation</li>
+    </ul>
+  </section>
+  <section class="reg" aria-live="polite">
+    <ol class="steps" id="steps"><li class="on" data-s="1">1 · Inscription</li><li data-s="2">2 · Vérification</li><li data-s="3">3 · Mot de passe</li></ol>
+    <div class="demo"><b>Démonstration.</b> Aucune donnée n'est envoyée ni enregistrée et aucun e-mail n'est expédié. Le parcours montre ce que fera le site une fois relié à un serveur.</div>
+
+    <form id="regForm" novalidate autocomplete="on" data-step="1">
+      <div><h2>Créer votre accès</h2><p class="sub">L'accès est réservé aux professionnels. Les champs marqués d'une étoile sont obligatoires.</p></div>
+      <div class="fg" style="margin-top:12px">
+        <label>Prénom *<input id="prenom" type="text" autocomplete="given-name" required><span class="err" id="e-prenom"></span></label>
+        <label>Nom *<input id="nom" type="text" autocomplete="family-name" required><span class="err" id="e-nom"></span></label>
+        <label class="full">Société *<input id="societe" type="text" autocomplete="organization" required><span class="err" id="e-societe"></span></label>
+        <label class="full">Département dans la société *
+          <select id="dept" required><option value="">Choisir…</option><option>Bureau d'études</option><option>R&amp;D</option><option>Production</option><option>Qualité</option><option>Maintenance</option><option>Intégration, projets</option><option>Achats</option><option>Commercial</option><option>Direction</option><option>Autre</option></select><span class="err" id="e-dept"></span></label>
+        <label class="full">Adresse e-mail professionnelle *<input id="email" type="email" autocomplete="email" required><span class="err" id="e-email"></span></label>
+        <label class="full">Téléphone, facultatif<input id="tel" type="tel" autocomplete="tel" placeholder="+33 1 23 45 67 89"><span class="err" id="e-tel"></span></label>
+        <label class="check full"><input id="cgu" type="checkbox" required> J'accepte les conditions d'utilisation et la politique de confidentialité. *</label>
+        <span class="err full" id="e-cgu"></span>
+      </div>
+      <p class="small" style="margin:10px 0 12px">Vos projets restent confidentiels. Le partage avec un bureau d'études, un intégrateur ou l'entraînement de l'IA demande un accord séparé, que vous donnez plus tard et que vous pouvez retirer.</p>
+      <button class="cta" type="submit">Recevoir le lien de vérification</button>
+    </form>
+
+    <div id="stepMail" hidden>
+      <h2>Vérifiez votre adresse</h2>
+      <p class="sub">Un lien de vérification doit être envoyé à <b id="mailTo" class="num"></b>. Voici l'aperçu du message.</p>
+      <div class="mail" style="margin-top:12px">
+        <div class="hd"><span>De</span><b>Lumenpath</b><span>À</span><b id="mailTo2"></b><span>Objet</span><b>Confirmez votre adresse e-mail</b></div>
+        <div>Bonjour <span id="mailName"></span>, confirmez votre adresse pour activer votre accès. Le lien est à usage unique et expire après 24 heures.</div>
+        <span class="lnk">Confirmer mon adresse</span>
+      </div>
+      <p class="small" style="margin:10px 0 12px">Aucun mot de passe n'est envoyé par e-mail : vous le choisissez à l'étape suivante, une fois l'adresse confirmée.</p>
+      <div class="btns"><button class="cta" id="openLink" type="button">Simuler un clic sur le lien</button><button class="ghost" id="backReg" type="button">Modifier mes informations</button></div>
+    </div>
+
+    <form id="pwForm" hidden novalidate>
+      <div><h2>Choisissez votre mot de passe</h2><p class="sub">Adresse confirmée : <b id="okMail" class="num"></b></p></div>
+      <div class="fg" style="margin-top:12px">
+        <label class="full">Mot de passe, 12 caractères minimum<input id="pw1" type="password" autocomplete="new-password"><span class="err" id="e-pw1"></span></label>
+        <div class="full"><div class="meter" aria-hidden="true"><i></i><i></i><i></i><i></i></div><p class="small" id="pwHint" style="margin-top:4px">Mélangez majuscules, minuscules, chiffres et symboles, ou choisissez une longue phrase.</p></div>
+        <label class="full">Confirmer le mot de passe<input id="pw2" type="password" autocomplete="new-password"><span class="err" id="e-pw2"></span></label>
+      </div>
+      <p class="small" style="margin:10px 0 12px">Côté serveur, le mot de passe n'est jamais stocké en clair : il est haché avec un algorithme lent (Argon2id) avant enregistrement.</p>
+      <button class="cta" type="submit">Activer mon accès</button>
+    </form>
+  </section>
+</div>
+</main>
+<div id="app" hidden>
+  <div class="appbar"><div class="brand"><svg class="logo" viewBox="0 0 32 32" width="30" height="30" aria-hidden="true"><circle class="lr" cx="16" cy="16" r="13.5"/><path class="lv" d="M8.5 9.5 16 20.5 23.5 9.5"/><rect class="lp" x="13.6" y="18.1" width="4.8" height="4.8" rx="0.6"/></svg><span class="wm">Lumen<b>path</b></span></div><nav class="tabs" aria-label="Calculateurs"><a href="#calculateur" id="tabA">Calculateur complet</a><a href="#optique" id="tabB">Optique conseillée</a></nav><div class="who"><span id="whoTxt"></span><button class="ghost" id="logout" type="button">Se déconnecter</button></div></div>
+<div class="shell" id="tabFull">
+  <header class="top">
+    <div>
+      <h1>Calculateur optique vision</h1>
+      <p>Champ de vue, résolution, capteur et objectif à partir des contraintes de l'application.</p>
+    </div>
+  </header>
+  <div class="proto"><b>Prototype.</b> Les capteurs viennent de pages publiques (Basler, LUCID, Atik, Sony) et le catalogue d'objectifs est générique et sans marque : importez votre gamme en CSV. Les résultats sont des ordres de grandeur en lentille mince, à valider sur la fiche de chaque objectif.</div>
+
+  <div class="layout">
+    <form class="aside card" id="form" autocomplete="off" onsubmit="return false">
+      <div class="presets" role="group" aria-label="Exemples">
+        <button type="button" class="preset" data-p="aspect">Aspect pièce usinée</button>
+        <button type="button" class="preset" data-p="cote">Mesure de cote</button>
+        <button type="button" class="preset" data-p="code">Lecture DataMatrix</button>
+        <button type="button" class="preset" data-p="colle">Colle sur carter</button>
+      </div>
+      <fieldset class="group">
+        <legend>Scène</legend>
+        <div class="row">
+          <label>Champ de vue largeur <input id="fovH" type="number" min="0.1" step="any" value="100"><span class="unit">mm</span></label>
+          <label>Champ de vue hauteur <input id="fovV" type="number" min="0.1" step="any" value="80"><span class="unit">mm</span></label>
+        </div>
+        <div class="row">
+          <label>Distance de travail <input id="wd" type="number" min="1" step="any" value="300"><span class="unit">mm, objet à la lentille</span></label>
+          <label>Variation de hauteur <input id="depth" type="number" min="0" step="any" value="5"><span class="unit">mm, profondeur à tenir nette</span></label>
+        </div>
+        <label>Type d'inspection
+          <select id="task"><option value="detection" selected>Détection, aspect, lecture</option><option value="mesure">Mesure dimensionnelle</option></select>
+        </label>
+        <label class="check"><input id="backlight" type="checkbox"> Contre-jour (silhouette de la pièce).</label>
+      </fieldset>
+      <fieldset class="group">
+        <legend>Détail à voir</legend>
+        <div class="row">
+          <label>Plus petit défaut <input id="defect" type="number" min="1" step="any" value="200"><span class="unit">µm</span></label>
+          <label>Pixels sur le défaut
+            <select id="k"><option value="2">2 · détection</option><option value="3" selected>3 · recommandé</option><option value="4">4 · mesure</option><option value="6">6 · mesure fine</option></select>
+          </label>
+        </div>
+        <label class="check"><input id="color" type="checkbox"> Capteur couleur (matrice de Bayer) : double le nombre de pixels exigé, règle empirique courante.</label>
+      </fieldset>
+      <fieldset class="group">
+        <legend>Mouvement</legend>
+        <div class="row">
+          <label>Vitesse de la pièce <input id="speed" type="number" min="0" step="any" value="0"><span class="unit">mm/s, 0 = à l'arrêt</span></label>
+          <label>Temps d'exposition <input id="exposure" type="number" min="1" step="any" value="200"><span class="unit">µs</span></label>
+        </div>
+        <label class="check"><input id="globalOnly" type="checkbox" checked> Obturateur global uniquement (pièce en mouvement).</label>
+      </fieldset>
+      <fieldset class="group">
+        <legend>Matière et lumière</legend>
+        <label>Matière ou effet à observer
+          <select id="material"></select>
+        </label>
+        <label id="tcolorW" class="hidden">Couleur du motif à contraster
+          <select id="tcolor"><option value="rouge">Rouge</option><option value="vert">Vert</option><option value="bleu">Bleu</option><option value="jaune">Jaune</option></select>
+        </label>
+        <label>Contrainte de longueur d'onde
+          <select id="lamCons"><option value="auto" selected>Aucune : conseil selon la matière</option><option value="source">Source ou éclairage imposé</option><option value="band">Plage imposée</option></select>
+        </label>
+        <div class="row hidden" id="lamSrcW">
+          <label>Longueur d'onde centrale <input id="lamC" type="number" min="200" max="1700" step="any" value="850"><span class="unit">nm</span></label>
+          <label>Largeur à mi-hauteur <input id="lamFwhm" type="number" min="1" step="any" value="30"><span class="unit">nm</span></label>
+        </div>
+        <div class="row hidden" id="lamBandW">
+          <label>λ minimale <input id="lamMin" type="number" min="200" max="1700" step="any" value="620"><span class="unit">nm</span></label>
+          <label>λ maximale <input id="lamMax" type="number" min="200" max="1700" step="any" value="680"><span class="unit">nm</span></label>
+        </div>
+        <label>Lumière ambiante
+          <select id="ambient"><option value="maitrisee" selected>Maîtrisée (carter, local sombre)</option><option value="forte">Forte (jour, atelier éclairé)</option></select>
+        </label>
+        <label class="check"><input id="glare" type="checkbox"> Reflets gênants sur la surface (polarisation).</label>
+      </fieldset>
+      <fieldset class="group">
+        <legend>Optique</legend>
+        <label>Ouverture nominale
+          <select id="nom"><option>1.4</option><option>2</option><option>2.8</option><option>4</option><option selected>5.6</option><option>8</option><option>11</option><option>16</option></select>
+        </label>
+        <label>Flou admis pour la profondeur de champ
+          <select id="coc"><option value="1">1 pixel</option><option value="2" selected>2 pixels</option></select>
+        </label>
+      </fieldset>
+      <fieldset class="group">
+        <legend>Chiffrage (option)</legend>
+        <label class="check"><input id="showPrice" type="checkbox"> Afficher un prix indicatif de caméra pour chaque capteur.</label>
+        <div class="row">
+          <label>Devise <select id="cur"><option value="USD">Dollar US</option><option value="EUR">Euro</option></select></label>
+          <label>Taux USD → EUR <input id="rate" type="number" min="0.1" step="0.01" value="0.92"><span class="unit">hypothèse, à ajuster</span></label>
+        </div>
+      </fieldset>
+      <fieldset class="group">
+        <legend>Catalogue d'objectifs</legend>
+        <label class="check"><input id="useDemo" type="checkbox" checked> Exemples génériques, sans marque.</label>
+        <label class="check"><input id="showBrand" type="checkbox"> Afficher fabricant et référence.</label>
+        <label>Importer un catalogue (CSV)<input id="csvFile" type="file" accept=".csv,.txt,text/csv"></label>
+        <label>ou coller le contenu<textarea id="csvText" placeholder="ref;fabricant;serie;type;focale_mm;..." spellcheck="false"></textarea></label>
+        <div class="btns"><button type="button" class="btn" id="csvLoad">Charger</button><button type="button" class="btn" id="csvTpl">Remplir un modèle</button><button type="button" class="btn" id="csvClear">Vider</button></div>
+        <div class="unit" id="csvMsg">Aucun catalogue importé.</div>
+      </fieldset>
+    </form>
+
+    <main style="display:flex;flex-direction:column;gap:16px;min-width:0" id="out" aria-live="polite"></main>
+  </div>
+</div>
+
+
+<div id="tabOpt" class="shell" hidden>
+  <header class="top">
+    <div>
+      <h1>Optique conseillée</h1>
+      <p>Saisissez votre capteur et vos contraintes : le calculateur recommande la focale, le type d'objectif (standard, macro ou télécentrique), la résolution et les accessoires.</p>
+    </div>
+  </header>
+  <div class="layout">
+    <form class="aside card" id="oForm" autocomplete="off" onsubmit="return false">
+      <div class="presets" role="group" aria-label="Exemples">
+        <button type="button" class="preset" data-o="defaut">Défaut sur pièce</button>
+        <button type="button" class="preset" data-o="cote">Mesure de cote</button>
+        <button type="button" class="preset" data-o="micro">Petit champ</button>
+        <button type="button" class="preset" data-o="grand">Grand champ</button>
+      </div>
+      <fieldset class="group">
+        <legend>Votre capteur</legend>
+        <label>Référence IMX, si vous la connaissez
+          <input id="o_imx" type="text" list="o_imxList" placeholder="par exemple IMX530" autocomplete="off"><span class="unit" id="o_imxMsg"></span></label>
+        <datalist id="o_imxList"></datalist>
+        <label>Modèle de la base, ou saisie libre
+          <select id="o_sensor"></select></label>
+        <div class="row">
+          <label>Pixels en largeur <input id="o_sw" type="number" min="1" step="1" value="2448"></label>
+          <label>Pixels en hauteur <input id="o_sh" type="number" min="1" step="1" value="2048"></label>
+        </div>
+        <label>Taille du pixel <input id="o_p" type="number" min="0.5" step="any" value="3.45"><span class="unit">µm</span></label>
+      </fieldset>
+      <fieldset class="group">
+        <legend>Monture (option)</legend>
+        <label>Monture de la caméra
+          <select id="o_mount"></select></label>
+        <span class="unit">Laissez « Non précisée » pour recevoir un conseil de monture selon le capteur.</span>
+      </fieldset>
+      <fieldset class="group">
+        <legend>Contraintes de la scène</legend>
+        <div class="row">
+          <label>Champ de vue largeur <input id="o_fovH" type="number" min="0.1" step="any" value="100"><span class="unit">mm</span></label>
+          <label>Champ de vue hauteur <input id="o_fovV" type="number" min="0.1" step="any" value="80"><span class="unit">mm</span></label>
+        </div>
+        <div class="row">
+          <label>Distance de travail <input id="o_wd" type="number" min="1" step="any" value="300"><span class="unit">mm, objet à la lentille</span></label>
+          <label>Variation de hauteur <input id="o_depth" type="number" min="0" step="any" value="5"><span class="unit">mm à tenir net</span></label>
+        </div>
+        <label class="check"><input id="o_back" type="checkbox"> Contre-jour (silhouette de la pièce).</label>
+      </fieldset>
+      <fieldset class="group">
+        <legend>Objectif de l'inspection</legend>
+        <label>Type
+          <select id="o_task"><option value="detection" selected>Détection d'un défaut</option><option value="mesure">Mesure dimensionnelle</option></select></label>
+        <div class="row" id="o_detW">
+          <label>Plus petit défaut <input id="o_defect" type="number" min="1" step="any" value="200"><span class="unit">µm</span></label>
+          <label>Pixels sur le défaut
+            <select id="o_k"><option value="2">2 · détection</option><option value="3" selected>3 · recommandé</option><option value="4">4 · fiable</option></select></label>
+        </div>
+        <div class="row hidden" id="o_mesW">
+          <label>Précision de mesure visée <input id="o_prec" type="number" min="0.1" step="any" value="10"><span class="unit">µm</span></label>
+          <label>Interpolation sous-pixel
+            <select id="o_sub"><option value="1">Aucune, 1 pixel</option><option value="3" selected>1/3 de pixel</option><option value="5">1/5 de pixel</option><option value="10">1/10 de pixel</option></select></label>
+        </div>
+      </fieldset>
+      <fieldset class="group">
+        <legend>Optique</legend>
+        <div class="row">
+          <label>Ouverture nominale
+            <select id="o_nom"><option>1.4</option><option>2</option><option>2.8</option><option>4</option><option selected>5.6</option><option>8</option><option>11</option><option>16</option></select></label>
+          <label>Longueur d'onde <input id="o_lam" type="number" min="200" max="1700" step="any" value="550"><span class="unit">nm</span></label>
+        </div>
+        <label>Flou admis pour la profondeur de champ
+          <select id="o_coc"><option value="1">1 pixel</option><option value="2" selected>2 pixels</option></select></label>
+      </fieldset>
+    </form>
+    <main style="display:flex;flex-direction:column;gap:16px;min-width:0" id="oOut" aria-live="polite"></main>
+  </div>
+</div>
+</div>
+<script>
+/* Moteur de calcul optique v2 : champ de vue, résolution, capteur, spécification d'objectif neutre,
+   import de catalogue, matière, longueur d'onde et filtre.
+   Longueurs en mm, sauf pixels et défauts en µm, longueurs d'onde en nm. */
+(function (root) {
+  'use strict';
+
+  /* ---------- Sources citées dans l'interface ---------- */
+  var SRC = {
+    basler: { t: 'Basler : sélection de l\'éclairage', u: 'https://www.baslerweb.com/en-us/learning/illumination-selection' },
+    edmundF: { t: 'Edmund Optics : filtres en vision industrielle', u: 'https://www.edmundoptics.co.kr/resources/application-notes/imaging/filtering-in-machine-vision/' },
+    edmundP: { t: 'Edmund Optics : polarisation de la lumière', u: 'https://www.edmundoptics.com.tw/resources/application-notes/illumination/successful-light-polarization-techniques/' },
+    andover: { t: 'Andover : filtres passe-bande, décalage angulaire', u: 'https://andovercorp.com/optical-bandpass-filters-fundamentals/' },
+    qmag: { t: 'Quality Magazine : éclairage et imagerie SWIR', u: 'https://www.qualitymag.com/articles/97669-the-power-of-swir-illumination-and-imaging' },
+    vdocUV: { t: 'Vision Doctor : éclairage UV', u: 'https://www.vision-doctor.com/en/lighting/uv-illumination.html' },
+    photonics: { t: 'Photonics : inspecter l\'acier chaud', u: 'https://photonics.com/Articles/Inspecting_hot_steel_in_a_new_light/a40630' },
+    mvstore: { t: 'Machine Vision Store : prix des Basler ace 2 (USD)', u: 'https://machinevisionstore.com/Catalog/bycategoryfilter?categoryId=1&pageSize=12&pageIndex=2&filterValues=0%2C-1%2CAll+Resolutions%2C-1%2C-1' },
+    framos: { t: 'FRAMOS : capteurs SWIR de Sony', u: 'https://framos.com/en/articles/introduction-to-sonys-swir-sensors-and-applications' }
+  };
+
+  /* ---------- Base capteurs (pages Basler, LUCID, Atik, Sony, FRAMOS) ---------- */
+  var SENSORS = [
+    { id: 'IMX174 / IMX249', fam: 'Pregius', w: 1920, h: 1200, p: 5.86, fmt: '1/1.2"', sh: 'global' },
+    { id: 'IMX421 / IMX429', fam: 'Pregius (3e gén.)', w: 1936, h: 1464, p: 4.5, fmt: '2/3"', sh: 'global' },
+    { id: 'IMX420 / IMX428', fam: 'Pregius (3e gén.)', w: 3208, h: 2200, p: 4.5, fmt: '1.1"', sh: 'global' },
+    { id: 'IMX252 / IMX265', fam: 'Pregius', w: 2048, h: 1536, p: 3.45, fmt: '1/1.8"', sh: 'global' },
+    { id: 'IMX250 / IMX264', fam: 'Pregius', w: 2448, h: 2048, p: 3.45, fmt: '2/3"', sh: 'global' },
+    { id: 'IMX255 / IMX267', fam: 'Pregius', w: 4112, h: 2176, p: 3.45, fmt: '1"', sh: 'global' },
+    { id: 'IMX253 / IMX304', fam: 'Pregius', w: 4112, h: 3008, p: 3.45, fmt: '1.1"', sh: 'global' },
+    { id: 'IMX537 / IMX547', fam: 'Pregius S', w: 2448, h: 2048, p: 2.74, fmt: '1/1.8"', sh: 'global' },
+    { id: 'IMX536 / IMX546', fam: 'Pregius S', w: 2840, h: 2840, p: 2.74, fmt: '2/3"', sh: 'global' },
+    { id: 'IMX535 / IMX545', fam: 'Pregius S', w: 4096, h: 3000, p: 2.74, fmt: '1/1.1"', sh: 'global' },
+    { id: 'IMX532 / IMX542', fam: 'Pregius S', w: 5320, h: 3040, p: 2.74, fmt: '1.1"', sh: 'global' },
+    { id: 'IMX531 / IMX541', fam: 'Pregius S', w: 4504, h: 4504, p: 2.74, fmt: '1.1"', sh: 'global' },
+    { id: 'IMX530 / IMX540', fam: 'Pregius S', w: 5320, h: 4600, p: 2.74, fmt: '1.2"', sh: 'global' },
+    { id: 'IMX927 / IMX937', fam: 'Pregius S', w: 10272, h: 10272, p: 2.74, fmt: 'type 2.5', sh: 'global' },
+    { id: 'IMX585', fam: 'Starvis 2', w: 3840, h: 2160, p: 2.9, fmt: '1/1.2"', sh: 'rolling' },
+    { id: 'IMX533', fam: 'Exmor R', w: 3008, h: 3008, p: 3.76, fmt: '1"', sh: 'rolling' },
+    { id: 'IMX492', fam: 'Exmor R', w: 8232, h: 5588, p: 2.315, fmt: '1.4"', sh: 'rolling' },
+    { id: 'IMX571', fam: 'Exmor R', w: 6244, h: 4168, p: 3.76, fmt: 'APS-C', sh: 'rolling' },
+    { id: 'IMX455', fam: 'Exmor R', w: 9576, h: 6388, p: 3.76, fmt: 'plein format', sh: 'rolling' },
+    // SWIR (SenSWIR, 400 à 1700 nm), pixel 5 µm, obturateur global (FRAMOS)
+    { id: 'IMX990', fam: 'SenSWIR', w: 1280, h: 1024, p: 5.0, fmt: '1/2"', sh: 'global', lo: 400, hi: 1700, swir: true },
+    { id: 'IMX991', fam: 'SenSWIR', w: 640, h: 512, p: 5.0, fmt: '1/4"', sh: 'global', lo: 400, hi: 1700, swir: true }
+  ];
+  SENSORS.forEach(function (s) { if (s.lo == null) s.lo = 400; if (s.hi == null) s.hi = 1000; }); // silicium : jusqu'à environ 1 µm
+
+  /* ---------- Matières et effets : longueurs d'onde conseillées ---------- */
+  var COLOR_RULE = {
+    rouge: { dark: 525, darkAlt: 'bleu 470 nm', bright: 630 },
+    vert: { dark: 630, darkAlt: 'bleu 470 nm', bright: 525 },
+    bleu: { dark: 630, darkAlt: 'vert 525 nm', bright: 470 },
+    jaune: { dark: 470, darkAlt: '', bright: 610 }
+  };
+  var MATERIALS = [
+    { id: 'general', grp: 'Général', label: 'Non précisée, usage général', lam: 550,
+      bands: [{ lo: 400, hi: 700, role: 'Principale', why: 'Lumière visible. Avec une caméra monochrome, une lumière colorée choisie selon le contraste donne souvent mieux que le blanc.' }], src: ['basler'] },
+    { id: 'color', grp: 'Général', label: 'Impression, étiquette, motif coloré', colorRule: true, src: ['basler'] },
+    { id: 'metal', grp: 'Surfaces', label: 'Métal brillant, surface réfléchissante', lam: 550, pol: true,
+      polWhy: 'Le défaut principal est le reflet spéculaire, pas la couleur : polariseur sur l\'éclairage et analyseur à 90° sur l\'objectif.',
+      bands: [{ lo: 400, hi: 700, role: 'Principale', why: 'Lumière visible au choix ; la polarisation traite les reflets.' }], src: ['edmundP'] },
+    { id: 'glass', grp: 'Surfaces', label: 'Verre ou plastique transparent (contraintes)', lam: 550, pol: true,
+      polWhy: 'Polariseurs croisés : la contrainte interne du matériau (biréfringence) devient visible.',
+      bands: [{ lo: 400, hi: 700, role: 'Principale', why: 'Lumière visible entre polariseurs croisés.' }], src: ['edmundP'] },
+    { id: 'hot', grp: 'Procédé', label: 'Pièce chaude ou incandescente (acier chaud)', lam: 450, hot: true,
+      bands: [{ lo: 400, hi: 500, role: 'Principale', why: 'Éclairer loin du spectre émis par la pièce chaude : le bleu est utilisé, parfois le vert ou le violet.' }], src: ['photonics'] },
+    { id: 'fluo', grp: 'Ultraviolet', label: 'Colle, adhésif, mastic, encre UV (fluorescence)', lam: 365, filterKind: 'fluo',
+      bands: [{ lam: 365, role: 'Excitation', why: 'UV-A à 365 nm : colles, cordons et mastics émettent une lumière visible bleutée ou verdâtre.' }], src: ['vdocUV'] },
+    { id: 'pcb', grp: 'Ultraviolet', label: 'Circuit imprimé, soudure, fibre (détails fins)', lam: 365,
+      bands: [{ lam: 365, role: 'Principale', why: 'L\'UV, davantage réfléchi, révèle petits défauts, poussières et rayures sur circuits, soudures et fibres.' }], src: ['vdocUV'] },
+    { id: 'silicon', grp: 'Infrarouge court (SWIR)', label: 'Silicium (wafer, cellule : fissures internes)', lam: 1300, filterKind: 'swirlp', swirCut: 1100,
+      bands: [{ lo: 1100, hi: 1700, role: 'Principale', why: 'Le silicium est transparent au-delà de 1100 nm : fissures, collages et défauts internes deviennent visibles.' }], src: ['qmag', 'framos'] },
+    { id: 'water', grp: 'Infrarouge court (SWIR)', label: 'Eau, liquides, niveau de remplissage', lam: 1450,
+      bands: [{ lam: 1450, role: 'Principale', why: 'L\'eau absorbe fortement vers 1450 nm et apparaît très sombre ; l\'isopropanol, l\'eau et l\'acétone se distinguent en SWIR.' }], src: ['qmag'] },
+    { id: 'fruit', grp: 'Infrarouge court (SWIR)', label: 'Fruits (meurtrissures, humidité)', lam: 1450,
+      bands: [{ lo: 1000, hi: 1700, role: 'Principale', why: 'Marques de pression et humidité ressortent en IR et SWIR ; 1450 nm est une valeur de travail (pic d\'absorption de l\'eau).' }], src: ['basler', 'qmag'] },
+    { id: 'plastic', grp: 'Infrarouge court (SWIR)', label: 'Plastiques (tri, recyclage)', lam: 1300,
+      bands: [{ lo: 1000, hi: 1700, role: 'Principale', why: 'Chaque plastique a sa propre signature SWIR. 1300 nm est une valeur de travail, à affiner sur les spectres de vos plastiques.' }], src: ['qmag'] },
+    { id: 'powder', grp: 'Infrarouge court (SWIR)', label: 'Poudres blanches, corps étrangers alimentaires', lam: 1300,
+      bands: [{ lo: 1000, hi: 1700, role: 'Principale', why: 'Sel, sucre et farine se ressemblent en couleur mais pas en SWIR ; métal, pierres et plastique ressortent. 1300 nm est une valeur de travail.' }], src: ['framos'] }
+  ];
+
+  /* ---------- Fonctions de base ---------- */
+  function fmt(x, n) { return isFinite(x) ? x.toFixed(n) : '∞'; }
+  function dims(s) {
+    var W = s.w * s.p / 1000, H = s.h * s.p / 1000;
+    return { W: W, H: H, D: Math.sqrt(W * W + H * H), mpx: s.w * s.h / 1e6 };
+  }
+  function nyquist(pUm) { return 1000 / (2 * pUm); }
+  function cutoff(lambdaNm, nEff) { return 1e6 / (lambdaNm * nEff); }
+  function mtfDiff(x) {
+    if (x <= 0) return 1;
+    if (x >= 1) return 0;
+    return (2 / Math.PI) * (Math.acos(x) - x * Math.sqrt(1 - x * x));
+  }
+  function xForMtf(target) {
+    var lo = 0, hi = 1;
+    for (var i = 0; i < 60; i++) { var mid = (lo + hi) / 2; if (mtfDiff(mid) > target) lo = mid; else hi = mid; }
+    return (lo + hi) / 2;
+  }
+  function focalFor(wd, m) { return wd * m / (1 + m); }
+  function magAt(f, wd) { return f / (wd - f); }
+  function dof(f, N, c_mm, wd) {
+    var H = f * f / (N * c_mm) + f;
+    var near = wd * (H - f) / (H + wd - 2 * f);
+    var far = wd >= H ? Infinity : wd * (H - f) / (H - wd);
+    return { near: near, far: far, total: far - near, hyper: H };
+  }
+  // Décalage vers le bleu d'un filtre interférentiel à l'angle d'incidence th (rad), indice effectif nstar
+  function blueShift(l0, th, nstar) {
+    var x = Math.sin(th) / (nstar || 2);
+    return l0 * (1 - Math.sqrt(1 - x * x));
+  }
+
+  /* ---------- Longueur d'onde retenue : contrainte imposée, sinon matière ---------- */
+  function materialById(id) {
+    for (var i = 0; i < MATERIALS.length; i++) if (MATERIALS[i].id === id) return MATERIALS[i];
+    return MATERIALS[0];
+  }
+  function materialBands(mat, tcolor) {
+    if (mat.colorRule) {
+      var c = COLOR_RULE[tcolor] || COLOR_RULE.rouge;
+      return [
+        { lam: c.dark, role: 'Assombrit le motif', why: 'Une couleur complémentaire rend le motif plus sombre sur un fond clair' + (c.darkAlt ? ' (aussi ' + c.darkAlt + ')' : '') + '. Valeurs de LED usuelles.' },
+        { lam: c.bright, role: 'Éclaircit le motif', why: 'Une couleur proche de celle du motif le rend plus clair. Valeur de LED usuelle.' }
+      ];
+    }
+    return mat.bands;
+  }
+  function resolveLambda(inp) {
+    var mat = materialById(inp.material);
+    var fw = inp.lamFwhm > 0 ? inp.lamFwhm : 25;
+    var r = { mat: mat, fwhm: fw };
+    if (inp.lamCons === 'source' && inp.lamC > 0) { r.lam = inp.lamC; r.from = 'source imposée'; r.mode = 'source'; }
+    else if (inp.lamCons === 'band' && inp.lamMax > inp.lamMin && inp.lamMin > 0) {
+      r.lam = (inp.lamMin + inp.lamMax) / 2; r.fwhm = inp.lamMax - inp.lamMin; r.from = 'plage imposée'; r.mode = 'band';
+    } else {
+      var b = materialBands(mat, inp.tcolor);
+      r.lam = mat.colorRule ? b[0].lam : mat.lam;
+      r.from = mat.id === 'general' ? 'défaut (lumière visible)' : 'matière';
+      r.mode = 'material';
+    }
+    return r;
+  }
+
+  /* ---------- Capteurs ---------- */
+  function evalSensor(s, inp) {
+    var d = dims(s);
+    var mA = Math.min(d.W / inp.fovH, d.H / inp.fovV);
+    var mB = Math.min(d.H / inp.fovH, d.W / inp.fovV);
+    var portrait = mB > mA * 1.0001;
+    var m = portrait ? mB : mA;
+    var kEff = inp.k * (inp.color ? 2 : 1);
+    var ppd = inp.defect * m / s.p;
+    var status = ppd >= kEff ? 'ok' : (ppd >= 0.75 * kEff ? 'limite' : 'insuffisant');
+    var why = '';
+    if (inp.globalOnly && s.sh !== 'global') why = 'obturateur roulant';
+    var lam = inp.lambda || 550;
+    if (!why && lam > 1100 && !s.swir) why = 'hors plage spectrale';
+    if (!why && lam > 1700) why = 'hors plage spectrale';
+    return {
+      sensor: s, dims: d, m: m, portrait: portrait, ppd: ppd, kEff: kEff, pixObj: s.p / m,
+      status: status, excluded: !!why, why: why,
+      fovH: (portrait ? d.H : d.W) / m, fovV: (portrait ? d.W : d.H) / m, nyq: nyquist(s.p)
+    };
+  }
+  function requiredPixels(inp) {
+    var kEff = inp.k * (inp.color ? 2 : 1);
+    var nH = Math.ceil(inp.fovH * 1000 * kEff / inp.defect);
+    var nV = Math.ceil(inp.fovV * 1000 * kEff / inp.defect);
+    return { nH: nH, nV: nV, mpx: nH * nV / 1e6, kEff: kEff };
+  }
+  function rankSensors(inp) {
+    var lam = inp.lambda || 550;
+    var list = SENSORS.map(function (s) { return evalSensor(s, inp); });
+    var order = { ok: 0, limite: 1, insuffisant: 2 };
+    list.sort(function (a, b) {
+      if (a.excluded !== b.excluded) return a.excluded ? 1 : -1;
+      if (order[a.status] !== order[b.status]) return order[a.status] - order[b.status];
+      var pa = (a.sensor.swir && lam <= 1000) ? 1 : 0, pb = (b.sensor.swir && lam <= 1000) ? 1 : 0;
+      if (pa !== pb) return pa - pb;
+      if (a.status === 'ok') return (a.dims.mpx - b.dims.mpx) || (b.sensor.p - a.sensor.p);
+      return b.ppd - a.ppd;
+    });
+    return list;
+  }
+
+  /* ---------- Type d'objectif : standard, macro, télécentrique ---------- */
+  var MACRO_M = 0.1, TELE_MAX_FOV = 250;
+  var KIND_LABEL = { standard: 'Standard (focale fixe)', macro: 'Macro', telecentrique: 'Télécentrique' };
+  function lensType(ev, inp) {
+    var m = ev.m, fovMax = Math.max(inp.fovH, inp.fovV);
+    var perr = inp.depth > 0 ? inp.fovH * inp.depth / inp.wd : 0;
+    var perrPx = perr / (ev.pixObj / 1000);
+    var meas = inp.task === 'mesure';
+    var reasons = [], tele = false;
+    if (meas && perrPx > 1) {
+      tele = true;
+      reasons.push({ t: 'info', m: 'Mesure avec ' + fmt(inp.depth, 1) + ' mm de variation de hauteur : un objectif standard fait varier l\'échelle de ' + fmt(perr, 2) + ' mm sur le champ, soit ' + fmt(perrPx, 1) + ' pixels. Un télécentrique supprime cette erreur de perspective.' });
+    }
+    if (meas && inp.backlight) {
+      tele = true;
+      reasons.push({ t: 'info', m: 'Mesure en contre-jour : un télécentrique donne des bords nets, sans effet de perspective (à associer à un contre-jour collimaté).' });
+    }
+    var kind, alt = [];
+    if (tele && fovMax > TELE_MAX_FOV) {
+      reasons.push({ t: 'warn', m: 'Champ de ' + fmt(fovMax, 0) + ' mm : un télécentrique doit avoir une lentille frontale plus grande que le champ, peu courant au-delà de ' + TELE_MAX_FOV + ' mm (seuil de travail du prototype). Objectif standard avec calibration, ou découpage du champ.' });
+      kind = m > MACRO_M ? 'macro' : 'standard';
+    } else if (tele) {
+      kind = 'telecentrique';
+      reasons.push({ t: 'info', m: 'Grossissement fixe et distance de travail imposée par l\'objectif ; à choisir près de ' + fmt(m, 3) + '× et de ' + fmt(inp.wd, 0) + ' mm.' });
+      alt.push(m > MACRO_M ? 'macro' : 'standard');
+    } else if (m > MACRO_M) {
+      kind = 'macro';
+      reasons.push({ t: 'info', m: 'Grossissement de ' + fmt(m, 3) + '×, au-dessus de ' + MACRO_M + '× : objectif macro, ou standard avec bague allonge (résolution et ouverture à vérifier). Seuil de travail du prototype.' });
+      alt.push('standard');
+      if (meas) alt.push('telecentrique');
+    } else {
+      kind = 'standard';
+      reasons.push({ t: 'info', m: 'Grossissement de ' + fmt(m, 3) + '×, jusqu\'à ' + MACRO_M + '× : objectif standard à focale fixe.' });
+      if (meas && inp.depth > 0) reasons.push({ t: 'info', m: 'Variation de hauteur faible (' + fmt(perrPx, 1) + ' px d\'erreur de perspective) : un standard calibré suffit.' });
+    }
+    return { kind: kind, label: KIND_LABEL[kind], alt: alt, reasons: reasons, perr: perr, perrPx: perrPx };
+  }
+
+  /* ---------- Spécification d'objectif, sans marque ---------- */
+  var STD_FOCALS = [4, 6, 8, 12, 16, 25, 35, 50, 75, 100, 135];
+  function apertureWindow(ev, m, inp) {
+    var coc = inp.cocPx * ev.sensor.p / 1000;
+    var nMin = inp.depth > 0 ? inp.depth * m * m / (2 * coc * (1 + m)) : null;
+    var x20 = xForMtf(0.2);
+    var nEffMax = x20 * 1e6 / (inp.lambda * nyquist(ev.sensor.p));
+    return { nMin: nMin, nMax: nEffMax / (1 + m) };
+  }
+  function lensSpec(ev, inp, lt) {
+    var s = ev.sensor, d = ev.dims, m = ev.m, kEff = ev.kEff;
+    var nuN = nyquist(s.p);
+    var nuReq = 1000 / (2 * inp.defect * m);
+    var pitchK = inp.defect * m / kEff;
+    var nuK = Math.min(1000 / (2 * pitchK), nuN);
+    var spec = {
+      m: m, kind: lt.kind, kEff: kEff,
+      nuN: nuN, nuReq: nuReq, nuK: nuK, pitchEq: 1000 / (2 * nuK), pitchSensor: s.p,
+      objLpmm: 1000 / (2 * inp.defect),
+      circleMin: d.D, inch: d.D / 16,
+      win: apertureWindow(ev, m, inp),
+      mpxSensor: d.mpx
+    };
+    if (lt.kind !== 'telecentrique') {
+      spec.f = focalFor(inp.wd, m);
+      var below = null, above = null;
+      STD_FOCALS.forEach(function (f) { if (f <= spec.f) below = f; if (f >= spec.f && above == null) above = f; });
+      spec.fBelow = below; spec.fAbove = above;
+      var coc = inp.cocPx * s.p / 1000;
+      spec.dof = dof(spec.f, inp.nom, coc, inp.wd);
+    }
+    var nEff = inp.nom * (1 + m);
+    spec.nEff = nEff;
+    spec.cutoff = cutoff(inp.lambda, nEff);
+    spec.mtfNyq = mtfDiff(nuN / spec.cutoff);
+    spec.mtfK = mtfDiff(nuK / spec.cutoff);
+    return spec;
+  }
+
+  /* ---------- Catalogue d'objectifs : exemples génériques (sans marque) et import CSV ---------- */
+  function minFocusMm(f) {
+    if (f <= 16) return 100; if (f <= 25) return 150; if (f <= 35) return 200; if (f <= 50) return 300; if (f <= 75) return 500; return 800;
+  }
+  var DEMO_FAMILIES = [
+    { circle: 9.0, pitch: 2.74, mount: 'C', focals: [6, 8, 12, 16, 25, 35, 50] },
+    { circle: 11.0, pitch: 3.45, mount: 'C', focals: [6, 8, 12, 16, 25, 35, 50, 75] },
+    { circle: 11.0, pitch: 2.74, mount: 'C', focals: [8, 12, 16, 25, 35, 50] },
+    { circle: 17.6, pitch: 3.45, mount: 'C', focals: [8, 12, 16, 25, 35, 50, 75, 100] },
+    { circle: 17.6, pitch: 2.74, mount: 'C', focals: [12, 16, 25, 35, 50, 75] },
+    { circle: 22.0, pitch: 2.74, mount: 'C', focals: [16, 25, 35, 50, 75] },
+    { circle: 43.0, pitch: 3.45, mount: 'F', focals: [28, 35, 50, 85, 100, 135] }
+  ];
+  var DEMO_CATALOG = [];
+  DEMO_FAMILIES.forEach(function (fam) {
+    fam.focals.forEach(function (f) {
+      DEMO_CATALOG.push({
+        ref: 'Exemple ' + f + ' mm, cercle ' + fam.circle + ' mm', brand: '', series: 'demo-' + fam.circle + '-' + fam.pitch, type: 'standard',
+        f: f, mount: fam.mount, circle: fam.circle, pixmax: fam.pitch, res: nyquist(fam.pitch), fmin: 1.4, fmax: 16,
+        wdmin: minFocusMm(f), wdmax: null, mag: null, demo: true
+      });
+    });
+  });
+
+  function strip(s) { return String(s == null ? '' : s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim(); }
+  var ALIAS = {
+    ref: ['ref', 'reference', 'pn', 'partnumber', 'part_number', 'modele', 'model'],
+    brand: ['fabricant', 'marque', 'brand', 'manufacturer'],
+    series: ['serie', 'series', 'gamme', 'famille'],
+    type: ['type', 'categorie', 'category'],
+    f: ['focale_mm', 'focale', 'f', 'focal_length', 'focal'],
+    mount: ['monture', 'mount'],
+    circle: ['cercle_image_mm', 'cercle_image', 'image_circle', 'image_circle_mm', 'cercle'],
+    pixmax: ['pixel_max_um', 'pixel_max', 'pixel_um', 'pixel_size_um'],
+    res: ['resolution_lpmm', 'lpmm', 'resolution', 'res_lpmm'],
+    fmin: ['fnum_min', 'f_min', 'fno_min'],
+    fmax: ['fnum_max', 'f_max', 'fno_max'],
+    wdmin: ['wd_min_mm', 'wd_min'],
+    wdmax: ['wd_max_mm', 'wd_max'],
+    mag: ['grossissement', 'magnification', 'mag']
+  };
+  function splitLine(line, d) {
+    var out = [], cur = '', q = false;
+    for (var i = 0; i < line.length; i++) {
+      var c = line.charAt(i);
+      if (q) { if (c === '"') { if (line.charAt(i + 1) === '"') { cur += '"'; i++; } else q = false; } else cur += c; }
+      else if (c === '"') q = true;
+      else if (c === d) { out.push(cur); cur = ''; }
+      else cur += c;
+    }
+    out.push(cur);
+    return out;
+  }
+  function toNum(v, commaDec) {
+    if (v == null) return NaN;
+    v = String(v).replace(/\s/g, '');
+    if (v === '') return NaN;
+    if (commaDec) v = v.replace(',', '.');
+    return parseFloat(v);
+  }
+  var CSV_TEMPLATE =
+    'ref;fabricant;serie;type;focale_mm;monture;cercle_image_mm;pixel_max_um;resolution_lpmm;fnum_min;fnum_max;wd_min_mm;wd_max_mm;grossissement\n' +
+    'REF-001;Fabricant A;Serie 1;standard;25;C;11;3,45;;1,4;16;150;;\n' +
+    'REF-002;Fabricant B;Serie 2;macro;50;C;17,6;;160;2,8;22;200;800;\n' +
+    'REF-003;Fabricant C;Serie 3;telecentrique;;C;11;;120;;;110;110;0,25';
+  function parseCatalog(text) {
+    var res = { entries: [], errors: [], delimiter: ';' };
+    var lines = String(text || '').replace(/^﻿/, '').split(/\r?\n/).filter(function (l) { return l.trim() !== ''; });
+    if (lines.length < 2) { res.errors.push('Fichier vide ou sans ligne de données.'); return res; }
+    var head = lines[0], best = ';', cnt = -1;
+    [';', '\t', ','].forEach(function (d) { var c = head.split(d).length; if (c > cnt) { cnt = c; best = d; } });
+    res.delimiter = best;
+    var commaDec = best !== ',';
+    var cols = splitLine(head, best).map(strip), idx = {};
+    Object.keys(ALIAS).forEach(function (k) { idx[k] = -1; ALIAS[k].forEach(function (a) { var i = cols.indexOf(a); if (i >= 0 && idx[k] < 0) idx[k] = i; }); });
+    if (idx.type < 0) res.errors.push('Colonne « type » absente (standard, macro ou telecentrique).');
+    if (idx.f < 0 && idx.mag < 0) res.errors.push('Colonne « focale_mm » ou « grossissement » absente.');
+    if (res.errors.length) return res;
+    function get(parts, k) { return idx[k] >= 0 ? parts[idx[k]] : ''; }
+    for (var li = 1; li < lines.length; li++) {
+      var p = splitLine(lines[li], best), line = li + 1;
+      var ts = strip(get(p, 'type'));
+      var type = ts.indexOf('tele') === 0 ? 'telecentrique' : (ts.indexOf('macro') === 0 ? 'macro' : 'standard');
+      var e = {
+        ref: String(get(p, 'ref') || '').trim(), brand: String(get(p, 'brand') || '').trim(), series: String(get(p, 'series') || '').trim(),
+        type: type, f: toNum(get(p, 'f'), commaDec), mount: String(get(p, 'mount') || '').trim(),
+        circle: toNum(get(p, 'circle'), commaDec), pixmax: toNum(get(p, 'pixmax'), commaDec), res: toNum(get(p, 'res'), commaDec),
+        fmin: toNum(get(p, 'fmin'), commaDec), fmax: toNum(get(p, 'fmax'), commaDec),
+        wdmin: toNum(get(p, 'wdmin'), commaDec), wdmax: toNum(get(p, 'wdmax'), commaDec), mag: toNum(get(p, 'mag'), commaDec), demo: false
+      };
+      if (!isFinite(e.res) && isFinite(e.pixmax) && e.pixmax > 0) e.res = nyquist(e.pixmax);
+      if (!isFinite(e.res)) e.res = null;
+      ['circle', 'fmin', 'fmax', 'wdmin', 'wdmax'].forEach(function (k) { if (!isFinite(e[k])) e[k] = null; });
+      if (!isFinite(e.pixmax)) e.pixmax = null;
+      if (!e.series) e.series = (e.brand || '') + '|' + e.type + '|' + (e.circle || '') + '|' + (e.res ? Math.round(e.res) : '');
+      if (type === 'telecentrique') {
+        if (!(e.mag > 0)) { res.errors.push('Ligne ' + line + ' : un télécentrique demande un grossissement.'); continue; }
+        if (!isFinite(e.f)) e.f = null;
+      } else {
+        if (!(e.f > 0)) { res.errors.push('Ligne ' + line + ' : focale manquante.'); continue; }
+        e.mag = null;
+      }
+      if (!e.ref) e.ref = 'Ligne ' + line;
+      res.entries.push(e);
+    }
+    return res;
+  }
+
+  /* Évalue un objectif du catalogue pour un capteur et une distance de travail donnés */
+  function evalEntry(ev, e, inp, wd) {
+    var s = ev.sensor, d = ev.dims, out = { e: e, flags: [] };
+    var W = ev.portrait ? d.H : d.W, H = ev.portrait ? d.W : d.H;
+    var m;
+    if (e.type === 'telecentrique') { m = e.mag; wd = e.wdmin || wd; }
+    else { if (wd <= e.f * 1.02) { out.invalid = true; return out; } m = magAt(e.f, wd); }
+    out.m = m; out.wd = wd;
+    out.fovH = W / m; out.fovV = H / m;
+    out.covers = out.fovH >= inp.fovH * 0.999 && out.fovV >= inp.fovV * 0.999;
+    out.marginH = out.fovH / inp.fovH - 1;
+    out.nEff = inp.nom * (1 + m);
+    out.cutoff = cutoff(inp.lambda, out.nEff);
+    out.nyq = nyquist(s.p);
+    out.mtfNyq = mtfDiff(out.nyq / out.cutoff);
+    out.res = e.res;
+    var nuReq = 1000 / (2 * inp.defect * m);
+    var nuK = Math.min(1000 / (2 * (inp.defect * m / ev.kEff)), out.nyq);
+    out.nuReq = nuReq; out.nuK = nuK;
+    if (e.res == null) { out.verdict = 'inconnu'; out.pxEff = null; out.ppdEff = ev.inpPpd; }
+    else {
+      out.pxEff = 1000 / (2 * e.res);
+      var used = Math.max(s.p, out.pxEff);
+      out.ppdEff = inp.defect * m / used;
+      out.mpxResolved = (ev.dims.W * 1000 / used) * (ev.dims.H * 1000 / used) / 1e6;
+      out.verdict = e.res >= out.nyq ? 'plein' : (e.res >= nuK ? 'suffisant' : (e.res >= nuReq ? 'limite' : 'insuffisant'));
+    }
+    if (e.f && e.type !== 'telecentrique') out.dof = dof(e.f, inp.nom, inp.cocPx * s.p / 1000, wd);
+    if (e.circle != null && e.circle < d.D) out.flags.push({ t: 'bad', m: 'Cercle d\'image (' + fmt(e.circle, 1) + ' mm) plus petit que la diagonale du capteur (' + fmt(d.D, 1) + ' mm) : vignetage.' });
+    else if (e.circle != null && e.circle < d.D * 1.03) out.flags.push({ t: 'warn', m: 'Cercle d\'image à peine suffisant : vérifier l\'éclairement dans les coins.' });
+    if (e.circle == null) out.flags.push({ t: 'warn', m: 'Cercle d\'image non renseigné : compatibilité avec le capteur non vérifiée.' });
+    if (e.res == null) out.flags.push({ t: 'warn', m: 'Résolution non renseignée : verdict impossible.' });
+    if (e.type !== 'telecentrique') {
+      if (e.wdmin != null && wd < e.wdmin) out.flags.push({ t: 'warn', m: 'Distance de travail sous la mise au point minimale (' + fmt(e.wdmin, 0) + ' mm) : bague allonge ou macro.' });
+      if (e.wdmax != null && wd > e.wdmax) out.flags.push({ t: 'warn', m: 'Distance de travail au-delà de la plage (' + fmt(e.wdmax, 0) + ' mm).' });
+    } else if (Math.abs(wd - inp.wd) > 0.1 * inp.wd) out.flags.push({ t: 'warn', m: 'Distance de travail imposée de ' + fmt(wd, 0) + ' mm, contre ' + fmt(inp.wd, 0) + ' mm demandés.' });
+    if (e.fmin != null && inp.nom < e.fmin) out.flags.push({ t: 'warn', m: 'Ouverture f/' + inp.nom + ' plus ouverte que le minimum de l\'objectif (f/' + e.fmin + ').' });
+    if (e.fmax != null && inp.nom > e.fmax) out.flags.push({ t: 'warn', m: 'Ouverture f/' + inp.nom + ' plus fermée que le maximum de l\'objectif (f/' + e.fmax + ').' });
+    if (out.mtfNyq < 0.2) out.flags.push({ t: 'warn', m: 'Diffraction : contraste théorique au Nyquist ' + Math.round(out.mtfNyq * 100) + ' % (<20 %). Ouvrir le diaphragme.' });
+    if (inp.depth > 0 && out.dof && out.dof.total < inp.depth) out.flags.push({ t: 'warn', m: 'Profondeur de champ (' + fmt(out.dof.total, 1) + ' mm) inférieure à la variation de hauteur (' + inp.depth + ' mm).' });
+    if (inp.speed > 0) {
+      out.blur = inp.speed * inp.exposure * 1e-6 / ((s.p / m) / 1000);
+      if (out.blur > 0.5) out.flags.push({ t: 'warn', m: 'Flou de bougé ' + out.blur.toFixed(2) + ' px (>0,5 px) : réduire l\'exposition ou stroboscoper.' });
+    }
+    return out;
+  }
+
+  /* Objectifs du catalogue qui conviennent : au type conseillé (ou à ses alternatives), couvrant le champ à votre distance,
+     ou à une distance proche. Une carte par série. */
+  function matchCatalog(ev, inp, catalog, kinds, wdTol) {
+    var d = ev.dims, tol = wdTol == null ? 0.15 : wdTol, groups = {}, out = [];
+    ev.inpPpd = ev.ppd;
+    catalog.forEach(function (e) {
+      if (kinds && kinds.indexOf(e.type) < 0) return;
+      if (e.circle != null && e.circle < d.D * 0.97) return;
+      if (e.type === 'telecentrique') {
+        var r = evalEntry(ev, e, inp, inp.wd);
+        if (!r.invalid && r.covers && r.ppdEff >= 0.75 * ev.kEff * 0.75) out.push(r);
+        return;
+      }
+      (groups[e.series] = groups[e.series] || []).push(e);
+    });
+    Object.keys(groups).forEach(function (k) {
+      var best = null, bestAdj = null;
+      groups[k].forEach(function (e) {
+        var r = evalEntry(ev, e, inp, inp.wd);
+        if (r.invalid) return;
+        if (r.covers && r.ppdEff >= 0.75 * ev.kEff) { if (!best || r.marginH < best.marginH) best = r; return; }
+        var wdNeed = e.f * (1 + ev.m) / ev.m;
+        var dev = Math.abs(wdNeed - inp.wd) / inp.wd;
+        if (dev <= tol && (e.wdmin == null || wdNeed >= e.wdmin) && (e.wdmax == null || wdNeed <= e.wdmax)) {
+          var ra = evalEntry(ev, e, inp, wdNeed);
+          if (!ra.invalid) { ra.adjWd = wdNeed; ra.adjDelta = wdNeed - inp.wd; if (!bestAdj || dev < bestAdj.dev) { ra.dev = dev; bestAdj = ra; } }
+        }
+      });
+      if (best) out.push(best); else if (bestAdj) out.push(bestAdj);
+    });
+    var vo = { plein: 0, suffisant: 1, inconnu: 2, limite: 3, insuffisant: 4 };
+    out.sort(function (a, b) {
+      var ba = a.flags.filter(function (x) { return x.t === 'bad'; }).length, bb = b.flags.filter(function (x) { return x.t === 'bad'; }).length;
+      if (ba !== bb) return ba - bb;
+      if (vo[a.verdict] !== vo[b.verdict]) return vo[a.verdict] - vo[b.verdict];
+      var da = a.adjWd ? 1 : 0, db = b.adjWd ? 1 : 0;
+      if (da !== db) return da - db;
+      return (a.adjWd ? a.dev - b.dev : a.marginH - b.marginH);
+    });
+    // regroupe les références de même spécification : aucune marque n'est mise en avant
+    var merged = [], seen = {};
+    out.forEach(function (r) {
+      var e = r.e, key = [e.type, e.f, e.mag, e.res ? Math.round(e.res) : '', e.circle, r.adjWd ? Math.round(r.adjWd) : ''].join('|');
+      if (seen[key]) { seen[key].refs.push(e); return; }
+      r.refs = [e]; seen[key] = r; merged.push(r);
+    });
+    return merged;
+  }
+
+  /* ---------- Longueur d'onde, filtre, polarisation ---------- */
+  function lightAdvice(inp, ev, lensKind, lr) {
+    var mat = lr.mat, lam = lr.lam, fw = lr.fwhm, A = { lam: lam, from: lr.from, mat: mat, flags: [], notes: [], src: (mat.src || []).slice() };
+    A.bands = materialBands(mat, inp.tcolor);
+    A.fwhm = fw;
+    var nstar = inp.nstar > 1 ? inp.nstar : 2;
+    var diag = Math.sqrt(inp.fovH * inp.fovH + inp.fovV * inp.fovV);
+    var th = lensKind === 'telecentrique' ? 0 : Math.atan(diag / 2 / inp.wd);
+    A.thetaDeg = th * 180 / Math.PI;
+    A.telecentric = lensKind === 'telecentrique';
+    function sh(l) { return blueShift(l, th, nstar); }
+    A.shift = sh(lam);
+
+    // compatibilité capteur et optique
+    var s = ev.sensor;
+    if (lam > 1700) A.flags.push({ t: 'bad', m: 'Au-delà de 1700 nm : hors de la plage SWIR traitée par ce prototype.' });
+    else if (lam > 1100) A.flags.push({ t: 'warn', m: 'Au-delà de 1100 nm : capteur SWIR requis (la gamme SenSWIR couvre 400 à 1700 nm). Objectif et éclairage prévus pour cette bande.' });
+    else if (lam > 1000) A.flags.push({ t: 'warn', m: 'Entre 1000 et 1100 nm : limite du silicium (sensibilité vers 1 µm), rendement faible.' });
+    else if (lam >= 700) A.flags.push({ t: 'info', m: 'Proche infrarouge : prévoir un objectif traité pour cette bande (décalage de mise au point). Capteur monochrome, car les capteurs couleur portent un filtre IR-cut.' });
+    if (lam < 370) A.flags.push({ t: 'bad', m: 'Sous 370 nm : les capteurs CMOS standard ne répondent plus. Capteur UV dédié et optique en quartz nécessaires (un capteur Pregius S de la gamme UV couvre environ 200 à 1000 nm).' });
+    else if (lam < 400) A.flags.push({ t: 'warn', m: 'Entre 370 et 400 nm : sensibilité réduite, et les objectifs standard et leurs vitres absorbent une grande part des UV. Optique compatible UV à vérifier.' });
+    if (inp.color && lam >= 700) A.flags.push({ t: 'warn', m: 'Capteur couleur coché : son filtre IR-cut bloque cette bande. Choisir un capteur monochrome.' });
+    if (s.swir === true && lam <= 1000) A.flags.push({ t: 'info', m: 'Capteur SWIR sélectionné alors que la bande reste visible : un capteur silicium convient et coûte moins.' });
+
+    // recoupement avec la matière, quand une contrainte est imposée
+    if (lr.mode !== 'material' && mat.id !== 'general') {
+      var inBand = A.bands.some(function (b) { return b.lam != null ? Math.abs(lam - b.lam) <= 40 : (lam >= b.lo && lam <= b.hi); });
+      if (!inBand) A.flags.push({ t: 'warn', m: 'Votre longueur d\'onde (' + fmt(lam, 0) + ' nm) est hors des bandes conseillées pour cette matière : vérifier le contraste par un essai.' });
+    }
+
+    // filtre
+    var F = { need: 'optionnel' }, kind = mat.filterKind || 'bandpass';
+    if (lr.mode === 'band') kind = 'bandpass';
+    if (lam < 400 && kind === 'bandpass' && mat.id !== 'pcb' && lr.mode === 'source') kind = 'fluo';
+    if (kind === 'fluo') {
+      var x0 = lam + fw / 2;
+      F.kind = 'longpass'; F.name = 'Passe-haut';
+      F.cut = x0 + sh(x0);
+      F.text = 'Placé sur la caméra, il bloque la lumière UV d\'excitation et laisse passer la fluorescence visible. Coupure à ' + fmt(F.cut, 0) + ' nm minimum : borne haute de la source (' + fmt(x0, 0) + ' nm) plus le décalage vers le bleu en bord de champ (' + fmt(sh(x0), 1) + ' nm).';
+      F.need = 'recommandé';
+      A.notes.push('Si l\'UV sert en réflexion et non en fluorescence, un passe-bande centré sur la source remplace le passe-haut.');
+    } else if (kind === 'swirlp') {
+      var c0 = mat.swirCut;
+      F.kind = 'longpass'; F.name = 'Passe-haut';
+      F.cut = c0 + sh(c0);
+      F.text = 'Il ne laisse passer que l\'infrarouge où le silicium est transparent. Coupure à ' + fmt(F.cut, 0) + ' nm minimum (1100 nm plus le décalage de bord de champ).';
+      F.need = 'recommandé';
+    } else {
+      F.kind = 'bandpass'; F.name = 'Passe-bande';
+      F.c0 = lam + A.shift / 2;
+      F.bmin = fw + A.shift;
+      F.text = 'Centré à ' + fmt(F.c0, 0) + ' nm, largeur à mi-hauteur de ' + fmt(F.bmin, 0) + ' nm au minimum : largeur de la source (' + fmt(fw, 0) + ' nm) plus le décalage vers le bleu en bord de champ (' + fmt(A.shift, 1) + ' nm). Arrondir à la largeur de catalogue supérieure, puis ajouter la tolérance de la fiche du filtre.';
+      if (lr.mode !== 'material' || mat.hot || lam < 400 || lam > 1000) F.need = 'recommandé';
+      if (mat.hot) A.notes.push('Ajouter un filtre thermique et un passe-bande : seule la lumière réfléchie de la source doit atteindre la caméra, pas le rayonnement de la pièce chaude.');
+    }
+    if (inp.ambient === 'forte') {
+      F.need = 'recommandé';
+      A.notes.push('Lumière ambiante forte : filtre au plus près de la largeur minimale, éclairage dominant et exposition courte. Une densité optique de 4 dépasse le besoin de la plupart des applications.');
+    } else if (F.need === 'optionnel') {
+      A.notes.push('Ambiance maîtrisée : le filtre est optionnel. Il devient utile dès que la lumière du jour ou un éclairage d\'atelier entre dans le champ.');
+    }
+    if (A.telecentric) A.notes.push('Objectif télécentrique côté objet : les rayons arrivent presque parallèles à l\'axe, le décalage angulaire du filtre est négligeable.');
+    else if (A.thetaDeg > 15) A.flags.push({ t: 'warn', m: 'Angle de champ de ' + fmt(A.thetaDeg, 0) + '° : la formule de décalage est donnée pour 15° au plus (Andover). Élargir la bande, ou prendre un verre coloré, insensible à l\'angle mais à bandes plus larges.' });
+    if (F.kind === 'bandpass' && F.bmin && lr.mode === 'band' && A.shift > 0.2 * fw) A.flags.push({ t: 'warn', m: 'Le décalage de ' + fmt(A.shift, 1) + ' nm dépasse 20 % de votre plage de ' + fmt(fw, 0) + ' nm : en bord de champ, une partie de la plage sera coupée.' });
+    A.filter = F;
+    A.filterNstar = nstar;
+
+    // polarisation
+    var pol = { use: !!(mat.pol || inp.glare) };
+    if (pol.use) {
+      pol.text = (mat.polWhy || 'Reflets spéculaires : polariseur sur l\'éclairage et analyseur croisé à 90° sur l\'objectif.') + ' Compter environ 50 % de lumière perdue en théorie, 60 à 65 % en pratique : compenser par l\'éclairage ou l\'exposition.';
+      A.src.push('edmundP');
+    }
+    A.pol = pol;
+    if (lr.mode === 'material' && mat.colorRule) A.notes.push('Les longueurs d\'onde sont des valeurs de LED usuelles. Avec une caméra monochrome, vérifier par un essai sur la pièce réelle.');
+    A.src.push('edmundF', 'andover');
+    A.src = A.src.filter(function (k, i, a) { return a.indexOf(k) === i; });
+    return A;
+  }
+
+
+  /* ---------- Chiffrage indicatif des caméras (prix catalogue USD, caméras mono USB3 Basler ace 2, revendeur US) ---------- */
+  var PRICE_POINTS = [
+    { w: 1920, h: 1200, sh: 'global', usd: 359 }, { w: 2600, h: 2160, sh: 'global', usd: 569 }, { w: 2448, h: 2048, sh: 'global', usd: 669 },
+    { w: 2840, h: 2840, sh: 'global', usd: 809 }, { w: 4200, h: 2160, sh: 'global', usd: 789 }, { w: 4096, h: 3000, sh: 'global', usd: 1209 },
+    { w: 5320, h: 3032, sh: 'global', usd: 1539 }, { w: 4504, h: 4504, sh: 'global', usd: 1939 }, { w: 5328, h: 4608, sh: 'global', usd: 2359 },
+    { w: 2592, h: 1944, sh: 'rolling', usd: 309 }, { w: 3840, h: 2160, sh: 'rolling', usd: 339 }
+  ];
+  var PRICE_SPREAD = 0.25;
+  function roundPrice(v) { return v < 1000 ? Math.round(v / 10) * 10 : Math.round(v / 50) * 50; }
+  function estimatePrice(s) {
+    if (s.swir) return { quote: true, why: 'Caméra SWIR : prix non publics, demander un devis.' };
+    var mpx = s.w * s.h / 1e6, pts = PRICE_POINTS.filter(function (p) { return p.sh === s.sh; }).map(function (p) { return { m: p.w * p.h / 1e6, usd: p.usd }; }).sort(function (a, b) { return a.m - b.m; });
+    var mid = null, basis = '';
+    pts.forEach(function (p) { if (mid == null && Math.abs(p.m / mpx - 1) <= 0.03) { mid = p.usd; basis = 'caméra de même résolution relevée'; } });
+    if (mid == null) {
+      for (var i = 0; i < pts.length - 1; i++) {
+        if (mpx > pts[i].m && mpx < pts[i + 1].m) { mid = pts[i].usd + (pts[i + 1].usd - pts[i].usd) * (mpx - pts[i].m) / (pts[i + 1].m - pts[i].m); basis = 'interpolé entre deux caméras relevées'; }
+      }
+    }
+    if (mid == null) return { quote: true, why: 'Hors des prix relevés (' + (s.sh === 'rolling' ? 'obturateur roulant au-delà de 8 Mpx' : 'résolution hors plage') + ') : demander un devis.' };
+    mid = roundPrice(mid);
+    return { usd: mid, lo: roundPrice(mid * (1 - PRICE_SPREAD)), hi: roundPrice(mid * (1 + PRICE_SPREAD)), basis: basis };
+  }
+
+  /* ---------- Montures d'objectif et références IMX hors base ---------- */
+  var MOUNTS = [
+    { id: 'm8', label: 'M8', thread: 'M8 × 0,35 ou × 0,5', flange: null, diagStd: 6.7, diagExt: null, fr: [1.5, 6], ext: 'Pas d\'allonge standard : choisir un objectif conçu pour la distance voulue.', note: 'Caméras très compactes, capteurs jusqu\'à 1/2,7" environ.' },
+    { id: 's', label: 'S-mount (M12)', thread: 'M12 × 0,5', flange: null, diagStd: 8.9, diagExt: 11, fr: [2.5, 25], ext: 'Pas d\'allonge standard : la mise au point se fait en vissant l\'objectif. Bloquer le réglage une fois terminé.', note: 'Capteurs jusqu\'à 1/1,8" ; quelques objectifs couvrent le 2/3". Le tirage n\'est pas normalisé : il est propre à chaque objectif.' },
+    { id: 'cs', label: 'CS', thread: 'filetage 1"-32 UN', flange: 12.526, diagStd: 16, diagExt: null, fr: [2.8, 50], ext: 'Allonges C/CS disponibles. Un objectif C se monte sur une caméra CS avec une bague de 5 mm ; l\'inverse est impossible.', note: 'Caméras compactes, capteurs jusqu\'à 1".' },
+    { id: 'c', label: 'C', thread: 'filetage 1"-32 UN', flange: 17.526, diagStd: 16, diagExt: 22, fr: [4, 100], ext: 'Bagues allonge standard et lentilles additionnelles disponibles.', note: 'Monture la plus répandue. Au-delà de 1", il faut des objectifs C grand format (cercle d\'image jusqu\'à ≈ 22 mm environ).' },
+    { id: 'tfl', label: 'TFL', thread: 'M35 × 0,75', flange: 17.526, diagStd: 27.9, diagExt: null, fr: [8, 75], ext: 'Allonges propres à cette monture.', note: 'Même tirage que la monture C, pour des capteurs jusqu\'à APS-C (27,9 mm).' },
+    { id: 'f', label: 'F (Nikon)', thread: 'baïonnette de 44 mm', flange: 46.5, diagStd: 43.3, diagExt: null, fr: [20, 200], ext: 'Bagues allonge et soufflets F disponibles. Pas de réglage du tirage.', note: 'Grands capteurs, plein format et caméras linéaires (cercle d\'image d\'au moins 43 mm).' },
+    { id: 'm42', label: 'M42 × 1', thread: 'M42 × 1', flange: 45.5, diagStd: 30, diagExt: null, fr: [20, 100], ext: 'Bagues allonge M42 courantes.', note: 'Grands capteurs et caméras linéaires. Tirage de 45,46 ou 45,5 mm selon le constructeur. Filetage incompatible avec le T2.' },
+    { id: 't2', label: 'T-mount (T2)', thread: 'M42 × 0,75', flange: 55, diagStd: null, diagExt: null, fr: null, ext: 'Bagues et bagues-allonge T2 courantes.', note: 'Capteurs plus grands et haute résolution ; tirage de 55 mm. Le cercle d\'image dépend de l\'objectif.' },
+    { id: 'm58', label: 'M58 × 0,75', thread: 'M58 × 0,75', flange: null, diagStd: null, diagExt: null, fr: null, ext: 'Adaptateurs M58 vers M72 courants.', note: 'Caméras linéaires et très grands capteurs. Tirage propre à chaque fabricant : à confirmer.' },
+    { id: 'm72', label: 'M72 × 0,75', thread: 'M72 × 0,75', flange: null, diagStd: null, diagExt: null, fr: null, ext: 'Adaptateurs M72 vers M58 courants.', note: 'Caméras linéaires 8k à 16k et très grands capteurs. Tirage propre à chaque fabricant : à confirmer.' },
+    { id: 'ef', label: 'Canon EF', thread: 'baïonnette', flange: 44, diagStd: 43.3, diagExt: null, fr: [14, 200], ext: 'Bagues allonge EF disponibles.', note: 'Objectifs photo grand public, cercle d\'image plein format.' },
+    { id: 'e', label: 'Sony E', thread: 'baïonnette', flange: 18, diagStd: 43.3, diagExt: null, fr: [10, 200], ext: 'Allonges E disponibles.', note: 'Caméras compactes plein format et APS-C, objectifs photo.' },
+    { id: 'z', label: 'Nikon Z', thread: 'baïonnette', flange: 16, diagStd: 43.3, diagExt: null, fr: [14, 200], ext: 'Adaptateurs disponibles.', note: 'Tirage court, nombreuses bagues d\'adaptation (dont F).' },
+    { id: 'mft', label: 'Micro 4/3', thread: 'baïonnette', flange: 19.25, diagStd: 21.6, diagExt: null, fr: [7, 300], ext: 'Bagues allonge MFT disponibles.', note: 'Capteurs jusqu\'au format 4/3 (21,6 mm de diagonale).' },
+    { id: 'other', label: 'Autre ou sur mesure', thread: 'à préciser', flange: null, diagStd: null, diagExt: null, fr: null, ext: 'À définir avec le fabricant de la caméra.', note: 'Donner le tirage et le cercle d\'image à l\'objectif demandé.' }
+  ];
+  var IMX_EXTRA = [
+    { id: 'IMX290 / IMX291', fam: 'Starvis', w: 1920, h: 1080, p: 2.9, fmt: '1/2.8"', sh: 'rolling' },
+    { id: 'IMX296', fam: 'Pregius', w: 1456, h: 1088, p: 3.45, fmt: '1/2.9"', sh: 'global' },
+    { id: 'IMX273', fam: 'Pregius', w: 1440, h: 1080, p: 3.45, fmt: '1/2.9"', sh: 'global' },
+    { id: 'IMX392', fam: 'Pregius', w: 1920, h: 1200, p: 3.45, fmt: '1/2.3"', sh: 'global' }
+  ];
+  function mountById(id) { for (var i = 0; i < MOUNTS.length; i++) if (MOUNTS[i].id === id) return MOUNTS[i]; return null; }
+  function findSensor(q) {
+    q = String(q || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (!/^IMX\d+/.test(q)) return null;
+    var all = SENSORS.concat(IMX_EXTRA), out = null;
+    all.forEach(function (s) {
+      s.id.toUpperCase().split('/').forEach(function (part) {
+        var id = part.replace(/[^A-Z0-9]/g, '');
+        if (!out && id && q.indexOf(id) === 0 && /^[A-Z]*$/.test(q.slice(id.length))) out = s;
+      });
+    });
+    return out;
+  }
+  function mountAdvice(R, mountId) {
+    var diag = R.dims.D, M = { flags: [], rec: [] };
+    var rule = diag <= 9 ? ['s', 'cs', 'c'] : diag <= 16 ? ['c', 'cs'] : diag <= 22 ? ['c'] : diag <= 28.5 ? ['tfl', 'm42', 'f'] : diag <= 44 ? ['f', 'm42', 't2', 'm58', 'm72'] : ['m58', 'm72'];
+    M.rec = rule.map(mountById);
+    M.recText = diag <= 9 ? 'Capteur de ' + fmt(diag, 1) + ' mm de diagonale : S-mount (M12), CS ou C.' :
+      diag <= 16 ? 'Capteur de ' + fmt(diag, 1) + ' mm de diagonale : monture C ou CS.' :
+      diag <= 22 ? 'Capteur de ' + fmt(diag, 1) + ' mm de diagonale : monture C avec un objectif grand format (cercle d\'image d\'au moins ' + fmt(diag, 1) + ' mm).' :
+      diag <= 28.5 ? 'Capteur de ' + fmt(diag, 1) + ' mm de diagonale : TFL, M42 ou F.' :
+      diag <= 44 ? 'Capteur de ' + fmt(diag, 1) + ' mm de diagonale : F, M42, T2, M58 ou M72.' :
+      'Capteur de ' + fmt(diag, 1) + ' mm de diagonale, très grand : M58 ou M72, avec un objectif conçu pour ce format.';
+    var m = mountId && mountId !== 'none' ? mountById(mountId) : null;
+    M.chosen = m;
+    if (!m) return M;
+    var lim = m.diagExt || m.diagStd;
+    if (lim != null) {
+      if (diag > lim * 1.02) M.flags.push({ t: 'bad', m: 'Capteur trop grand pour cette monture : diagonale de ' + fmt(diag, 1) + ' mm contre ' + fmt(lim, 1) + ' mm environ. Vignetage assuré dans les coins.' });
+      else if (m.diagExt && diag > m.diagStd) M.flags.push({ t: 'warn', m: 'Diagonale de ' + fmt(diag, 1) + ' mm : au-delà du format courant de cette monture (' + fmt(m.diagStd, 1) + ' mm). Choisir un objectif grand format dont le cercle d\'image dépasse ' + fmt(diag, 1) + ' mm.' });
+      else M.flags.push({ t: 'good', m: 'Le capteur (' + fmt(diag, 1) + ' mm de diagonale) entre dans le format de cette monture.' });
+      if (diag < lim * 0.35) M.flags.push({ t: 'info', m: 'Monture surdimensionnée pour ce capteur : encombrement et coût inutiles. ' + M.recText });
+    } else M.flags.push({ t: 'info', m: 'Cercle d\'image maximal non renseigné pour cette monture : le demander au fabricant de l\'objectif.' });
+    if (m.fr && R.lt.kind !== 'telecentrique') {
+      if (R.fNeed < m.fr[0] * 0.8 || R.fNeed > m.fr[1] * 1.2) M.flags.push({ t: 'warn', m: 'Focale de ≈ ' + fmt(R.fNeed, 1) + ' mm peu courante dans cette monture (plage usuelle ' + m.fr[0] + ' à ' + m.fr[1] + ' mm, valeur de travail). Vérifier l\'offre ou changer de monture.' });
+    }
+    if (m.id === 'c' && R.rec && R.rec.f < 8) M.flags.push({ t: 'info', m: 'Courtes focales en monture C : objectifs plus encombrants qu\'en S-mount, mais plus stables mécaniquement.' });
+    if (R.rec && (R.rec.tube > 0.3 || R.lt.kind === 'macro' || R.acc.some(function (a) { return /allonge|additionnelle/i.test(a.n); }))) M.flags.push({ t: 'info', m: 'Allonges : ' + m.ext });
+    M.flags.push({ t: 'info', m: (m.flange != null ? 'Tirage de ' + String(parseFloat(m.flange.toFixed(3))).replace('.', ',') + ' mm : l\'objectif et la caméra doivent avoir le même tirage. ' : 'Tirage non normalisé : à confirmer avec le fabricant. ') + m.note });
+    return M;
+  }
+
+  /* ---------- Conseil d'optique à partir d'un capteur saisi (2e calculateur) ---------- */
+  var FOCAL_STD = [4, 6, 8, 12, 16, 25, 35, 50, 75, 100];
+  var FOCAL_MAX_STD = 100, DIST_SHORT = 0.01, DIST_LONG = 0.003;  // distorsion de travail : f < 16 mm 1 %, sinon 0,3 %
+  function adviseOptic(s) {
+    var sensor = { id: 'Capteur saisi', w: s.sw, h: s.sh, p: s.p, sh: 'global' };
+    var d = dims(sensor), meas = s.task === 'mesure', k = s.k > 0 ? s.k : 3, subdiv = s.subdiv > 0 ? s.subdiv : 1;
+    var reqPix = meas ? s.prec * subdiv : s.defect / k;               // taille maximale du pixel côté objet, µm
+    var inp = { fovH: s.fovH, fovV: s.fovV, wd: s.wd, depth: s.depth || 0, defect: reqPix * k, k: k, color: false, globalOnly: false,
+      nom: s.nom, lambda: s.lambda || 550, cocPx: s.cocPx || 2, task: s.task, backlight: !!s.backlight, speed: 0, exposure: 0 };
+    var ev = evalSensor(sensor, inp), flags = [], notes = [];
+    var W = ev.portrait ? d.H : d.W, H = ev.portrait ? d.W : d.H, nW = ev.portrait ? s.sh : s.sw, nH = ev.portrait ? s.sw : s.sh;
+    var R = { meas: meas, sensor: sensor, dims: d, ev: ev, inp: inp, reqPix: reqPix, pixObj: ev.pixObj, k: k, subdiv: subdiv };
+    R.ratio = reqPix / ev.pixObj;
+    R.status = R.ratio >= 1 ? 'ok' : (R.ratio >= 0.8 ? 'limite' : 'insuffisant');
+    R.capab = meas ? ev.pixObj / subdiv : ev.pixObj * k;               // précision ou plus petit défaut atteints, µm
+    R.need = { nH: Math.ceil(s.fovH * 1000 / reqPix), nV: Math.ceil(s.fovV * 1000 / reqPix) };
+    R.need.mpx = R.need.nH * R.need.nV / 1e6;
+    R.have = { nH: nW, nV: nH };
+    R.fovMax = { H: nW * reqPix / 1000, V: nH * reqPix / 1000 };         // plus grand champ tenable avec ce capteur
+    R.m = ev.m;
+    var lt = lensType(ev, inp);
+    // distorsion : peut imposer le télécentrique en mesure précise
+    var fNeed = focalFor(s.wd, ev.m), fovMaxDim = Math.max(s.fovH, s.fovV);
+    var dist = fNeed < 16 ? DIST_SHORT : DIST_LONG;
+    R.distErr = dist * fovMaxDim / 2 * 1000;                              // µm en bord de champ
+    R.distPct = dist * 100;
+    if (meas && R.distErr > s.prec && lt.kind !== 'telecentrique') {
+      if (fovMaxDim <= TELE_MAX_FOV) {
+        lt = { kind: 'telecentrique', label: KIND_LABEL.telecentrique, alt: ['standard'], perr: lt.perr, perrPx: lt.perrPx, reasons: lt.reasons.concat([{ t: 'info', m: 'Distorsion d\'un objectif standard estimée à ' + fmt(R.distPct, 1) + ' % : ' + fmt(R.distErr, 0) + ' µm en bord de champ, au-dessus de la précision visée (' + fmt(s.prec, 0) + ' µm). Un télécentrique (distorsion typique sous 0,1 %) évite ce défaut. Un standard exige une calibration soignée.' }]) };
+      } else {
+        flags.push({ t: 'warn', m: 'Distorsion estimée de ' + fmt(R.distErr, 0) + ' µm en bord de champ, au-dessus de la précision visée. Champ trop grand pour un télécentrique : calibration par mire et correction de distorsion obligatoires.' });
+      }
+    } else if (meas && lt.kind !== 'telecentrique') {
+      notes.push('Distorsion estimée de ' + fmt(R.distPct, 1) + ' % (' + fmt(R.distErr, 0) + ' µm en bord de champ) : compatible avec la précision visée après calibration.');
+    }
+    R.lt = lt;
+    var spec = lensSpec(ev, inp, lt); R.spec = spec;
+    if (meas && subdiv > 5) flags.push({ t: 'warn', m: 'Interpolation à 1/' + subdiv + ' de pixel : demande des bords très nets (contre-jour, télécentrique), un bon éclairage et peu de bruit. Au-delà de 1/5, la précision annoncée est optimiste.' });
+    // capteur
+    if (R.status !== 'ok') {
+      var lack = [];
+      if (nW < R.need.nH) lack.push(R.need.nH + ' px sur la largeur');
+      if (nH < R.need.nV) lack.push(R.need.nV + ' px sur la hauteur');
+      flags.push({ t: R.status === 'limite' ? 'warn' : 'bad', m: 'Capteur ' + (R.status === 'limite' ? 'à la limite' : 'insuffisant') + ' pour ce champ : il faudrait ' + R.need.nH + ' × ' + R.need.nV + ' px (' + fmt(R.need.mpx, 1) + ' Mpx), ' + (lack.length ? 'il manque ' + lack.join(' et ') + '. ' : '') + 'Options : réduire le champ à ' + fmt(R.fovMax.H, 0) + ' × ' + fmt(R.fovMax.V, 0) + ' mm, accepter ' + fmt(R.capab, 0) + ' µm de ' + (meas ? 'précision' : 'défaut minimal') + ', ou choisir un capteur plus grand.' });
+    }
+    if (s.p <= 3.5) notes.push('Pixel de ' + fmt(s.p, 2) + ' µm : prévoir un objectif conçu pour ce pas (classe 5 Mpx et plus), sinon la résolution de l\'objectif limite l\'image.');
+    // options de focale
+    var opts = [], kind = lt.kind;
+    if (kind !== 'telecentrique') {
+      var sorted = FOCAL_STD.slice().sort(function (a, b) { return Math.abs(Math.log(a / fNeed)) - Math.abs(Math.log(b / fNeed)); }).slice(0, 3).sort(function (a, b) { return a - b; });
+      sorted.forEach(function (f) {
+        var o = { f: f };
+        if (s.wd <= f * 1.02) { o.invalid = true; opts.push(o); return; }
+        var mWD = magAt(f, s.wd);
+        o.fovHatWD = W / mWD; o.fovVatWD = H / mWD; o.mAtWD = mWD;
+        o.covers = o.fovHatWD >= s.fovH * 0.999 && o.fovVatWD >= s.fovV * 0.999;
+        o.margin = o.fovHatWD / s.fovH - 1;
+        o.pixAtWD = s.p / mWD; o.okAtWD = o.pixAtWD <= reqPix * 1.0001;
+        o.wdExact = f * (1 + ev.m) / ev.m; o.wdDelta = o.wdExact - s.wd; o.wdRel = Math.abs(o.wdDelta) / s.wd;
+        o.mfd = minFocusMm(f);
+        var mMod = f / (o.mfd - f);
+        o.tube = ev.m > mMod ? f * (ev.m - mMod) : 0;                    // allonge à ajouter, mm
+        o.tubeTotal = f * ev.m;                                           // allonge totale depuis l'infini
+        o.nearOK = o.wdExact >= o.mfd;
+        opts.push(o);
+      });
+    }
+    R.options = opts.filter(function (o) { return !o.invalid; });
+    var rec = null;
+    R.options.forEach(function (o) { if (!rec || o.wdRel < rec.wdRel - 0.02 || (Math.abs(o.wdRel - rec.wdRel) <= 0.02 && o.tube < rec.tube)) rec = o; });
+    R.rec = rec;
+    // accessoires
+    var acc = [];
+    if (kind === 'telecentrique') {
+      acc.push({ t: 'info', n: 'Aucun accessoire d\'optique', m: 'Un télécentrique a un grossissement fixe : choisir la référence la plus proche de ' + fmt(ev.m, 3) + '× (champ objet = capteur ÷ grossissement). La distance de travail est imposée par l\'objectif, à comparer aux ' + fmt(s.wd, 0) + ' mm demandés. Éclairage : contre-jour collimaté ou éclairage coaxial.' });
+    } else {
+      if (fNeed > FOCAL_MAX_STD) {
+        acc.push({ t: 'warn', n: 'Doubleur de focale', m: 'Il faut ≈ ' + fmt(fNeed, 0) + ' mm, au-delà des focales fixes usuelles (' + FOCAL_MAX_STD + ' mm). Un doubleur ×2 sur un objectif de ≈ ' + fmt(fNeed / 2, 0) + ' mm donne la focale voulue, au prix de 2 diaphragmes (f/' + fmt(s.nom, 1) + ' demande un objectif ouvrant à f/' + fmt(s.nom / 2, 1) + ') et d\'une perte de résolution. Alternative : un objectif macro ou télécentrique, ou rapprocher la caméra.' });
+      }
+      if (fNeed < 6) acc.push({ t: 'warn', n: 'Focale très courte', m: 'Environ ' + fmt(fNeed, 1) + ' mm : distorsion forte et vignetage. Augmenter la distance de travail ou découper le champ avec plusieurs caméras.' });
+      if (ev.m > MACRO_M) {
+        var fr = rec ? rec.f : 50, mt = fr * ev.m;
+        acc.push({ t: 'info', n: 'Bague allonge ou macro', m: 'Grossissement de ' + fmt(ev.m, 3) + '×. Deux voies : un objectif macro, ou un objectif standard de ' + fr + ' mm avec une allonge totale de ≈ ' + fmt(mt, 1) + ' mm (formule f × m, à valider sur la fiche de l\'objectif). Les allonges réduisent la profondeur de champ et la lumière reçue.' });
+      } else if (rec && s.wd < rec.mfd) {
+        acc.push({ t: 'warn', n: 'Lentille additionnelle ou allonge', m: 'Distance de travail de ' + fmt(s.wd, 0) + ' mm sous la mise au point minimale d\'un ' + rec.f + ' mm (≈ ' + rec.mfd + ' mm, valeur type). Une allonge de ≈ ' + fmt(rec.tube, 1) + ' mm ou une lentille additionnelle d\'environ ' + fmt(1000 / s.wd, 1) + ' dioptries corrige cela.' });
+      } else if (rec && rec.tube > 0.5) {
+        acc.push({ t: 'info', n: 'Allonge', m: 'Une allonge d\'environ ' + fmt(rec.tube, 1) + ' mm au-delà du tirage de l\'objectif est utile pour cette distance.' });
+      }
+      if (!acc.length) acc.push({ t: 'good', n: 'Aucun accessoire nécessaire', m: 'Un objectif à focale fixe suffit, sans doubleur ni allonge.' });
+    }
+    R.acc = acc; R.flags = flags; R.notes = notes;
+    // objectif retenu en une phrase
+    R.headline = kind === 'telecentrique'
+      ? 'Télécentrique, grossissement ≈ ' + fmt(ev.m, 3) + '×'
+      : (rec ? (kind === 'macro' ? 'Macro ou standard avec allonge, ' : 'Standard, ') + 'focale ' + rec.f + ' mm' : 'Focale ≈ ' + fmt(fNeed, 1) + ' mm');
+    R.fNeed = fNeed;
+    R.mount = mountAdvice(R, s.mount);
+    return R;
+  }
+
+  var api = {
+    SRC: SRC, PRICE_POINTS: PRICE_POINTS, estimatePrice: estimatePrice, SENSORS: SENSORS, MATERIALS: MATERIALS, COLOR_RULE: COLOR_RULE, DEMO_CATALOG: DEMO_CATALOG, CSV_TEMPLATE: CSV_TEMPLATE,
+    KIND_LABEL: KIND_LABEL, MACRO_M: MACRO_M, TELE_MAX_FOV: TELE_MAX_FOV,
+    dims: dims, nyquist: nyquist, cutoff: cutoff, mtfDiff: mtfDiff, xForMtf: xForMtf,
+    focalFor: focalFor, magAt: magAt, dof: dof, blueShift: blueShift,
+    resolveLambda: resolveLambda, materialById: materialById, materialBands: materialBands,
+    evalSensor: evalSensor, requiredPixels: requiredPixels, rankSensors: rankSensors,
+    lensType: lensType, lensSpec: lensSpec, apertureWindow: apertureWindow,
+    parseCatalog: parseCatalog, evalEntry: evalEntry, matchCatalog: matchCatalog,
+    lightAdvice: lightAdvice, adviseOptic: adviseOptic, MOUNTS: MOUNTS, IMX_EXTRA: IMX_EXTRA, findSensor: findSensor, mountById: mountById, minFocusMm: minFocusMm, fmt: fmt
+  };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.OptiCalc = api;
+})(typeof self !== 'undefined' ? self : this);
+
+</script>
+<script>
+(function(){
+  var C = OptiCalc, $ = function(id){return document.getElementById(id)};
+  var sel = null, picked = false, imported = [];
+  function n(x, d){ if(x==null||!isFinite(x)) return '∞'; return x.toLocaleString('fr-FR',{minimumFractionDigits:d==null?0:d, maximumFractionDigits:d==null?0:d}); }
+  function num(id){ return parseFloat($(id).value); }
+  function esc(t){return String(t).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function readInputs(){
+    return { fovH:num('fovH'), fovV:num('fovV'), wd:num('wd'), depth:num('depth')||0, defect:num('defect'), k:num('k'),
+      color:$('color').checked, globalOnly:$('globalOnly').checked, speed:num('speed')||0, exposure:num('exposure')||0,
+      nom:num('nom'), cocPx:num('coc'), task:$('task').value, backlight:$('backlight').checked,
+      material:$('material').value, tcolor:$('tcolor').value, lamCons:$('lamCons').value,
+      lamC:num('lamC'), lamFwhm:num('lamFwhm'), lamMin:num('lamMin'), lamMax:num('lamMax'),
+      ambient:$('ambient').value, showPrice:$('showPrice').checked, rate:num('rate')>0?num('rate'):1, glare:$('glare').checked, nstar:2 };
+  }
+  var PRESETS = {
+    aspect:{fovH:100,fovV:80,wd:300,depth:5,defect:200,k:3,speed:0,exposure:200,nom:5.6,task:'detection',backlight:false,material:'general',lamCons:'auto',ambient:'maitrisee',glare:false},
+    cote:{fovH:50,fovV:40,wd:250,depth:2,defect:50,k:4,speed:0,exposure:300,nom:5.6,task:'mesure',backlight:true,material:'metal',lamCons:'auto',ambient:'maitrisee',glare:false},
+    code:{fovH:30,fovV:24,wd:150,depth:3,defect:100,k:3,speed:300,exposure:50,nom:4,task:'detection',backlight:false,material:'color',tcolor:'rouge',lamCons:'auto',ambient:'forte',glare:false},
+    colle:{fovH:60,fovV:45,wd:200,depth:3,defect:300,k:3,speed:0,exposure:500,nom:4,task:'detection',backlight:false,material:'fluo',lamCons:'source',lamC:365,lamFwhm:15,ambient:'forte',glare:false}
+  };
+  // liste de matières
+  (function(){
+    var g='', h='';
+    C.MATERIALS.forEach(function(m){ if(m.grp!==g){ if(g) h+='</optgroup>'; h+='<optgroup label="'+esc(m.grp)+'">'; g=m.grp; } h+='<option value="'+m.id+'">'+esc(m.label)+'</option>'; });
+    $('material').innerHTML=h+'</optgroup>';
+  })();
+  function syncVis(){
+    var m=C.materialById($('material').value), c=$('lamCons').value;
+    $('tcolorW').classList.toggle('hidden', !m.colorRule);
+    $('lamSrcW').classList.toggle('hidden', c!=='source');
+    $('lamBandW').classList.toggle('hidden', c!=='band');
+  }
+  var KCLS={plein:'ok',suffisant:'ok',limite:'limite',insuffisant:'insuffisant',inconnu:'off'};
+  var KTXT={plein:'Résolution au moins égale au Nyquist',suffisant:'Résolution suffisante',limite:'Résolution limite',insuffisant:'Résolution insuffisante',inconnu:'Résolution inconnue'};
+  var TCLS={standard:'neutral',macro:'neutral',telecentrique:'neutral'};
+
+  function money(usd, rate){ var cur=$('cur').value, v=usd*(cur==='EUR'?rate:1); return n(Math.round(v/10)*10,0)+' '+(cur==='EUR'?'€':'$'); }
+  function priceCell(s, inp){
+    var p=C.estimatePrice(s);
+    if(p.quote) return '<span class="unit" title="'+esc(p.why)+'">sur devis</span>';
+    return '<span title="'+esc(p.basis)+'">≈ '+money(p.usd,inp.rate)+'</span> <span class="unit">'+money(p.lo,inp.rate)+' – '+money(p.hi,inp.rate)+'</span>';
+  }
+  function chartSvg(L){
+    var W=640,H=272,l=46,r=14,t=12,b=58, pw=W-l-r, ph=H-t-b, xmax=L.cutoff;
+    function X(v){return l+pw*Math.min(v,xmax)/xmax} function Y(v){return t+ph*(1-v)}
+    var pts=[],i; for(i=0;i<=120;i++){var f=xmax*i/120; pts.push(X(f).toFixed(1)+','+Y(C.mtfDiff(f/xmax)).toFixed(1));}
+    var s='<svg class="chart" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Contraste de diffraction en fonction de la fréquence spatiale">';
+    [0,0.2,0.5,1].forEach(function(v){ s+='<line class="'+(v===0.2?'grid':'axis')+'" x1="'+l+'" x2="'+(W-r)+'" y1="'+Y(v)+'" y2="'+Y(v)+'"/><text x="'+(l-6)+'" y="'+(Y(v)+4)+'" text-anchor="end">'+Math.round(v*100)+' %</text>'; });
+    for(i=0;i<=4;i++){ var fv=xmax*i/4; s+='<line class="axis" x1="'+X(fv)+'" x2="'+X(fv)+'" y1="'+(t+ph)+'" y2="'+(t+ph+4)+'"/><text x="'+X(fv)+'" y="'+(t+ph+20)+'" text-anchor="middle">'+n(fv,0)+'</text>'; }
+    s+='<text x="'+(l+pw/2)+'" y="'+(H-6)+'" text-anchor="middle">fréquence spatiale côté image, lp/mm</text>';
+    s+='<polygon class="area" points="'+l+','+Y(0)+' '+pts.join(' ')+' '+X(xmax)+','+Y(0)+'"/><polyline class="curve" points="'+pts.join(' ')+'"/>';
+    var nq=L.nuN, rq=L.nuReq;
+    s+='<line class="nyq" x1="'+X(nq)+'" x2="'+X(nq)+'" y1="'+t+'" y2="'+(t+ph)+'"/>';
+    var nqLeft = nq>xmax*0.6;
+    s+='<text x="'+(X(nq)+(nqLeft?-5:5))+'" y="'+(t+10)+'" text-anchor="'+(nqLeft?'end':'start')+'" style="fill:var(--ink)">Nyquist '+n(nq,0)+'</text>';
+    if(rq<=xmax){ s+='<line class="req" x1="'+X(rq)+'" x2="'+X(rq)+'" y1="'+t+'" y2="'+(t+ph)+'"/><text x="'+(X(rq)+(rq>xmax*0.6?-5:5))+'" y="'+(t+24)+'" text-anchor="'+(rq>xmax*0.6?'end':'start')+'" style="fill:var(--warn)">défaut '+n(rq,0)+'</text>'; }
+    else { s+='<text x="'+(W-r)+'" y="'+(t+24)+'" text-anchor="end" style="fill:var(--bad)">défaut '+n(rq,0)+' lp/mm, au-delà de la diffraction</text>'; }
+    return s+'</svg>';
+  }
+  function row(a,b,c){ return '<div><span><b>'+a+'</b><br><code>'+b+'</code></span><span class="res">'+c+'</span></div>'; }
+  function flagsHtml(fl, empty){ return '<ul class="flags">'+(fl.length?fl.map(function(f){return '<li class="'+f.t+'">'+esc(f.m)+'</li>'}).join(''):(empty?'<li class="good">'+empty+'</li>':''))+'</ul>'; }
+  function catalog(){ var c=[]; if($('useDemo').checked) c=c.concat(C.DEMO_CATALOG); return c.concat(imported); }
+
+  function lensCard(r, showBrand, ev){
+    var e=r.e, isT=e.type==='telecentrique', head=isT?('×'+n(e.mag,3)):(n(e.f,e.f%1?1:0)+' mm');
+    var h='<div class="lens"><div class="h"><span class="f">'+head+'</span><span><span class="chip neutral">'+esc(C.KIND_LABEL[e.type])+'</span></span></div>';
+    h+='<div><span class="chip '+KCLS[r.verdict]+'">'+KTXT[r.verdict]+'</span></div>';
+    h+='<dl><dt>Résolution objectif</dt><dd>'+(e.res!=null?n(e.res,0)+' lp/mm':'non renseignée')+'</dd>'
+      +'<dt>Pixel effectif</dt><dd>'+(r.pxEff!=null?n(r.pxEff,2)+' µm':'-')+'</dd>'
+      +'<dt>Mpx résolus</dt><dd>'+(r.mpxResolved!=null?n(r.mpxResolved,1)+' sur '+n(ev.dims.mpx,1):'-')+'</dd>'
+      +'<dt>Champ obtenu</dt><dd>'+n(r.fovH,1)+' × '+n(r.fovV,1)+' mm</dd>'
+      +'<dt>Distance de travail</dt><dd>'+n(r.wd,0)+' mm'+(r.adjWd?' ('+(r.adjDelta>=0?'+':'')+n(r.adjDelta,0)+')':'')+'</dd>'
+      +'<dt>Grandissement</dt><dd>'+n(r.m,4)+'×</dd>'
+      +(r.ppdEff!=null&&r.verdict!=='inconnu'?'<dt>Pixels par défaut</dt><dd>'+n(r.ppdEff,1)+'</dd>':'')
+      +(e.circle!=null?'<dt>Cercle d\'image</dt><dd>'+n(e.circle,1)+' mm</dd>':'')
+      +(r.dof?'<dt>Profondeur de champ</dt><dd>'+n(r.dof.total,1)+' mm</dd>':'')
+      +'<dt>Contraste diffraction</dt><dd>'+n(r.mtfNyq*100,0)+' % au Nyquist</dd></dl>';
+    h+=flagsHtml(r.flags);
+    var refs=r.refs.filter(function(x){return !x.demo});
+    if(refs.length){
+      var list=refs.slice(0,8).map(function(x){ return esc((x.brand?x.brand+' · ':'')+x.ref); });
+      h+='<div class="refs">'+n(refs.length)+' référence'+(refs.length>1?'s':'')+' de même spécification'+(showBrand?' : '+list.join(', ')+(refs.length>8?'…':''):'. Cochez « Afficher fabricant et référence » pour les voir.')+'</div>';
+    } else h+='<div class="refs">Exemple générique sans marque.</div>';
+    return h+'</div>';
+  }
+
+  function render(){
+    syncVis();
+    var inp = readInputs(), out = $('out');
+    if(!(inp.fovH>0&&inp.fovV>0&&inp.wd>0&&inp.defect>0)){ out.innerHTML='<div class="card empty">Renseignez le champ de vue, la distance de travail et le plus petit défaut.</div>'; return; }
+    var lr = C.resolveLambda(inp); inp.lambda = lr.lam;
+    var req = C.requiredPixels(inp), ranked = C.rankSensors(inp);
+    var ev = ranked.filter(function(x){return x.sensor.id===sel})[0];
+    if(!ev || !picked){ ev = ranked.filter(function(x){return !x.excluded && x.status==='ok'})[0] || ranked.filter(function(x){return !x.excluded})[0] || ranked[0]; sel = ev.sensor.id; }
+    var lt = C.lensType(ev, inp), sp = C.lensSpec(ev, inp, lt), L = C.lightAdvice(inp, ev, lt.kind, lr);
+    var pixTarget = inp.defect/inp.k;
+
+    var h = '<section class="card summary">'
+      + '<div><div class="k">Pixels requis</div><div class="v">'+n(req.nH)+' × '+n(req.nV)+'</div><div class="s">'+n(req.mpx,1)+' Mpx minimum, '+n(req.kEff)+' px par défaut</div></div>'
+      + '<div><div class="k">Pixel côté objet visé</div><div class="v">'+n(pixTarget,1)+' µm</div><div class="s">défaut '+n(inp.defect)+' µm ÷ '+n(req.kEff)+'</div></div>'
+      + '<div><div class="k">Capteur retenu</div><div class="v" style="font-size:17px">'+esc(ev.sensor.id)+'</div><div class="s">'+n(ev.sensor.w)+' × '+n(ev.sensor.h)+' · pixel '+n(ev.sensor.p,2)+' µm · '+esc(ev.sensor.fmt)+'</div>'+(inp.showPrice?'<div class="s">caméra : '+priceCell(ev.sensor,inp)+'</div>':'')+'</div>'
+      + '<div><div class="k">Type d\'objectif</div><div class="v" style="font-size:17px">'+esc(lt.label)+'</div><div class="s">'+(sp.f?'focale ≈ '+n(sp.f,1)+' mm · ':'')+'λ '+n(lr.lam)+' nm</div></div>'
+      + '</section>';
+
+    h += '<section class="card"><div class="sec-head"><h2>Capteurs</h2><p>Cliquez une ligne pour calculer l\'objectif. Classement : le plus petit capteur suffisant d\'abord.</p></div><div class="scroll"><table><thead><tr><th>Capteur</th><th class="n">Résolution</th><th class="n">Pixel</th><th>Format</th><th>Obturateur</th><th class="n">Px / défaut</th><th class="n">Grandissement</th><th>Verdict</th>'+(inp.showPrice?'<th class="n">Caméra, indicatif</th>':'')+'</tr></thead><tbody>';
+    ranked.forEach(function(e){
+      var s=e.sensor, cls=(s.id===sel?'sel':'')+(e.excluded?' off':''), pct=Math.max(0,Math.min(100,e.ppd/e.kEff*50));
+      var verdict = e.excluded ? '<span class="chip off">Exclu : '+esc(e.why)+'</span>' : '<span class="chip '+e.status+'">'+(e.status==='ok'?'Suffisant':e.status==='limite'?'Limite':'Insuffisant')+'</span>';
+      h+='<tr tabindex="0" data-id="'+esc(s.id)+'" class="'+cls+'"><td><b>'+esc(s.id)+'</b> <span class="unit">'+esc(s.fam)+(s.swir?' · 400–1700 nm':'')+'</span></td><td class="n num">'+n(s.w)+' × '+n(s.h)+'</td><td class="n num">'+n(s.p,2)+' µm</td><td>'+esc(s.fmt)+'</td><td>'+(s.sh==='global'?'Global':'Roulant')+'</td><td class="n num">'+n(e.ppd,1)+'<span class="bar" aria-hidden="true"><i style="width:'+pct+'%"></i></span></td><td class="n num">'+n(e.m,4)+'×'+(e.portrait?' ↻':'')+'</td><td>'+verdict+'</td>'+(inp.showPrice?'<td class="n num">'+priceCell(s,inp)+'</td>':'')+'</tr>';
+    });
+    h+='</tbody></table></div>'+(inp.showPrice?'<p class="note">Chiffrage : prix catalogue hors taxes d\'une caméra monochrome USB3 de même résolution (Basler ace 2, revendeur américain, consulté le 8 nov. 2026), fourchette ±25 %. Marque, interface (GigE, 5GigE, CoaXPress), version couleur, volume et droits de douane changent le prix : à confirmer par devis. Le prix d\'un capteur seul n\'est pas public.</p>':'')+'<p class="note">↻ : capteur tourné de 90° pour mieux couvrir le champ. La barre atteint la moitié à la valeur exigée.</p></section>';
+
+    // spécification neutre
+    var showBrand=$('showBrand').checked;
+    h += '<section class="card"><div class="sec-head"><h2>Objectif à spécifier</h2><p>Spécification neutre, valable pour toute marque. Sert à interroger un catalogue.</p></div><div class="spec">';
+    h += '<div><div class="k">Type conseillé</div><div class="big">'+esc(lt.label)+'</div>'+flagsHtml(lt.reasons)
+      +(lt.alt.length?'<p class="note">Alternative : '+lt.alt.map(function(k){return esc(C.KIND_LABEL[k])}).join(', ')+'.</p>':'')+'</div>';
+    h += '<div><div class="k">'+(sp.kind==='telecentrique'?'Grossissement':'Focale')+'</div><div class="big">'+(sp.kind==='telecentrique'?'≈ '+n(sp.m,3)+'×':'≈ '+n(sp.f,1)+' mm')+'</div>'
+      +'<dl><dt>Grossissement</dt><dd>'+n(sp.m,4)+'×</dd>'
+      +(sp.kind!=='telecentrique'?'<dt>Focales de série voisines</dt><dd>'+(sp.fBelow?sp.fBelow+' mm':'-')+' · '+(sp.fAbove?sp.fAbove+' mm':'-')+'</dd>':'<dt>Distance de travail</dt><dd>≈ '+n(inp.wd,0)+' mm, imposée</dd>')
+      +'<dt>Cercle d\'image minimal</dt><dd>≥ '+n(sp.circleMin,1)+' mm (≈ '+n(sp.inch,2)+'")</dd></dl></div>';
+    h += '<div><div class="k">Résolution de l\'objectif</div><div class="big">≥ '+n(sp.nuK,0)+' lp/mm</div>'
+      +'<dl><dt>Côté image, pour '+n(sp.kEff)+' px/défaut</dt><dd>'+n(sp.nuK,0)+' lp/mm</dd>'
+      +'<dt>Pixel effectif maximal</dt><dd>'+n(sp.pitchEq,2)+' µm</dd>'
+      +'<dt>Nyquist du capteur</dt><dd>'+n(sp.nuN,0)+' lp/mm</dd>'
+      +'<dt>Défaut seul (2 px)</dt><dd>'+n(sp.nuReq,0)+' lp/mm</dd>'
+      +'<dt>Côté objet</dt><dd>'+n(sp.objLpmm,1)+' lp/mm</dd>'
+      +'<dt>Mpx du capteur</dt><dd>'+n(sp.mpxSensor,1)+'</dd></dl></div>';
+    h += '<div><div class="k">Ouverture et diffraction</div><div class="big">f/'+n(inp.nom,1)+'</div>'
+      +'<dl><dt>Ouverture effective</dt><dd>f/'+n(sp.nEff,1)+'</dd><dt>Coupure à '+n(inp.lambda)+' nm</dt><dd>'+n(sp.cutoff,0)+' lp/mm</dd><dt>Contraste au Nyquist</dt><dd>'+n(sp.mtfNyq*100,0)+' %</dd>'
+      +(sp.dof?'<dt>Profondeur de champ</dt><dd>'+n(sp.dof.total,1)+' mm</dd>':'')+'</dl>'
+      +(sp.win.nMin!=null?(sp.win.nMin>sp.win.nMax?flagsHtml([{t:'bad',m:'Il faudrait au moins f/'+n(sp.win.nMin,1)+' pour tenir '+n(inp.depth)+' mm, mais la diffraction impose f/'+n(sp.win.nMax,1)+' au plus. Réduire la variation de hauteur, accepter 2 pixels de flou ou choisir un télécentrique.'}]):flagsHtml([{t:'good',m:'Plage d\'ouverture : f/'+n(Math.max(sp.win.nMin,1.4),1)+' à f/'+n(sp.win.nMax,1)+'.'}])):flagsHtml([{t:'good',m:'Ne pas dépasser f/'+n(sp.win.nMax,1)+' (diffraction).'}]))
+      +'</div></div></section>';
+
+    // catalogue
+    var cat=catalog(), prim=C.matchCatalog(ev, inp, cat, [lt.kind]), alts=lt.alt.length?C.matchCatalog(ev, inp, cat, lt.alt):[];
+    var nImp=imported.length;
+    h += '<section class="card"><div class="sec-head"><h2>Objectifs du catalogue : '+esc(lt.label.toLowerCase())+'</h2><p>'+(nImp?n(nImp)+' références importées. ':'')+'Une carte par spécification, aucune marque mise en avant.</p></div>';
+    if(!prim.length) h+='<div class="empty">Aucun objectif du catalogue ne correspond ('+esc(lt.label.toLowerCase())+', cercle d\'image ≥ '+n(ev.dims.D,1)+' mm).'+(nImp?'':' Importez votre gamme en CSV pour comparer.')+'</div>';
+    else h+='<div class="lenses">'+prim.slice(0,6).map(function(r){return lensCard(r,showBrand,ev)}).join('')+'</div>'+(prim.length>6?'<p class="note">'+(prim.length-6)+' autres spécifications non affichées.</p>':'');
+    if(alts.length) h+='<details><summary>Alternatives : '+lt.alt.map(function(k){return esc(C.KIND_LABEL[k])}).join(', ')+' ('+alts.length+')</summary><div class="lenses" style="margin-top:10px">'+alts.slice(0,6).map(function(r){return lensCard(r,showBrand,ev)}).join('')+'</div></details>';
+    h+='</section>';
+
+    // lumière
+    var f=L.filter;
+    h += '<section class="card"><div class="sec-head"><h2>Longueur d\'onde et filtre</h2><p>Longueur d\'onde retenue : '+n(L.lam)+' nm ('+esc(L.from)+')</p></div><div class="spec">';
+    h += '<div><div class="k">À observer · '+esc(L.mat.label)+'</div><dl>'+L.bands.map(function(b){ return '<dt>'+(b.lam!=null?n(b.lam)+' nm':n(b.lo)+'–'+n(b.hi)+' nm')+'</dt><dd style="text-align:left;font-family:var(--font-ui)">'+esc(b.role)+'</dd>'; }).join('')+'</dl>'
+      +'<ul class="flags" style="margin-top:8px">'+L.bands.map(function(b){return '<li class="info">'+esc(b.why)+'</li>'}).join('')+'</ul></div>';
+    h += '<div><div class="k">Filtre · '+esc(f.need)+'</div><div class="big">'+esc(f.name)+'</div>'
+      +'<dl>'+(f.kind==='longpass'?'<dt>Coupure</dt><dd>≥ '+n(f.cut,0)+' nm</dd>':'<dt>Centre</dt><dd>'+n(f.c0,0)+' nm</dd><dt>Largeur mi-hauteur</dt><dd>≥ '+n(f.bmin,0)+' nm</dd>')
+      +'<dt>Décalage bord de champ</dt><dd>'+(L.telecentric?'≈ 0':'−'+n(L.shift,1))+' nm</dd><dt>Angle de champ</dt><dd>'+(L.telecentric?'≈ 0':n(L.thetaDeg,1))+'°</dd></dl>'
+      +'<p class="note">'+esc(f.text)+'</p></div>';
+    h += '<div><div class="k">Polarisation</div><div class="big">'+(L.pol.use?'Conseillée':'Inutile')+'</div>'+(L.pol.use?'<p class="note">'+esc(L.pol.text)+'</p>':'<p class="note">Aucun reflet ni matière transparente signalés. Cocher « Reflets gênants » si la surface brille.</p>')+'</div>';
+    h += '</div>'+flagsHtml(L.flags.concat(L.notes.map(function(m){return {t:'info',m:m}})));
+    h += '<ul class="srcs">'+L.src.concat(inp.showPrice?['mvstore']:[]).map(function(k){var s=C.SRC[k]; return s?'<li><a href="'+s.u+'" target="_blank" rel="noopener noreferrer">'+esc(s.t)+'</a></li>':''}).join('')+'</ul>';
+    h += '<p class="note">Le décalage vers le bleu suit λ = λ₀ √(1 − (sin θ ÷ n*)²) avec n* ≈ 2 supposé, une valeur indicative : la fiche du filtre donne la valeur exacte. Les seuils et valeurs de travail sont à valider par un essai.</p></section>';
+
+    // détail
+    h+='<section class="card"><div class="sec-head"><h2>Contraste limité par la diffraction</h2><p>f/'+n(inp.nom,1)+', f/'+n(sp.nEff,1)+' effectif, '+n(inp.lambda)+' nm</p></div>'+chartSvg(sp)
+      +'<div class="legend"><span class="l1">contraste théorique de l\'objectif sans aberration</span><span class="l2">Nyquist du capteur</span><span class="l3">fréquence requise pour le défaut</span><span class="l4">20 %</span></div>'
+      +'<p class="note">Un objectif réel reste sous cette courbe : elle donne le plafond de la physique.</p>'
+      +'<details><summary>Détail des calculs</summary><div class="calc">'
+      +row('Pixels requis','N = FOV × k ÷ défaut','= '+n(inp.fovH)+' × '+n(req.kEff)+' ÷ '+n(inp.defect/1000,3)+' mm = '+n(req.nH)+' px (largeur)')
+      +row('Grandissement maximal','m = min(L<sub>h</sub> ÷ FOV<sub>h</sub>, L<sub>v</sub> ÷ FOV<sub>v</sub>)','= '+n(ev.m,4)+'×')
+      +(sp.f?row('Focale','f = WD × m ÷ (1 + m)','= '+n(inp.wd)+' × '+n(ev.m,4)+' ÷ '+n(1+ev.m,4)+' = '+n(sp.f,2)+' mm'):'')
+      +row('Pixel côté objet','p<sub>obj</sub> = pixel ÷ m','= '+n(ev.sensor.p,2)+' ÷ '+n(ev.m,4)+' = '+n(ev.pixObj,1)+' µm')
+      +row('Résolution requise','ν = 1000 ÷ (2 × p<sub>équiv</sub>), p<sub>équiv</sub> = défaut × m ÷ k','= '+n(sp.nuK,1)+' lp/mm côté image')
+      +row('Fréquence de Nyquist','ν<sub>N</sub> = 1000 ÷ (2 × pixel)','= '+n(sp.nuN,1)+' lp/mm')
+      +row('Pixel effectif de l\'objectif','p<sub>eff</sub> = 1000 ÷ (2 × résolution)','utilisé pour les Mpx résolus')
+      +row('Ouverture effective','N<sub>eff</sub> = N × (1 + m)','= '+n(inp.nom,1)+' × '+n(1+ev.m,3)+' = '+n(sp.nEff,2))
+      +row('Coupure de diffraction','ν<sub>c</sub> = 1 ÷ (λ × N<sub>eff</sub>)','= '+n(sp.cutoff,0)+' lp/mm à '+n(inp.lambda)+' nm')
+      +row('Erreur de perspective','Δ = FOV × Δz ÷ WD','= '+n(lt.perr,2)+' mm, soit '+n(lt.perrPx,1)+' px')
+      +row('Décalage du filtre','Δλ = λ₀ (1 − √(1 − (sin θ ÷ n*)²))','= '+n(L.shift,1)+' nm à '+n(L.thetaDeg,1)+'°')
+      +'</div></details></section>';
+    out.innerHTML = h;
+  }
+  function setMsg(t){ $('csvMsg').textContent=t; }
+  function loadCsv(text){
+    var r=C.parseCatalog(text);
+    imported=r.entries;
+    setMsg(r.entries.length+' référence'+(r.entries.length>1?'s':'')+' chargée'+(r.entries.length>1?'s':'')+(r.errors.length?'. '+r.errors.length+' erreur(s) : '+r.errors.slice(0,3).join(' '):'.'));
+    render();
+  }
+  document.addEventListener('input', function(e){ if(e.target.closest('#form') && e.target.id!=='csvText' && e.target.id!=='csvFile') render(); });
+  document.addEventListener('change', function(e){
+    if(e.target.id==='csvFile' && e.target.files && e.target.files[0]){ var fr=new FileReader(); fr.onload=function(){ $('csvText').value=String(fr.result); loadCsv(String(fr.result)); }; fr.readAsText(e.target.files[0]); }
+  });
+  document.addEventListener('click', function(e){
+    var p=e.target.closest('.preset[data-p]'); if(p){ var d=PRESETS[p.dataset.p]; Object.keys(d).forEach(function(k){ var el=$(k); if(!el) return; if(el.type==='checkbox') el.checked=d[k]; else el.value=d[k]; }); picked=false; render(); return; }
+    if(e.target.id==='csvLoad'){ loadCsv($('csvText').value); return; }
+    if(e.target.id==='csvTpl'){ $('csvText').value=C.CSV_TEMPLATE; setMsg('Modèle collé : remplacez par vos lignes puis chargez.'); return; }
+    if(e.target.id==='csvClear'){ imported=[]; $('csvText').value=''; setMsg('Aucun catalogue importé.'); render(); return; }
+    var tr=e.target.closest('tr[data-id]'); if(tr){ sel=tr.dataset.id; picked=true; render(); }
+  });
+  document.addEventListener('keydown', function(e){
+    if(e.key!=='Enter' && e.key!==' ') return;
+    var t=e.target.closest('tr[data-id]'); if(t){ e.preventDefault(); t.click(); }
+  });
+  render();
+})();
+</script>
+<script>
+(function(){
+  var C=OptiCalc, $=function(i){return document.getElementById(i)};
+  function n(x,d){ if(x==null||!isFinite(x)) return '∞'; return x.toLocaleString('fr-FR',{minimumFractionDigits:d||0,maximumFractionDigits:d||0}); }
+  function esc(t){return String(t).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function num(i){return parseFloat($(i).value)}
+  var PRE={
+    defaut:{o_sensor:'IMX250 / IMX264',o_fovH:100,o_fovV:80,o_wd:300,o_depth:5,o_task:'detection',o_defect:200,o_k:3,o_back:false,o_nom:5.6},
+    cote:{o_sensor:'IMX253 / IMX304',o_fovH:50,o_fovV:40,o_wd:250,o_depth:2,o_task:'mesure',o_prec:10,o_sub:3,o_back:true,o_nom:5.6},
+    micro:{o_sensor:'IMX250 / IMX264',o_fovH:10,o_fovV:8,o_wd:120,o_depth:0.5,o_task:'detection',o_defect:20,o_k:3,o_back:false,o_nom:8},
+    grand:{o_sensor:'IMX253 / IMX304',o_fovH:600,o_fovV:450,o_wd:1200,o_depth:20,o_task:'detection',o_defect:500,o_k:3,o_back:false,o_nom:5.6}
+  };
+  var selEl=$('o_sensor'), h='<option value="custom">Saisie libre</option>';
+  C.SENSORS.filter(function(s){return !s.swir}).forEach(function(s){ h+='<option value="'+esc(s.id)+'">'+esc(s.id)+' · '+s.w+' × '+s.h+', '+s.p+' µm</option>'; });
+  selEl.innerHTML=h; selEl.value='IMX250 / IMX264';
+  var mh='<option value="none">Non précisée (conseil automatique)</option>'; C.MOUNTS.forEach(function(m){ mh+='<option value="'+m.id+'">'+esc(m.label)+'</option>'; }); $('o_mount').innerHTML=mh;
+  var dl=''; C.SENSORS.concat(C.IMX_EXTRA).filter(function(s){return !s.swir}).forEach(function(s){ s.id.split(' / ').forEach(function(x){ dl+='<option value="'+esc(x)+'">'; }); }); $('o_imxList').innerHTML=dl;
+  function lookupImx(){
+    var q=$('o_imx').value.trim(), msg=$('o_imxMsg'); if(!q){ msg.textContent=''; return; }
+    var s=C.findSensor(q);
+    if(s){ $('o_sw').value=s.w; $('o_sh').value=s.h; $('o_p').value=s.p; var inList=C.SENSORS.filter(function(x){return x.id===s.id})[0]; selEl.value=inList?s.id:'custom'; msg.textContent='Trouvé : '+s.w+' × '+s.h+' px, pixel '+s.p+' µm, '+s.fmt+(inList?'':' (valeurs publiques usuelles, à confirmer sur la fiche)'); }
+    else msg.textContent='Référence absente de la base : saisissez ci-dessous la taille en pixels et le pixel. Le conseil de monture reste disponible.';
+  }
+  function fromSel(){ var s=C.SENSORS.filter(function(x){return x.id===selEl.value})[0]; if(s){ $('o_sw').value=s.w; $('o_sh').value=s.h; $('o_p').value=s.p; } }
+  var lastText='';
+  function chip(c,t){return '<span class="chip '+c+'">'+t+'</span>'}
+  function fl(a){return '<ul class="flags">'+a.map(function(f){return '<li class="'+(f.t==='good'?'good':f.t)+'">'+(f.n?'<b>'+esc(f.n)+'.</b> ':'')+esc(f.m)+'</li>'}).join('')+'</ul>'}
+  function render(){
+    var meas=$('o_task').value==='mesure';
+    $('o_detW').classList.toggle('hidden',meas); $('o_mesW').classList.toggle('hidden',!meas);
+    var s={sw:num('o_sw'),sh:num('o_sh'),p:num('o_p'),wd:num('o_wd'),fovH:num('o_fovH'),fovV:num('o_fovV'),depth:num('o_depth')||0,mount:$('o_mount').value,task:$('o_task').value,
+      defect:num('o_defect'),k:num('o_k'),prec:num('o_prec'),subdiv:num('o_sub'),nom:num('o_nom'),lambda:num('o_lam')||550,cocPx:num('o_coc'),backlight:$('o_back').checked};
+    var out=$('oOut');
+    var ok=s.sw>0&&s.sh>0&&s.p>0&&s.wd>0&&s.fovH>0&&s.fovV>0&&(meas?s.prec>0:s.defect>0);
+    if(!ok){ out.innerHTML='<div class="card empty">Renseignez le capteur, le champ de vue, la distance de travail et le détail à voir.</div>'; return; }
+    var R=C.adviseOptic(s), sp=R.spec, lt=R.lt, kind=lt.kind, st=R.status;
+    var stTxt={ok:'Capteur suffisant',limite:'Capteur à la limite',insuffisant:'Capteur insuffisant'}[st];
+    var h='<section class="card summary">'
+      +'<div><div class="k">Objectif conseillé</div><div class="v" style="font-size:18px">'+esc(R.headline)+'</div><div class="s">'+esc(lt.label)+'</div></div>'
+      +'<div><div class="k">Grandissement</div><div class="v">'+n(R.m,4)+'×</div><div class="s">focale calculée ≈ '+(kind==='telecentrique'?'sans objet':n(R.fNeed,1)+' mm')+'</div></div>'
+      +'<div><div class="k">Pixel côté objet</div><div class="v">'+n(R.pixObj,1)+' µm</div><div class="s">maximum admis : '+n(R.reqPix,1)+' µm</div></div>'
+      +'<div><div class="k">'+(R.meas?'Précision atteinte':'Défaut minimal vu')+'</div><div class="v">'+n(R.capab,1)+' µm</div><div class="s">'+chip(st==='ok'?'ok':st,stTxt)+'</div></div></section>';
+    h+=fl(R.flags.map(function(f){return f}));
+    // type
+    h+='<section class="card"><div class="sec-head"><h2>Type d\'objectif : '+esc(lt.label.toLowerCase())+'</h2><p>'+(R.meas?'Mesure':'Détection')+', '+n(s.fovH)+' × '+n(s.fovV)+' mm à '+n(s.wd)+' mm</p></div>'+fl(lt.reasons)
+      +(lt.alt.length?'<p class="note">Alternative : '+lt.alt.map(function(k){return esc(C.KIND_LABEL[k])}).join(', ')+'.</p>':'')+'</section>';
+    // focales
+    if(kind!=='telecentrique'){
+      h+='<section class="card"><div class="sec-head"><h2>Focales proches</h2><p>Focale exacte ≈ '+n(R.fNeed,1)+' mm. Deux façons de caler : garder la distance, ou garder le champ.</p></div><div class="scroll"><table><thead><tr><th>Focale</th><th class="n">Champ à '+n(s.wd)+' mm</th><th class="n">Pixel objet</th><th class="n">Distance pour le champ exact</th><th class="n">Allonge</th><th>Verdict</th></tr></thead><tbody>';
+      R.options.forEach(function(o){
+        var isRec=R.rec&&o.f===R.rec.f, v;
+        if(!o.covers) v=chip('limite','Champ trop petit à cette distance'); else if(!o.okAtWD) v=chip('limite','Résolution limite'); else v=chip('ok','Convient à la distance demandée');
+        h+='<tr class="'+(isRec?'sel':'')+'"><td><b>'+o.f+' mm</b>'+(isRec?' <span class="chip neutral">conseillée</span>':'')+'</td><td class="n num">'+n(o.fovHatWD,1)+' × '+n(o.fovVatWD,1)+' mm</td><td class="n num">'+n(o.pixAtWD,1)+' µm</td><td class="n num">'+n(o.wdExact,0)+' mm ('+(o.wdDelta>=0?'+':'')+n(o.wdDelta,0)+')</td><td class="n num">'+(o.tube>0.3?'≈ '+n(o.tube,1)+' mm':'non')+'</td><td>'+v+'</td></tr>';
+      });
+      h+='</tbody></table></div><p class="note">Distance pour le champ exact = f × (1 + m) ÷ m. Allonge : au-delà du tirage propre de l\'objectif (mise au point minimale type, à confirmer sur la fiche).</p></section>';
+    }
+    h+='<section class="card"><div class="sec-head"><h2>Doubleur, allonge et accessoires</h2></div>'+fl(R.acc)+'</section>';
+    // monture
+    var MT=R.mount, mc=MT.chosen;
+    h+='<section class="card"><div class="sec-head"><h2>Monture'+(mc?' : '+esc(mc.label):'')+'</h2><p>'+(mc?esc(mc.thread)+(mc.flange!=null?', tirage '+String(parseFloat(mc.flange.toFixed(3))).replace('.',',')+' mm':''):'Conseil selon le capteur')+'</p></div>';
+    h+=fl([{t:'info',m:MT.recText}].concat(MT.flags));
+    if(!mc) h+='<p class="note">Montures possibles : '+MT.rec.map(function(m){return esc(m.label)}).join(', ')+'. Choisissez-en une dans « Monture (option) » pour la vérifier.</p>';
+    h+='</section>';
+    // résolution
+    h+='<section class="card"><div class="sec-head"><h2>Résolution et ouverture</h2><p>À donner au fabricant d\'objectif, sans préférence de marque</p></div><div class="spec">';
+    h+='<div><div class="k">Résolution de l\'objectif</div><div class="big">≥ '+n(sp.nuK,0)+' lp/mm</div><dl><dt>Côté image</dt><dd>'+n(sp.nuK,0)+' lp/mm</dd><dt>Pixel effectif maximal</dt><dd>'+n(sp.pitchEq,2)+' µm</dd><dt>Nyquist du capteur</dt><dd>'+n(sp.nuN,0)+' lp/mm</dd><dt>Côté objet</dt><dd>'+n(1000/(2*R.pixObj),1)+' lp/mm</dd></dl></div>';
+    h+='<div><div class="k">Format</div><div class="big">cercle ≥ '+n(sp.circleMin,1)+' mm</div><dl><dt>Diagonale capteur</dt><dd>'+n(R.dims.D,1)+' mm</dd><dt>Équivalent optique</dt><dd>≈ '+n(sp.inch,2)+'"</dd><dt>Mégapixels</dt><dd>'+n(R.dims.mpx,1)+'</dd></dl></div>';
+    h+='<div><div class="k">Ouverture f/'+n(s.nom,1)+'</div><div class="big">f/'+n(sp.nEff,1)+' eff.</div><dl><dt>Coupure à '+n(s.lambda)+' nm</dt><dd>'+n(sp.cutoff,0)+' lp/mm</dd><dt>Contraste au Nyquist</dt><dd>'+n(sp.mtfNyq*100,0)+' %</dd>'+(sp.dof?'<dt>Profondeur de champ</dt><dd>'+n(sp.dof.total,1)+' mm</dd>':'')+'</dl>'
+      +(kind==='telecentrique'?fl([{t:'info',m:'La profondeur de champ d\'un télécentrique est fixée par sa conception, pas par le diaphragme : la lire sur la fiche et la comparer aux '+n(s.depth,1)+' mm. Ne pas dépasser f/'+n(sp.win.nMax,1)+' (diffraction).'}]):sp.win.nMin!=null&&s.depth>0?(sp.win.nMin>sp.win.nMax?fl([{t:'bad',m:'Pour tenir '+n(s.depth)+' mm il faut au moins f/'+n(sp.win.nMin,1)+', mais la diffraction limite à f/'+n(sp.win.nMax,1)+'. Réduire la variation de hauteur ou choisir un télécentrique.'}]):fl([{t:'good',m:'Plage d\'ouverture : f/'+n(Math.max(sp.win.nMin,1.4),1)+' à f/'+n(sp.win.nMax,1)+'.'}])):fl([{t:'good',m:'Ne pas dépasser f/'+n(sp.win.nMax,1)+' (diffraction).'}]))+'</div></div>';
+    h+=fl(R.notes.map(function(m){return {t:'info',m:m}}))+'</section>';
+    // résumé copiable
+    var lines=['Capteur : '+s.sw+' × '+s.sh+' px, pixel '+s.p+' µm ('+n(R.dims.D,1)+' mm de diagonale)',
+      'Scène : champ '+s.fovH+' × '+s.fovV+' mm, distance de travail '+s.wd+' mm, variation de hauteur '+s.depth+' mm',
+      (R.meas?'Mesure : précision visée '+s.prec+' µm, interpolation 1/'+s.subdiv+' pixel':'Détection : défaut de '+s.defect+' µm sur '+s.k+' pixels'),
+      'Objectif : '+R.headline,
+      'Grandissement : '+n(R.m,4)+'×, focale calculée '+(kind==='telecentrique'?'sans objet':n(R.fNeed,1)+' mm'),
+      'Résolution objectif : ≥ '+n(sp.nuK,0)+' lp/mm côté image, cercle d\'image ≥ '+n(sp.circleMin,1)+' mm',
+      'Monture : '+(mc?mc.label+' ('+mc.thread+(mc.flange!=null?', tirage '+String(parseFloat(mc.flange.toFixed(3))).replace('.',',')+' mm':'')+')':'non précisée, '+MT.recText),
+      'Ouverture de travail : f/'+n(s.nom,1)+' à '+s.lambda+' nm'];
+    lastText=lines.join('\n');
+    h+='<section class="card"><div class="sec-head"><h2>Cahier des charges de l\'objectif</h2><p>À envoyer à un fabricant ou à votre bureau d\'études</p></div><pre style="margin:0;white-space:pre-wrap;font:12px/1.5 var(--font-num);overflow-wrap:anywhere">'+esc(lastText)+'</pre><div class="btns" style="margin-top:10px"><button type="button" class="btn" id="oCopy">Copier le texte</button><span class="unit" id="oCopyMsg"></span></div></section>';
+    // détail
+    h+='<section class="card"><details><summary>Détail des calculs</summary><div class="calc">'
+      +'<div><span><b>Pixel objet maximal</b><br><code>'+(R.meas?'précision × interpolation':'défaut ÷ pixels')+'</code></span><span class="res">'+(R.meas?n(s.prec,1)+' × '+s.subdiv:n(s.defect,1)+' ÷ '+R.k)+' = '+n(R.reqPix,1)+' µm</span></div>'
+      +'<div><span><b>Grandissement</b><br><code>m = min(L<sub>h</sub> ÷ FOV<sub>h</sub>, L<sub>v</sub> ÷ FOV<sub>v</sub>)</code></span><span class="res">'+n(R.m,4)+'×'+(R.ev.portrait?' (capteur tourné)':'')+'</span></div>'
+      +'<div><span><b>Pixel objet atteint</b><br><code>p ÷ m</code></span><span class="res">'+n(s.p,2)+' ÷ '+n(R.m,4)+' = '+n(R.pixObj,1)+' µm</span></div>'
+      +'<div><span><b>Focale</b><br><code>f = WD × m ÷ (1 + m)</code></span><span class="res">'+n(s.wd)+' × '+n(R.m,4)+' ÷ '+n(1+R.m,4)+' = '+n(R.fNeed,1)+' mm</span></div>'
+      +'<div><span><b>Pixels requis</b><br><code>FOV ÷ pixel objet maximal</code></span><span class="res">'+n(R.need.nH)+' × '+n(R.need.nV)+' px ('+n(R.need.mpx,1)+' Mpx), disponibles '+n(R.have.nH)+' × '+n(R.have.nV)+'</span></div>'
+      +'<div><span><b>Champ maximal avec ce capteur</b><br><code>N<sub>px</sub> × pixel objet maximal</code></span><span class="res">'+n(R.fovMax.H,0)+' × '+n(R.fovMax.V,0)+' mm</span></div>'
+      +'<div><span><b>Distorsion estimée</b><br><code>'+n(R.distPct,1)+' % × FOV ÷ 2</code></span><span class="res">'+n(R.distErr,0)+' µm en bord de champ (valeur type, à confirmer)</span></div>'
+      +'<div><span><b>Erreur de perspective</b><br><code>Δ = FOV × Δz ÷ WD</code></span><span class="res">'+n(lt.perr||0,2)+' mm</span></div>'
+      +'</div><p class="note">Approximation lentille mince. La distorsion, la mise au point minimale et les focales de série sont des valeurs de travail : la fiche de l\'objectif fait foi.</p></details></section>';
+    out.innerHTML=h;
+  }
+  document.addEventListener('input',function(e){
+    var t=e.target; if(!t.closest||!t.closest('#oForm')) return;
+    if(t.id==='o_imx') lookupImx(); else if(t.id==='o_sensor'){ fromSel(); $('o_imx').value=''; $('o_imxMsg').textContent=''; } else if(t.id==='o_sw'||t.id==='o_sh'||t.id==='o_p') selEl.value='custom';
+    render();
+  });
+  document.addEventListener('click',function(e){
+    var p=e.target.closest&&e.target.closest('[data-o]');
+    if(p){ var d=PRE[p.dataset.o]; Object.keys(d).forEach(function(k){var el=$(k); if(!el) return; if(el.type==='checkbox') el.checked=d[k]; else el.value=d[k];}); fromSel(); render(); return; }
+    if(e.target.id==='oCopy'){
+      var done=function(m){$('oCopyMsg').textContent=m};
+      try{ navigator.clipboard.writeText(lastText).then(function(){done('Texte copié.')},function(){done('Copie refusée : sélectionnez le texte ci-dessus.')}); }catch(x){ done('Copie refusée : sélectionnez le texte ci-dessus.'); }
+    }
+  });
+  fromSel(); render();
+})();
+</script>
+<script>
+(function(){
+  var $=function(i){return document.getElementById(i)}, user=null, authed=false;
+  function setStep(n){
+    $('regForm').hidden=n!==1; $('stepMail').hidden=n!==2; $('pwForm').hidden=n!==3;
+    [].forEach.call($('steps').children,function(li){var s=+li.dataset.s; li.className=s===n?'on':(s<n?'done':'');});
+  }
+  function err(id,m){ $('e-'+id).textContent=m||''; }
+  function val(id){ return $(id).value.trim(); }
+  function validate(){
+    var ok=true;
+    [['prenom','Renseignez votre prénom.'],['nom','Renseignez votre nom.'],['societe','Renseignez le nom de la société.']].forEach(function(f){ if(!val(f[0])){err(f[0],f[1]);ok=false;} else err(f[0]); });
+    if(!$('dept').value){err('dept','Choisissez votre département.');ok=false;} else err('dept');
+    var em=val('email');
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)){err('email','Saisissez une adresse e-mail valide, par exemple prenom.nom@societe.com.');ok=false;} else err('email');
+    var tel=val('tel');
+    if(tel && !/^\+?[0-9 ().-]{7,20}$/.test(tel)){err('tel','Numéro non reconnu : utilisez des chiffres, des espaces et un + éventuel.');ok=false;} else err('tel');
+    if(!$('cgu').checked){err('cgu','Cochez la case pour continuer.');ok=false;} else err('cgu');
+    return ok;
+  }
+  $('regForm').addEventListener('submit',function(e){
+    e.preventDefault(); if(!validate()) return;
+    user={prenom:val('prenom'),nom:val('nom'),societe:val('societe'),dept:$('dept').value,email:val('email').toLowerCase(),tel:val('tel')};
+    $('mailTo').textContent=user.email; $('mailTo2').textContent=user.email; $('mailName').textContent=user.prenom; setStep(2);
+  });
+  $('backReg').addEventListener('click',function(){ setStep(1); });
+  $('openLink').addEventListener('click',function(){ $('okMail').textContent=user.email; setStep(3); $('pw1').focus(); });
+  function score(p){ var s=0; if(p.length>=12)s++; if(p.length>=16)s++; if(/[a-z]/.test(p)&&/[A-Z]/.test(p))s++; if(/\d/.test(p)&&/[^A-Za-z0-9]/.test(p))s++; return p.length<12?Math.min(s,1):s; }
+  $('pw1').addEventListener('input',function(){
+    var s=score($('pw1').value), bars=document.querySelectorAll('.meter i');
+    [].forEach.call(bars,function(b,i){ b.className=i<s?'on'+s:''; });
+    $('pwHint').textContent=!$('pw1').value?'Mélangez majuscules, minuscules, chiffres et symboles, ou choisissez une longue phrase.':(s<=1?'Trop court ou trop simple.':s===2?'Correct. Ajoutez de la longueur pour plus de sécurité.':'Bon niveau.');
+  });
+  $('pwForm').addEventListener('submit',function(e){
+    e.preventDefault(); var a=$('pw1').value, b=$('pw2').value, ok=true;
+    if(a.length<12){err('pw1','12 caractères minimum.');ok=false;} else err('pw1');
+    if(a!==b){err('pw2','Les deux mots de passe sont différents.');ok=false;} else err('pw2');
+    if(!ok) return;
+    $('pw1').value=''; $('pw2').value=''; enter();
+  });
+  function enter(){
+    authed=true; $('gate').hidden=true; $('app').hidden=false;
+    $('whoTxt').innerHTML='<b></b> · '+'<span></span>';
+    $('whoTxt').firstChild.textContent=user.prenom+' '+user.nom; $('whoTxt').lastChild.textContent=user.societe+', '+user.dept;
+    if(location.hash!=='#calculateur' && location.hash!=='#optique') location.hash='calculateur'; route();
+    window.scrollTo(0,0);
+  }
+  function leave(){
+    authed=false; user=null; $('app').hidden=true; $('gate').hidden=false;
+    ['prenom','nom','societe','email','tel','pw1','pw2'].forEach(function(i){$(i).value='';}); $('dept').value=''; $('cgu').checked=false;
+    setStep(1); if(location.hash) location.hash='acces';
+  }
+  $('logout').addEventListener('click',leave);
+  function route(){ var o=location.hash==='#optique'; $('tabFull').hidden=o; $('tabOpt').hidden=!o; $('tabA').setAttribute('aria-current',o?'false':'page'); $('tabB').setAttribute('aria-current',o?'page':'false'); }
+  window.addEventListener('hashchange',function(){ if((location.hash==='#calculateur'||location.hash==='#optique') && !authed){ location.hash='acces'; return; } if(authed) route(); });
+  if(location.hash==='#calculateur'||location.hash==='#optique') location.hash='acces';
+})();
+</script>

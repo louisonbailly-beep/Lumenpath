@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Connexion utilisateur</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400..600&display=swap">
+<style>
+body{margin:0}
+a{color:inherit;text-decoration:none}
+a:hover{color:var(--accent)}
+</style>
+</helmet>
+<div style="{{vars}} background: var(--bg); color: var(--ink); font-family: 'Geist', 'Helvetica Neue', Arial, sans-serif; font-size: 16px; line-height: 1.5; min-height: 900px; display: flex; flex-direction: column">
+
+<header style="width: 100%; box-sizing: border-box; padding: 18px 32px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px">
+<a href="Main.dc.html" style="display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 600; letter-spacing: -0.02em">
+<svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13.5" fill="none" stroke="var(--ink)" stroke-width="2"/><path d="M8.5 9.5 16 20.5 23.5 9.5" fill="none" stroke="var(--accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><rect x="13.8" y="18.3" width="4.4" height="4.4" fill="var(--ink)"/></svg>
+<span>lumen<span style="font-weight: 300; color: var(--muted)">path</span></span>
+</a>
+<a href="Main.dc.html" style="font-size: 14px; color: var(--muted)">Retour à l'accueil</a>
+</header>
+
+<main style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 48px 16px 96px; background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px); background-size: 48px 48px; background-position: center top">
+<div style="width: 100%; max-width: 420px; box-sizing: border-box; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--panel); padding: 36px; display: flex; flex-direction: column; gap: 24px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span style="font-family: 'Geist Mono', monospace; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted)">Espace utilisateur</span>
+<h1 style="margin: 0; font-size: 30px; letter-spacing: -0.03em; font-weight: 500">Connexion</h1>
+</div>
+<form style="display: flex; flex-direction: column; gap: 16px" onsubmit="return false">
+<label for="email" style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--muted)">Adresse e-mail professionnelle
+<input id="email" type="email" autocomplete="email" placeholder="prenom.nom@societe.com" style="padding: 11px 12px; border: 1px solid var(--line-strong); border-radius: 6px; background: var(--bg); color: var(--ink); font-size: 15px"></label>
+<label for="pw" style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--muted)">
+<span style="display: flex; justify-content: space-between"><span>Mot de passe</span><a href="#oubli" style="color: var(--accent)">Mot de passe oublié</a></span>
+<input id="pw" type="password" autocomplete="current-password" style="padding: 11px 12px; border: 1px solid var(--line-strong); border-radius: 6px; background: var(--bg); color: var(--ink); font-size: 15px"></label>
+<label style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted)"><input type="checkbox"> Rester connecté sur cet appareil</label>
+<button type="submit" style="padding: 12px 16px; border: 0; border-radius: 6px; background: var(--accent); color: var(--on-accent); font-size: 15px; font-weight: 500; cursor: pointer">Se connecter</button>
+</form>
+<div style="border-top: 1px solid var(--line); padding-top: 20px; display: flex; flex-direction: column; gap: 10px; font-size: 14px; color: var(--muted)">
+<span>Pas encore d'accès ? <a href="Inscription.dc.html" style="color: var(--accent); font-weight: 500">Créer un accès</a></span>
+<span>Vous administrez la plateforme ? <a href="AdminConnexion.dc.html" style="color: var(--ink); font-weight: 500">Accès administrateur</a></span>
+</div>
+</div>
+</main>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"mode":{"editor":"enum","options":["light","dark"],"default":"light","section":"Thème"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+renderVals() {
+const dark = (this.props.mode ?? 'light') === 'dark';
+const L = '--bg:#F6F7F8;--panel:#FFFFFF;--ink:#0E1116;--muted:#5B6571;--line:#E3E6EA;--line-strong:#C3C9D0;--accent:#0B5FFF;--on-accent:#FFFFFF;--ok:#0F7A55;--warn:#9A5B00;--bad:#C4321F;';
+const D = '--bg:#0B0D10;--panel:#12151A;--ink:#E9ECF0;--muted:#8C96A3;--line:#242A32;--line-strong:#3A424C;--accent:#6C9BFF;--on-accent:#0B0D10;--ok:#4CC596;--warn:#E3A84A;--bad:#F2806C;';
+return { vars: dark ? D : L };
+}
+}
+</script>
+</body>
+</html>

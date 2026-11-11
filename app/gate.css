@@ -1,0 +1,23 @@
+/* Plan : atelier d'optique. Écran d'accueil en deux plans (banc optique sombre à gauche, formulaire à droite), puis l'outil. Accent unique : le magenta du traitement antireflet. */
+:root{
+  --bg:#edeff2; --panel:#ffffff; --sunk:#f3f5f7; --ink:#111a24; --muted:#5a6773; --line:#d5dbe1;
+  --accent:#a3205f; --accent-soft:#f6e3ec; --on-accent:#ffffff; --coat:#1f8a63;
+  --ok:#1b7447; --ok-soft:#dff0e6; --warn:#8f5608; --warn-soft:#f8ecd2; --bad:#a8321d; --bad-soft:#f7e0da;
+  --hero-bg:#0f1a26; --hero-ink:#e9eef3; --hero-mute:#97a7b6; --hero-line:#5f7388;
+  --font-ui:'Schibsted Grotesk','Helvetica Neue',Arial,sans-serif;
+  --font-num:'JetBrains Mono','SFMono-Regular',Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0c131a; --panel:#141e27; --sunk:#0f1820; --ink:#e7edf2; --muted:#94a4b2; --line:#26343f;
+    --accent:#f07fb2; --accent-soft:#3a1828; --on-accent:#1b0a13; --coat:#5fd1a3;
+    --ok:#57c28b; --ok-soft:#163626; --warn:#e3aa45; --warn-soft:#3b2d12; --bad:#f07f69; --bad-soft:#3d1d17;
+    --hero-bg:#0a1119; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0c131a; --panel:#141e27; --sunk:#0f1820; --ink:#e7edf2; --muted:#94a4b2; --line:#26343f;
+  --accent:#f07fb2; --accent-soft:#3a1828; --on-accent:#1b0a13; --coat:#5fd1a3;
+  --ok:#57c28b; --ok-soft:#163626; --warn:#e3aa45; --warn-soft:#3b2d12; --bad:#f07f69; --bad-soft:#3d1d17;
+  --hero-bg:#0a1119; color-scheme:dark;
+}

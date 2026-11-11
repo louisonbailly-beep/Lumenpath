@@ -1,0 +1,835 @@
+<title>Lumenpath</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400..700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Plan : atelier d'optique. Écran d'accueil en deux plans (banc optique sombre à gauche, formulaire à droite), puis l'outil. Accent unique : le magenta du traitement antireflet. */
+:root{
+  --bg:#edeff2; --panel:#ffffff; --sunk:#f3f5f7; --ink:#111a24; --muted:#5a6773; --line:#d5dbe1;
+  --accent:#a3205f; --accent-soft:#f6e3ec; --on-accent:#ffffff; --coat:#1f8a63;
+  --ok:#1b7447; --ok-soft:#dff0e6; --warn:#8f5608; --warn-soft:#f8ecd2; --bad:#a8321d; --bad-soft:#f7e0da;
+  --hero-bg:#0f1a26; --hero-ink:#e9eef3; --hero-mute:#97a7b6; --hero-line:#5f7388;
+  --font-ui:'Schibsted Grotesk','Helvetica Neue',Arial,sans-serif;
+  --font-num:'JetBrains Mono','SFMono-Regular',Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0c131a; --panel:#141e27; --sunk:#0f1820; --ink:#e7edf2; --muted:#94a4b2; --line:#26343f;
+    --accent:#f07fb2; --accent-soft:#3a1828; --on-accent:#1b0a13; --coat:#5fd1a3;
+    --ok:#57c28b; --ok-soft:#163626; --warn:#e3aa45; --warn-soft:#3b2d12; --bad:#f07f69; --bad-soft:#3d1d17;
+    --hero-bg:#0a1119; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0c131a; --panel:#141e27; --sunk:#0f1820; --ink:#e7edf2; --muted:#94a4b2; --line:#26343f;
+  --accent:#f07fb2; --accent-soft:#3a1828; --on-accent:#1b0a13; --coat:#5fd1a3;
+  --ok:#57c28b; --ok-soft:#163626; --warn:#e3aa45; --warn-soft:#3b2d12; --bad:#f07f69; --bad-soft:#3d1d17;
+  --hero-bg:#0a1119; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:14px/1.5 var(--font-ui);padding-block:20px 40px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-weight:650;line-height:1.2;margin:0;text-wrap:balance}
+h1{font-size:22px;letter-spacing:-.01em}
+h2{font-size:15px;letter-spacing:.01em}
+h3{font-size:13px}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums}
+.shell{max-width:1240px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.top{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:baseline;justify-content:space-between}
+.top p{margin:0;color:var(--muted);max-width:70ch}
+.proto{background:var(--warn-soft);color:var(--warn);border:1px solid color-mix(in srgb,var(--warn) 35%,transparent);padding:8px 12px;border-radius:6px;font-size:13px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-items:start}
+@media (min-width:980px){.layout{grid-template-columns:340px minmax(0,1fr)}.aside{position:sticky;top:12px}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px;min-width:0}
+.aside{display:flex;flex-direction:column;gap:12px}
+fieldset{border:0;margin:0;padding:0;min-width:0}
+legend{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:0;margin-bottom:8px;font-weight:600}
+.group{display:flex;flex-direction:column;gap:10px;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.group:last-child{border:0;margin:0;padding:0}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);min-width:0}
+label.check{flex-direction:row;align-items:flex-start;gap:8px;color:var(--ink);font-size:13px}
+input[type=number],select{font:inherit;font-family:var(--font-num);color:var(--ink);background:var(--sunk);border:1px solid var(--line);border-radius:5px;padding:7px 8px;width:100%;min-width:0}
+select{font-family:var(--font-ui)}
+input[type=checkbox]{margin-top:3px;accent-color:var(--accent)}
+input:focus-visible,select:focus-visible,button:focus-visible,summary:focus-visible,tr[tabindex]:focus-visible,.pick:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.unit{font-family:var(--font-num);font-size:11px;color:var(--muted)}
+.presets{display:flex;flex-wrap:wrap;gap:6px}
+button.preset{font:inherit;font-size:12px;background:var(--accent-soft);color:var(--accent);border:1px solid transparent;border-radius:5px;padding:6px 9px;cursor:pointer}
+button.preset:hover{border-color:var(--accent)}
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:0;padding:0;overflow:hidden}
+.summary>div{padding:14px 16px;border-left:1px solid var(--line);min-width:0}
+.summary>div:first-child{border-left:0}
+@media (max-width:620px){.summary>div{border-left:0;border-top:1px solid var(--line)}.summary>div:first-child{border-top:0}}
+.k{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+.v{font-family:var(--font-num);font-size:20px;margin-top:4px;overflow-wrap:anywhere}
+.s{font-size:12px;color:var(--muted);margin-top:2px}
+.sec-head{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 12px;align-items:baseline;margin-bottom:10px}
+.sec-head p{margin:0;font-size:12px;color:var(--muted)}
+.scroll{overflow-x:auto;margin:0 -16px;padding:0 16px}
+table{border-collapse:collapse;width:100%;min-width:720px;font-size:13px}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:8px;border-bottom:1px solid var(--line);vertical-align:middle;white-space:nowrap}
+td.n,th.n{text-align:right}
+tr[data-id]{cursor:pointer}
+tr[data-id]:hover td{background:var(--sunk)}
+tr.sel td{background:var(--accent-soft)}
+tr.sel td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
+tr.off td{opacity:.5}
+.chip{display:inline-block;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:99px;white-space:nowrap}
+.chip.ok{background:var(--ok-soft);color:var(--ok)}
+.chip.limite{background:var(--warn-soft);color:var(--warn)}
+.chip.insuffisant,.chip.bad{background:var(--bad-soft);color:var(--bad)}
+.chip.off{background:var(--sunk);color:var(--muted)}
+.bar{display:inline-block;vertical-align:middle;width:56px;height:6px;background:var(--sunk);border-radius:3px;margin-left:8px;overflow:hidden;border:1px solid var(--line)}
+.bar i{display:block;height:100%;background:var(--accent)}
+.lenses{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.lens{border:1px solid var(--line);border-radius:7px;padding:12px;display:flex;flex-direction:column;gap:10px;background:var(--sunk);min-width:0;cursor:pointer;text-align:left;font:inherit;color:inherit}
+.lens.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.lens .h{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.lens .f{font-family:var(--font-num);font-size:20px}
+.lens .fam{font-size:12px;color:var(--muted)}
+dl{display:grid;grid-template-columns:auto 1fr;gap:3px 14px;margin:0;font-size:12.5px}
+dt{color:var(--muted)}
+dd{margin:0;font-family:var(--font-num);text-align:right;overflow-wrap:anywhere}
+ul.flags{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px;font-size:12.5px}
+ul.flags li{padding:5px 8px;border-radius:5px;border-left:3px solid}
+ul.flags li.warn{background:var(--warn-soft);color:var(--warn);border-color:var(--warn)}
+ul.flags li.bad{background:var(--bad-soft);color:var(--bad);border-color:var(--bad)}
+ul.flags li.good{background:var(--ok-soft);color:var(--ok);border-color:var(--ok)}
+.adj{font-size:12.5px;padding:8px 10px;border-radius:5px;border-left:3px solid}
+.adj.ok{background:var(--ok-soft);color:var(--ok);border-color:var(--ok)}
+.adj.warn{background:var(--warn-soft);color:var(--warn);border-color:var(--warn)}
+.note{font-size:12.5px;color:var(--muted);margin:10px 0 0}
+.chart{width:100%;height:auto;display:block}
+.chart text{fill:var(--muted);font:11px var(--font-num)}
+.chart .axis{stroke:var(--line);stroke-width:1}
+.chart .grid{stroke:var(--line);stroke-width:1;stroke-dasharray:2 3}
+.chart .curve{fill:none;stroke:var(--accent);stroke-width:2.2}
+.chart .area{fill:var(--accent);opacity:.1}
+.chart .nyq{stroke:var(--ink);stroke-width:1.4;stroke-dasharray:5 4}
+.chart .req{stroke:var(--warn);stroke-width:1.6}
+details{border-top:1px solid var(--line);padding-top:10px;margin-top:10px}
+summary{cursor:pointer;font-weight:600;font-size:13px}
+.calc{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;margin-top:10px}
+.calc div{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1.4fr);gap:4px 14px;font-size:12.5px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+@media (max-width:620px){.calc div{grid-template-columns:minmax(0,1fr)}}
+.calc b{font-weight:600}
+.calc code{font-family:var(--font-num);color:var(--muted);font-size:12px;overflow-wrap:anywhere}
+.calc .res{font-family:var(--font-num);color:var(--accent);overflow-wrap:anywhere}
+.empty{padding:24px;text-align:center;color:var(--muted)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:var(--muted);margin-top:6px}
+.legend span::before{content:"";display:inline-block;width:18px;border-top:2px solid;margin-right:6px;vertical-align:middle}
+.legend .l1::before{border-color:var(--accent)}
+.legend .l2::before{border-top:2px dashed var(--ink)}
+.legend .l3::before{border-color:var(--warn)}
+.legend .l4::before{border-top:1px dotted var(--muted)}
+.hidden{display:none!important}
+textarea{font:12px/1.4 var(--font-num);color:var(--ink);background:var(--sunk);border:1px solid var(--line);border-radius:5px;padding:7px 8px;width:100%;min-height:90px;resize:vertical}
+button.btn{font:inherit;font-size:12px;background:var(--sunk);color:var(--ink);border:1px solid var(--line);border-radius:5px;padding:6px 10px;cursor:pointer}
+button.btn:hover{border-color:var(--accent)}
+.btns{display:flex;flex-wrap:wrap;gap:6px}
+.spec{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.spec>div{background:var(--sunk);border:1px solid var(--line);border-radius:7px;padding:12px;min-width:0}
+.big{font-family:var(--font-num);font-size:19px}
+ul.flags li.info{background:var(--sunk);color:var(--ink);border-color:var(--muted)}
+.chip.good{background:var(--ok-soft);color:var(--ok)}
+.chip.neutral{background:var(--accent-soft);color:var(--accent)}
+.swatch{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:middle;border:1px solid var(--line)}
+.refs{font-size:12px;color:var(--muted);overflow-wrap:anywhere}
+.srcs{font-size:12px;color:var(--muted);margin:10px 0 0;padding-left:18px}
+.srcs a{color:var(--accent)}
+@media (prefers-reduced-motion:no-preference){.bar i{transition:width .2s}}
+input[type=text],input[type=email],input[type=tel],input[type=password]{font:inherit;color:var(--ink);background:var(--sunk);border:1px solid var(--line);border-radius:5px;padding:9px 10px;width:100%;min-width:0}
+input[type=text]:focus-visible,input[type=email]:focus-visible,input[type=tel]:focus-visible,input[type=password]:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.gate{max-width:1240px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr);gap:0;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--panel)}
+@media (min-width:900px){.gate{grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);min-height:640px}}
+.hero{background:var(--hero-bg);color:var(--hero-ink);padding:32px;display:flex;flex-direction:column;gap:22px;min-width:0}
+.brand{display:flex;align-items:center;gap:10px}
+.logo{flex:none;display:block}
+.logo .lr{fill:none;stroke:currentColor;stroke-width:2.6}
+.logo .lv{fill:none;stroke:var(--accent);stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.logo .lp{fill:var(--coat)}
+.hero .logo .lv{stroke:#f07fb2}
+.hero .logo .lp{fill:#5fd1a3}
+.wm{font-size:18px;font-weight:400;letter-spacing:.005em}
+.wm b{font-weight:700;letter-spacing:-.005em}
+.hero h1{font-size:clamp(26px,3.4vw,38px);line-height:1.08;letter-spacing:-.02em;max-width:18ch}
+.hero p{margin:0;color:var(--hero-mute);max-width:52ch}
+.bench{width:100%;height:auto;display:block}
+.bench text{fill:var(--hero-mute);font:11px var(--font-num)}
+.bench .ln{stroke:var(--hero-line);stroke-width:1.2;fill:none}
+.bench .ray{stroke:var(--hero-ink);stroke-width:1.2;fill:none;opacity:.85}
+.bench .dim{stroke:var(--hero-line);stroke-width:1;stroke-dasharray:3 3;fill:none}
+.bench .lensA{stroke:var(--accent);stroke-width:2.4;fill:none}
+.bench .lensB{stroke:var(--coat);stroke-width:2.4;fill:none}
+.bench .part{fill:var(--hero-line);opacity:.55}
+.facts{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px 22px}
+.facts li{border-top:1px solid var(--hero-line);padding-top:8px;font-size:13px;color:var(--hero-mute)}
+.facts b{display:block;color:var(--hero-ink);font-weight:600;font-size:14px}
+.reg{padding:32px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.reg h2{font-size:22px;letter-spacing:-.01em}
+.reg .sub{margin:0;color:var(--muted)}
+.steps{display:flex;gap:6px;list-style:none;margin:0;padding:0;font-size:12px;color:var(--muted);flex-wrap:wrap}
+.steps li{display:flex;align-items:center;gap:6px;padding:4px 9px;border-radius:99px;border:1px solid var(--line)}
+.steps li.on{background:var(--accent-soft);color:var(--accent);border-color:transparent;font-weight:600}
+.steps li.done{color:var(--ok)}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:520px){.fg{grid-template-columns:minmax(0,1fr)}}
+.fg .full{grid-column:1/-1}
+.err{color:var(--bad);font-size:12px;min-height:0}
+.err:empty{display:none}
+button.cta{font:inherit;font-weight:600;background:var(--accent);color:var(--on-accent);border:0;border-radius:6px;padding:11px 16px;cursor:pointer}
+button.cta:hover{filter:brightness(1.08)}
+button.cta:focus-visible,button.ghost:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.ghost{font:inherit;background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:10px 14px;cursor:pointer}
+button.ghost:hover{border-color:var(--accent)}
+.demo{background:var(--warn-soft);color:var(--warn);border:1px solid color-mix(in srgb,var(--warn) 35%,transparent);border-radius:6px;padding:8px 10px;font-size:12.5px}
+.mail{border:1px solid var(--line);border-radius:8px;background:var(--sunk);padding:14px;display:flex;flex-direction:column;gap:8px;font-size:13px}
+.mail .hd{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font-size:12px;color:var(--muted)}
+.mail .hd b{color:var(--ink);font-weight:600;overflow-wrap:anywhere}
+.mail .lnk{display:inline-block;align-self:flex-start;background:var(--accent);color:var(--on-accent);padding:8px 12px;border-radius:5px;font-weight:600;font-size:13px}
+.meter{display:flex;gap:4px}
+.meter i{flex:1;height:5px;border-radius:3px;background:var(--line)}
+.meter i.on1{background:var(--bad)}.meter i.on2{background:var(--warn)}.meter i.on3,.meter i.on4{background:var(--ok)}
+.appbar{max-width:1240px;margin:0 auto 14px;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between}
+.appbar .brand{color:var(--ink)}
+.who{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted);flex-wrap:wrap}
+.who b{color:var(--ink)}
+[hidden]{display:none!important}
+.tabs{display:flex;gap:4px;flex-wrap:wrap}
+.tabs a{font-size:13px;padding:6px 12px;border-radius:99px;border:1px solid var(--line);color:var(--muted);text-decoration:none}
+.tabs a[aria-current=page]{background:var(--accent-soft);color:var(--accent);border-color:transparent;font-weight:600}
+.tabs a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.small{font-size:12px;color:var(--muted);margin:0}
+</style>
+
+<main id="gate">
+<div class="gate">
+  <section class="hero" aria-label="Présentation">
+    <div class="brand"><svg class="logo" viewBox="0 0 32 32" width="30" height="30" aria-hidden="true"><circle class="lr" cx="16" cy="16" r="13.5"/><path class="lv" d="M8.5 9.5 16 20.5 23.5 9.5"/><rect class="lp" x="13.6" y="18.1" width="4.8" height="4.8" rx="0.6"/></svg><span class="wm">Lumen<b>path</b></span></div>
+    <h1>Du champ de vue à l'objectif, au capteur et au filtre.</h1>
+    <p>Décrivez votre inspection : distance, champ, plus petit défaut, matière. L'outil calcule la résolution requise et spécifie l'objectif, le capteur et la lumière, formules à l'appui.</p>
+    <svg class="bench" viewBox="0 0 520 210" role="img" aria-label="Schéma : pièce, objectif, capteur, distance de travail et champ de vue">
+      <rect class="part" x="40" y="62" width="14" height="86"/>
+      <line class="dim" x1="47" y1="170" x2="256" y2="170"/><text x="152" y="188" text-anchor="middle">distance de travail</text>
+      <line class="dim" x1="28" y1="62" x2="28" y2="148"/><text x="22" y="108" text-anchor="end" transform="rotate(-90 22 108)">champ de vue</text>
+      <ellipse class="lensA" cx="256" cy="105" rx="13" ry="52"/><ellipse class="lensB" cx="261" cy="105" rx="13" ry="52"/>
+      <line class="ray" x1="54" y1="62" x2="256" y2="56"/><line class="ray" x1="256" y1="56" x2="446" y2="125"/>
+      <line class="ray" x1="54" y1="148" x2="256" y2="154"/><line class="ray" x1="256" y1="154" x2="446" y2="85"/>
+      <line class="ray" x1="54" y1="105" x2="446" y2="105" opacity=".45"/>
+      <rect x="446" y="70" width="10" height="70" rx="1" fill="none" stroke="var(--hero-ink)" stroke-width="1.6"/>
+      <text x="451" y="62" text-anchor="middle">capteur</text>
+      <text x="258" y="28" text-anchor="middle">objectif</text>
+    </svg>
+    <ul class="facts">
+      <li><b>Résolution</b>pixels requis, lp/mm, Nyquist, diffraction</li>
+      <li><b>Objectif neutre</b>focale, standard, macro ou télécentrique</li>
+      <li><b>Lumière</b>longueur d'onde, filtre, polarisation</li>
+    </ul>
+  </section>
+  <section class="reg" aria-live="polite">
+    <ol class="steps" id="steps"><li class="on" data-s="1">1 · Inscription</li><li data-s="2">2 · Vérification</li><li data-s="3">3 · Mot de passe</li></ol>
+    <div class="demo"><b>Démonstration.</b> Aucune donnée n'est envoyée ni enregistrée et aucun e-mail n'est expédié. Le parcours montre ce que fera le site une fois relié à un serveur.</div>
+
+    <form id="regForm" novalidate autocomplete="on" data-step="1">
+      <div><h2>Créer votre accès</h2><p class="sub">L'accès est réservé aux professionnels. Les champs marqués d'une étoile sont obligatoires.</p></div>
+      <div class="fg" style="margin-top:12px">
+        <label>Prénom *<input id="prenom" type="text" autocomplete="given-name" required><span class="err" id="e-prenom"></span></label>
+        <label>Nom *<input id="nom" type="text" autocomplete="family-name" required><span class="err" id="e-nom"></span></label>
+        <label class="full">Société *<input id="societe" type="text" autocomplete="organization" required><span class="err" id="e-societe"></span></label>
+        <label class="full">Département dans la société *
+          <select id="dept" required><option value="">Choisir…</option><option>Bureau d'études</option><option>R&amp;D</option><option>Production</option><option>Qualité</option><option>Maintenance</option><option>Intégration, projets</option><option>Achats</option><option>Commercial</option><option>Direction</option><option>Autre</option></select><span class="err" id="e-dept"></span></label>
+        <label class="full">Adresse e-mail professionnelle *<input id="email" type="email" autocomplete="email" required><span class="err" id="e-email"></span></label>
+        <label class="full">Téléphone, facultatif<input id="tel" type="tel" autocomplete="tel" placeholder="+33 1 23 45 67 89"><span class="err" id="e-tel"></span></label>
+        <label class="check full"><input id="cgu" type="checkbox" required> J'accepte les conditions d'utilisation et la politique de confidentialité. *</label>
+        <span class="err full" id="e-cgu"></span>
+      </div>
+      <p class="small" style="margin:10px 0 12px">Vos projets restent confidentiels. Le partage avec un bureau d'études, un intégrateur ou l'entraînement de l'IA demande un accord séparé, que vous donnez plus tard et que vous pouvez retirer.</p>
+      <button class="cta" type="submit">Recevoir le lien de vérification</button>
+    </form>
+
+    <div id="stepMail" hidden>
+      <h2>Vérifiez votre adresse</h2>
+      <p class="sub">Un lien de vérification doit être envoyé à <b id="mailTo" class="num"></b>. Voici l'aperçu du message.</p>
+      <div class="mail" style="margin-top:12px">
+        <div class="hd"><span>De</span><b>Lumenpath</b><span>À</span><b id="mailTo2"></b><span>Objet</span><b>Confirmez votre adresse e-mail</b></div>
+        <div>Bonjour <span id="mailName"></span>, confirmez votre adresse pour activer votre accès. Le lien est à usage unique et expire après 24 heures.</div>
+        <span class="lnk">Confirmer mon adresse</span>
+      </div>
+      <p class="small" style="margin:10px 0 12px">Aucun mot de passe n'est envoyé par e-mail : vous le choisissez à l'étape suivante, une fois l'adresse confirmée.</p>
+      <div class="btns"><button class="cta" id="openLink" type="button">Simuler un clic sur le lien</button><button class="ghost" id="backReg" type="button">Modifier mes informations</button></div>
+    </div>
+
+    <form id="pwForm" hidden novalidate>
+      <div><h2>Choisissez votre mot de passe</h2><p class="sub">Adresse confirmée : <b id="okMail" class="num"></b></p></div>
+      <div class="fg" style="margin-top:12px">
+        <label class="full">Mot de passe, 12 caractères minimum<input id="pw1" type="password" autocomplete="new-password"><span class="err" id="e-pw1"></span></label>
+        <div class="full"><div class="meter" aria-hidden="true"><i></i><i></i><i></i><i></i></div><p class="small" id="pwHint" style="margin-top:4px">Mélangez majuscules, minuscules, chiffres et symboles, ou choisissez une longue phrase.</p></div>
+        <label class="full">Confirmer le mot de passe<input id="pw2" type="password" autocomplete="new-password"><span class="err" id="e-pw2"></span></label>
+      </div>
+      <p class="small" style="margin:10px 0 12px">Côté serveur, le mot de passe n'est jamais stocké en clair : il est haché avec un algorithme lent (Argon2id) avant enregistrement.</p>
+      <button class="cta" type="submit">Activer mon accès</button>
+    </form>
+  </section>
+</div>
+</main>
+<div id="app" hidden>
+  <div class="appbar"><div class="brand"><svg class="logo" viewBox="0 0 32 32" width="30" height="30" aria-hidden="true"><circle class="lr" cx="16" cy="16" r="13.5"/><path class="lv" d="M8.5 9.5 16 20.5 23.5 9.5"/><rect class="lp" x="13.6" y="18.1" width="4.8" height="4.8" rx="0.6"/></svg><span class="wm">Lumen<b>path</b></span></div><nav class="tabs" aria-label="Calculateurs"><a href="#calculateur" id="tabA">Calculateur complet</a><a href="#optique" id="tabB">Optique conseillée</a></nav><div class="who"><span id="whoTxt"></span><button class="ghost" id="logout" type="button">Se déconnecter</button></div></div>
+<div class="shell" id="tabFull">
+  <header class="top">
+    <div>
+      <h1>Calculateur optique vision</h1>
+      <p>Champ de vue, résolution, capteur et objectif à partir des contraintes de l'application.</p>
+    </div>
+  </header>
+  <div class="proto"><b>Prototype.</b> Les capteurs viennent de pages publiques (Basler, LUCID, Atik, Sony) et le catalogue d'objectifs est générique et sans marque : importez votre gamme en CSV. Les résultats sont des ordres de grandeur en lentille mince, à valider sur la fiche de chaque objectif.</div>
+
+  <div class="layout">
+    <form class="aside card" id="form" autocomplete="off" onsubmit="return false">
+      <div class="presets" role="group" aria-label="Exemples">
+        <button type="button" class="preset" data-p="aspect">Aspect pièce usinée</button>
+        <button type="button" class="preset" data-p="cote">Mesure de cote</button>
+        <button type="button" class="preset" data-p="code">Lecture DataMatrix</button>
+        <button type="button" class="preset" data-p="colle">Colle sur carter</button>
+      </div>
+      <fieldset class="group">
+        <legend>Scène</legend>
+        <div class="row">
+          <label>Champ de vue largeur <input id="fovH" type="number" min="0.1" step="any" value="100"><span class="unit">mm</span></label>
+          <label>Champ de vue hauteur <input id="fovV" type="number" min="0.1" step="any" value="80"><span class="unit">mm</span></label>
+        </div>
+        <div class="row">
+          <label>Distance de travail <input id="wd" type="number" min="1" step="any" value="300"><span class="unit">mm, objet à la lentille</span></label>
+          <label>Variation de hauteur <input id="depth" type="number" min="0" step="any" value="5"><span class="unit">mm, profondeur à tenir nette</span></label>
+        </div>
+        <label>Type d'inspection
+          <select id="task"><option value="detection" selected>Détection, aspect, lecture</option><option value="mesure">Mesure dimensionnelle</option></select>
+        </label>
+        <label class="check"><input id="backlight" type="checkbox"> Contre-jour (silhouette de la pièce).</label>
+      </fieldset>
+      <fieldset class="group">
+        <legend>Détail à voir</legend>
+        <div class="row">
+          <label>Plus petit défaut <input id="defect" type="number" min="1" step="any" value="200"><span class="unit">µm</span></label>
+          <label>Pixels sur le défaut
+            <select id="k"><option value="2">2 · détection</option><option value="3" selected>3 · recommandé</option><option value="4">4 · mesure</option><option value="6">6 · mesure fine</option></select>
+          </label>
+        </div>
+        <label class="check"><input id="color" type="checkbox"> Capteur couleur (matrice de Bayer) : double le nombre de pixels exigé, règle empirique courante.</label>
+      </fieldset>
+      <fieldset class="group">
+        <legend>Mouvement</legend>
+        <div class="row">
+          <label>Vitesse de la pièce <input id="speed" type="number" min="0" step="any" value="0"><span class="unit">mm/s, 0 = à l'arrêt</span></label>
+          <label>Temps d'exposition <input id="exposure" type="number" min="1" step="any" value="200"><span class="unit">µs</span></label>
+        </div>
+        <label class="check"><input id="globalOnly" type="checkbox" checked> Obturateur global uniquement (pièce en mouvement).</label>
+      </fieldset>
+      <fieldset class="group">
+        <legend>Matière et lumière</legend>
+        <label>Matière ou effet à observer
+          <select id="material"></select>
+        </label>
+        <label id="tcolorW" class="hidden">Couleur du motif à contraster
+          <select id="tcolor"><option value="rouge">Rouge</option><option value="vert">Vert</option><option value="bleu">Bleu</option><option value="jaune">Jaune</option></select>
+        </label>
+        <label>Contrainte de longueur d'onde
+          <select id="lamCons"><option value="auto" selected>Aucune : conseil selon la matière</option><option value="source">Source ou éclairage imposé</option><option value="band">Plage imposée</option></select>
+        </label>
+        <div class="row hidden" id="lamSrcW">
+          <label>Longueur d'onde centrale <input id="lamC" type="number" min="200" max="1700" step="any" value="850"><span class="unit">nm</span></label>
+          <label>Largeur à mi-hauteur <input id="lamFwhm" type="number" min="1" step="any" value="30"><span class="unit">nm</span></label>
+        </div>
+        <div class="row hidden" id="lamBandW">
+          <label>λ minimale <input id="lamMin" type="number" min="200" max="1700" step="any" value="620"><span class="unit">nm</span></label>
+          <label>λ maximale <input id="lamMax" type="number" min="200" max="1700" step="any" value="680"><span class="unit">nm</span></label>
+        </div>
+        <label>Lumière ambiante
+          <select id="ambient"><option value="maitrisee" selected>Maîtrisée (carter, local sombre)</option><option value="forte">Forte (jour, atelier éclairé)</option></select>
+        </label>
+        <label class="check"><input id="glare" type="checkbox"> Reflets gênants sur la surface (polarisation).</label>
+      </fieldset>
+      <fieldset class="group">
+        <legend>Optique</legend>
+        <label>Ouverture nominale
+          <select id="nom"><option>1.4</option><option>2</option><option>2.8</option><option>4</option><option selected>5.6</option><option>8</option><option>11</option><option>16</option></select>
+        </label>
+        <label>Flou admis pour la profondeur de champ
+          <select id="coc"><option value="1">1 pixel</option><option value="2" selected>2 pixels</option></select>
+        </label>
+      </fieldset>
+      <fieldset class="group">
+        <legend>Chiffrage (option)</legend>
+        <label class="check"><input id="showPrice" type="checkbox"> Afficher un prix indicatif de caméra pour chaque capteur.</label>
+        <div class="row">
+          <label>Devise <select id="cur"><option value="USD">Dollar US</option><option value="EUR">Euro</option></select></label>
+          <label>Taux USD → EUR <input id="rate" type="number" min="0.1" step="0.01" value="0.92"><span class="unit">hypothèse, à ajuster</span></label>
+        </div>
+      </fieldset>
+      <fieldset class="group">
+        <legend>Catalogue d'objectifs</legend>
+        <label class="check"><input id="useDemo" type="checkbox" checked> Exemples génériques, sans marque.</label>
+        <label class="check"><input id="showBrand" type="checkbox"> Afficher fabricant et référence.</label>
+        <label>Importer un catalogue (CSV)<input id="csvFile" type="file" accept=".csv,.txt,text/csv"></label>
+        <label>ou coller le contenu<textarea id="csvText" placeholder="ref;fabricant;serie;type;focale_mm;..." spellcheck="false"></textarea></label>
+        <div class="btns"><button type="button" class="btn" id="csvLoad">Charger</button><button type="button" class="btn" id="csvTpl">Remplir un modèle</button><button type="button" class="btn" id="csvClear">Vider</button></div>
+        <div class="unit" id="csvMsg">Aucun catalogue importé.</div>
+      </fieldset>
+    </form>
+
+    <main style="display:flex;flex-direction:column;gap:16px;min-width:0" id="out" aria-live="polite"></main>
+  </div>
+</div>
+
+
+<div id="tabOpt" class="shell" hidden>
+  <header class="top">
+    <div>
+      <h1>Optique conseillée</h1>
+      <p>Saisissez votre capteur et vos contraintes : le calculateur recommande la focale, le type d'objectif (standard, macro ou télécentrique), la résolution et les accessoires.</p>
+    </div>
+  </header>
+  <div class="layout">
+    <form class="aside card" id="oForm" autocomplete="off" onsubmit="return false">
+      <div class="presets" role="group" aria-label="Exemples">
+        <button type="button" class="preset" data-o="defaut">Défaut sur pièce</button>
+        <button type="button" class="preset" data-o="cote">Mesure de cote</button>
+        <button type="button" class="preset" data-o="micro">Petit champ</button>
+        <button type="button" class="preset" data-o="grand">Grand champ</button>
+      </div>
+      <fieldset class="group">
+        <legend>Votre capteur</legend>
+        <label>Référence IMX, si vous la connaissez
+          <input id="o_imx" type="text" list="o_imxList" placeholder="par exemple IMX530" autocomplete="off"><span class="unit" id="o_imxMsg"></span></label>
+        <datalist id="o_imxList"></datalist>
+        <label>Modèle de la base, ou saisie libre
+          <select id="o_sensor"></select></label>
+        <div class="row">
+          <label>Pixels en largeur <input id="o_sw" type="number" min="1" step="1" value="2448"></label>
+          <label>Pixels en hauteur <input id="o_sh" type="number" min="1" step="1" value="2048"></label>
+        </div>
+        <label>Taille du pixel <input id="o_p" type="number" min="0.5" step="any" value="3.45"><span class="unit">µm</span></label>
+      </fieldset>
+      <fieldset class="group">
+        <legend>Monture (option)</legend>
+        <label>Monture de la caméra
+          <select id="o_mount"></select></label>
+        <span class="unit">Laissez « Non précisée » pour recevoir un conseil de monture selon le capteur.</span>
+      </fieldset>
+      <fieldset class="group">
+        <legend>Contraintes de la scène</legend>
+        <div class="row">
+          <label>Champ de vue largeur <input id="o_fovH" type="number" min="0.1" step="any" value="100"><span class="unit">mm</span></label>
+          <label>Champ de vue hauteur <input id="o_fovV" type="number" min="0.1" step="any" value="80"><span class="unit">mm</span></label>
+        </div>
+        <div class="row">
+          <label>Distance de travail <input id="o_wd" type="number" min="1" step="any" value="300"><span class="unit">mm, objet à la lentille</span></label>
+          <label>Variation de hauteur <input id="o_depth" type="number" min="0" step="any" value="5"><span class="unit">mm à tenir net</span></label>
+        </div>
+        <label class="check"><input id="o_back" type="checkbox"> Contre-jour (silhouette de la pièce).</label>
+      </fieldset>
+      <fieldset class="group">
+        <legend>Objectif de l'inspection</legend>
+        <label>Type
+          <select id="o_task"><option value="detection" selected>Détection d'un défaut</option><option value="mesure">Mesure dimensionnelle</option></select></label>
+        <div class="row" id="o_detW">
+          <label>Plus petit défaut <input id="o_defect" type="number" min="1" step="any" value="200"><span class="unit">µm</span></label>
+          <label>Pixels sur le défaut
+            <select id="o_k"><option value="2">2 · détection</option><option value="3" selected>3 · recommandé</option><option value="4">4 · fiable</option></select></label>
+        </div>
+        <div class="row hidden" id="o_mesW">
+          <label>Précision de mesure visée <input id="o_prec" type="number" min="0.1" step="any" value="10"><span class="unit">µm</span></label>
+          <label>Interpolation sous-pixel
+            <select id="o_sub"><option value="1">Aucune, 1 pixel</option><option value="3" selected>1/3 de pixel</option><option value="5">1/5 de pixel</option><option value="10">1/10 de pixel</option></select></label>
+        </div>
+      </fieldset>
+      <fieldset class="group">
+        <legend>Optique</legend>
+        <div class="row">
+          <label>Ouverture nominale
+            <select id="o_nom"><option>1.4</option><option>2</option><option>2.8</option><option>4</option><option selected>5.6</option><option>8</option><option>11</option><option>16</option></select></label>
+          <label>Longueur d'onde <input id="o_lam" type="number" min="200" max="1700" step="any" value="550"><span class="unit">nm</span></label>
+        </div>
+        <label>Flou admis pour la profondeur de champ
+          <select id="o_coc"><option value="1">1 pixel</option><option value="2" selected>2 pixels</option></select></label>
+      </fieldset>
+    </form>
+    <main style="display:flex;flex-direction:column;gap:16px;min-width:0" id="oOut" aria-live="polite"></main>
+  </div>
+</div>
+</div>
+<script>
+/*__CORE__*/
+</script>
+<script>
+(function(){
+  var C = OptiCalc, $ = function(id){return document.getElementById(id)};
+  var sel = null, picked = false, imported = [];
+  function n(x, d){ if(x==null||!isFinite(x)) return '∞'; return x.toLocaleString('fr-FR',{minimumFractionDigits:d==null?0:d, maximumFractionDigits:d==null?0:d}); }
+  function num(id){ return parseFloat($(id).value); }
+  function esc(t){return String(t).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function readInputs(){
+    return { fovH:num('fovH'), fovV:num('fovV'), wd:num('wd'), depth:num('depth')||0, defect:num('defect'), k:num('k'),
+      color:$('color').checked, globalOnly:$('globalOnly').checked, speed:num('speed')||0, exposure:num('exposure')||0,
+      nom:num('nom'), cocPx:num('coc'), task:$('task').value, backlight:$('backlight').checked,
+      material:$('material').value, tcolor:$('tcolor').value, lamCons:$('lamCons').value,
+      lamC:num('lamC'), lamFwhm:num('lamFwhm'), lamMin:num('lamMin'), lamMax:num('lamMax'),
+      ambient:$('ambient').value, showPrice:$('showPrice').checked, rate:num('rate')>0?num('rate'):1, glare:$('glare').checked, nstar:2 };
+  }
+  var PRESETS = {
+    aspect:{fovH:100,fovV:80,wd:300,depth:5,defect:200,k:3,speed:0,exposure:200,nom:5.6,task:'detection',backlight:false,material:'general',lamCons:'auto',ambient:'maitrisee',glare:false},
+    cote:{fovH:50,fovV:40,wd:250,depth:2,defect:50,k:4,speed:0,exposure:300,nom:5.6,task:'mesure',backlight:true,material:'metal',lamCons:'auto',ambient:'maitrisee',glare:false},
+    code:{fovH:30,fovV:24,wd:150,depth:3,defect:100,k:3,speed:300,exposure:50,nom:4,task:'detection',backlight:false,material:'color',tcolor:'rouge',lamCons:'auto',ambient:'forte',glare:false},
+    colle:{fovH:60,fovV:45,wd:200,depth:3,defect:300,k:3,speed:0,exposure:500,nom:4,task:'detection',backlight:false,material:'fluo',lamCons:'source',lamC:365,lamFwhm:15,ambient:'forte',glare:false}
+  };
+  // liste de matières
+  (function(){
+    var g='', h='';
+    C.MATERIALS.forEach(function(m){ if(m.grp!==g){ if(g) h+='</optgroup>'; h+='<optgroup label="'+esc(m.grp)+'">'; g=m.grp; } h+='<option value="'+m.id+'">'+esc(m.label)+'</option>'; });
+    $('material').innerHTML=h+'</optgroup>';
+  })();
+  function syncVis(){
+    var m=C.materialById($('material').value), c=$('lamCons').value;
+    $('tcolorW').classList.toggle('hidden', !m.colorRule);
+    $('lamSrcW').classList.toggle('hidden', c!=='source');
+    $('lamBandW').classList.toggle('hidden', c!=='band');
+  }
+  var KCLS={plein:'ok',suffisant:'ok',limite:'limite',insuffisant:'insuffisant',inconnu:'off'};
+  var KTXT={plein:'Résolution au moins égale au Nyquist',suffisant:'Résolution suffisante',limite:'Résolution limite',insuffisant:'Résolution insuffisante',inconnu:'Résolution inconnue'};
+  var TCLS={standard:'neutral',macro:'neutral',telecentrique:'neutral'};
+
+  function money(usd, rate){ var cur=$('cur').value, v=usd*(cur==='EUR'?rate:1); return n(Math.round(v/10)*10,0)+' '+(cur==='EUR'?'€':'$'); }
+  function priceCell(s, inp){
+    var p=C.estimatePrice(s);
+    if(p.quote) return '<span class="unit" title="'+esc(p.why)+'">sur devis</span>';
+    return '<span title="'+esc(p.basis)+'">≈ '+money(p.usd,inp.rate)+'</span> <span class="unit">'+money(p.lo,inp.rate)+' – '+money(p.hi,inp.rate)+'</span>';
+  }
+  function chartSvg(L){
+    var W=640,H=272,l=46,r=14,t=12,b=58, pw=W-l-r, ph=H-t-b, xmax=L.cutoff;
+    function X(v){return l+pw*Math.min(v,xmax)/xmax} function Y(v){return t+ph*(1-v)}
+    var pts=[],i; for(i=0;i<=120;i++){var f=xmax*i/120; pts.push(X(f).toFixed(1)+','+Y(C.mtfDiff(f/xmax)).toFixed(1));}
+    var s='<svg class="chart" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Contraste de diffraction en fonction de la fréquence spatiale">';
+    [0,0.2,0.5,1].forEach(function(v){ s+='<line class="'+(v===0.2?'grid':'axis')+'" x1="'+l+'" x2="'+(W-r)+'" y1="'+Y(v)+'" y2="'+Y(v)+'"/><text x="'+(l-6)+'" y="'+(Y(v)+4)+'" text-anchor="end">'+Math.round(v*100)+' %</text>'; });
+    for(i=0;i<=4;i++){ var fv=xmax*i/4; s+='<line class="axis" x1="'+X(fv)+'" x2="'+X(fv)+'" y1="'+(t+ph)+'" y2="'+(t+ph+4)+'"/><text x="'+X(fv)+'" y="'+(t+ph+20)+'" text-anchor="middle">'+n(fv,0)+'</text>'; }
+    s+='<text x="'+(l+pw/2)+'" y="'+(H-6)+'" text-anchor="middle">fréquence spatiale côté image, lp/mm</text>';
+    s+='<polygon class="area" points="'+l+','+Y(0)+' '+pts.join(' ')+' '+X(xmax)+','+Y(0)+'"/><polyline class="curve" points="'+pts.join(' ')+'"/>';
+    var nq=L.nuN, rq=L.nuReq;
+    s+='<line class="nyq" x1="'+X(nq)+'" x2="'+X(nq)+'" y1="'+t+'" y2="'+(t+ph)+'"/>';
+    var nqLeft = nq>xmax*0.6;
+    s+='<text x="'+(X(nq)+(nqLeft?-5:5))+'" y="'+(t+10)+'" text-anchor="'+(nqLeft?'end':'start')+'" style="fill:var(--ink)">Nyquist '+n(nq,0)+'</text>';
+    if(rq<=xmax){ s+='<line class="req" x1="'+X(rq)+'" x2="'+X(rq)+'" y1="'+t+'" y2="'+(t+ph)+'"/><text x="'+(X(rq)+(rq>xmax*0.6?-5:5))+'" y="'+(t+24)+'" text-anchor="'+(rq>xmax*0.6?'end':'start')+'" style="fill:var(--warn)">défaut '+n(rq,0)+'</text>'; }
+    else { s+='<text x="'+(W-r)+'" y="'+(t+24)+'" text-anchor="end" style="fill:var(--bad)">défaut '+n(rq,0)+' lp/mm, au-delà de la diffraction</text>'; }
+    return s+'</svg>';
+  }
+  function row(a,b,c){ return '<div><span><b>'+a+'</b><br><code>'+b+'</code></span><span class="res">'+c+'</span></div>'; }
+  function flagsHtml(fl, empty){ return '<ul class="flags">'+(fl.length?fl.map(function(f){return '<li class="'+f.t+'">'+esc(f.m)+'</li>'}).join(''):(empty?'<li class="good">'+empty+'</li>':''))+'</ul>'; }
+  function catalog(){ var c=[]; if($('useDemo').checked) c=c.concat(C.DEMO_CATALOG); return c.concat(imported); }
+
+  function lensCard(r, showBrand, ev){
+    var e=r.e, isT=e.type==='telecentrique', head=isT?('×'+n(e.mag,3)):(n(e.f,e.f%1?1:0)+' mm');
+    var h='<div class="lens"><div class="h"><span class="f">'+head+'</span><span><span class="chip neutral">'+esc(C.KIND_LABEL[e.type])+'</span></span></div>';
+    h+='<div><span class="chip '+KCLS[r.verdict]+'">'+KTXT[r.verdict]+'</span></div>';
+    h+='<dl><dt>Résolution objectif</dt><dd>'+(e.res!=null?n(e.res,0)+' lp/mm':'non renseignée')+'</dd>'
+      +'<dt>Pixel effectif</dt><dd>'+(r.pxEff!=null?n(r.pxEff,2)+' µm':'-')+'</dd>'
+      +'<dt>Mpx résolus</dt><dd>'+(r.mpxResolved!=null?n(r.mpxResolved,1)+' sur '+n(ev.dims.mpx,1):'-')+'</dd>'
+      +'<dt>Champ obtenu</dt><dd>'+n(r.fovH,1)+' × '+n(r.fovV,1)+' mm</dd>'
+      +'<dt>Distance de travail</dt><dd>'+n(r.wd,0)+' mm'+(r.adjWd?' ('+(r.adjDelta>=0?'+':'')+n(r.adjDelta,0)+')':'')+'</dd>'
+      +'<dt>Grandissement</dt><dd>'+n(r.m,4)+'×</dd>'
+      +(r.ppdEff!=null&&r.verdict!=='inconnu'?'<dt>Pixels par défaut</dt><dd>'+n(r.ppdEff,1)+'</dd>':'')
+      +(e.circle!=null?'<dt>Cercle d\'image</dt><dd>'+n(e.circle,1)+' mm</dd>':'')
+      +(r.dof?'<dt>Profondeur de champ</dt><dd>'+n(r.dof.total,1)+' mm</dd>':'')
+      +'<dt>Contraste diffraction</dt><dd>'+n(r.mtfNyq*100,0)+' % au Nyquist</dd></dl>';
+    h+=flagsHtml(r.flags);
+    var refs=r.refs.filter(function(x){return !x.demo});
+    if(refs.length){
+      var list=refs.slice(0,8).map(function(x){ return esc((x.brand?x.brand+' · ':'')+x.ref); });
+      h+='<div class="refs">'+n(refs.length)+' référence'+(refs.length>1?'s':'')+' de même spécification'+(showBrand?' : '+list.join(', ')+(refs.length>8?'…':''):'. Cochez « Afficher fabricant et référence » pour les voir.')+'</div>';
+    } else h+='<div class="refs">Exemple générique sans marque.</div>';
+    return h+'</div>';
+  }
+
+  function render(){
+    syncVis();
+    var inp = readInputs(), out = $('out');
+    if(!(inp.fovH>0&&inp.fovV>0&&inp.wd>0&&inp.defect>0)){ out.innerHTML='<div class="card empty">Renseignez le champ de vue, la distance de travail et le plus petit défaut.</div>'; return; }
+    var lr = C.resolveLambda(inp); inp.lambda = lr.lam;
+    var req = C.requiredPixels(inp), ranked = C.rankSensors(inp);
+    var ev = ranked.filter(function(x){return x.sensor.id===sel})[0];
+    if(!ev || !picked){ ev = ranked.filter(function(x){return !x.excluded && x.status==='ok'})[0] || ranked.filter(function(x){return !x.excluded})[0] || ranked[0]; sel = ev.sensor.id; }
+    var lt = C.lensType(ev, inp), sp = C.lensSpec(ev, inp, lt), L = C.lightAdvice(inp, ev, lt.kind, lr);
+    var pixTarget = inp.defect/inp.k;
+
+    var h = '<section class="card summary">'
+      + '<div><div class="k">Pixels requis</div><div class="v">'+n(req.nH)+' × '+n(req.nV)+'</div><div class="s">'+n(req.mpx,1)+' Mpx minimum, '+n(req.kEff)+' px par défaut</div></div>'
+      + '<div><div class="k">Pixel côté objet visé</div><div class="v">'+n(pixTarget,1)+' µm</div><div class="s">défaut '+n(inp.defect)+' µm ÷ '+n(req.kEff)+'</div></div>'
+      + '<div><div class="k">Capteur retenu</div><div class="v" style="font-size:17px">'+esc(ev.sensor.id)+'</div><div class="s">'+n(ev.sensor.w)+' × '+n(ev.sensor.h)+' · pixel '+n(ev.sensor.p,2)+' µm · '+esc(ev.sensor.fmt)+'</div>'+(inp.showPrice?'<div class="s">caméra : '+priceCell(ev.sensor,inp)+'</div>':'')+'</div>'
+      + '<div><div class="k">Type d\'objectif</div><div class="v" style="font-size:17px">'+esc(lt.label)+'</div><div class="s">'+(sp.f?'focale ≈ '+n(sp.f,1)+' mm · ':'')+'λ '+n(lr.lam)+' nm</div></div>'
+      + '</section>';
+
+    h += '<section class="card"><div class="sec-head"><h2>Capteurs</h2><p>Cliquez une ligne pour calculer l\'objectif. Classement : le plus petit capteur suffisant d\'abord.</p></div><div class="scroll"><table><thead><tr><th>Capteur</th><th class="n">Résolution</th><th class="n">Pixel</th><th>Format</th><th>Obturateur</th><th class="n">Px / défaut</th><th class="n">Grandissement</th><th>Verdict</th>'+(inp.showPrice?'<th class="n">Caméra, indicatif</th>':'')+'</tr></thead><tbody>';
+    ranked.forEach(function(e){
+      var s=e.sensor, cls=(s.id===sel?'sel':'')+(e.excluded?' off':''), pct=Math.max(0,Math.min(100,e.ppd/e.kEff*50));
+      var verdict = e.excluded ? '<span class="chip off">Exclu : '+esc(e.why)+'</span>' : '<span class="chip '+e.status+'">'+(e.status==='ok'?'Suffisant':e.status==='limite'?'Limite':'Insuffisant')+'</span>';
+      h+='<tr tabindex="0" data-id="'+esc(s.id)+'" class="'+cls+'"><td><b>'+esc(s.id)+'</b> <span class="unit">'+esc(s.fam)+(s.swir?' · 400–1700 nm':'')+'</span></td><td class="n num">'+n(s.w)+' × '+n(s.h)+'</td><td class="n num">'+n(s.p,2)+' µm</td><td>'+esc(s.fmt)+'</td><td>'+(s.sh==='global'?'Global':'Roulant')+'</td><td class="n num">'+n(e.ppd,1)+'<span class="bar" aria-hidden="true"><i style="width:'+pct+'%"></i></span></td><td class="n num">'+n(e.m,4)+'×'+(e.portrait?' ↻':'')+'</td><td>'+verdict+'</td>'+(inp.showPrice?'<td class="n num">'+priceCell(s,inp)+'</td>':'')+'</tr>';
+    });
+    h+='</tbody></table></div>'+(inp.showPrice?'<p class="note">Chiffrage : prix catalogue hors taxes d\'une caméra monochrome USB3 de même résolution (Basler ace 2, revendeur américain, consulté le 8 nov. 2026), fourchette ±25 %. Marque, interface (GigE, 5GigE, CoaXPress), version couleur, volume et droits de douane changent le prix : à confirmer par devis. Le prix d\'un capteur seul n\'est pas public.</p>':'')+'<p class="note">↻ : capteur tourné de 90° pour mieux couvrir le champ. La barre atteint la moitié à la valeur exigée.</p></section>';
+
+    // spécification neutre
+    var showBrand=$('showBrand').checked;
+    h += '<section class="card"><div class="sec-head"><h2>Objectif à spécifier</h2><p>Spécification neutre, valable pour toute marque. Sert à interroger un catalogue.</p></div><div class="spec">';
+    h += '<div><div class="k">Type conseillé</div><div class="big">'+esc(lt.label)+'</div>'+flagsHtml(lt.reasons)
+      +(lt.alt.length?'<p class="note">Alternative : '+lt.alt.map(function(k){return esc(C.KIND_LABEL[k])}).join(', ')+'.</p>':'')+'</div>';
+    h += '<div><div class="k">'+(sp.kind==='telecentrique'?'Grossissement':'Focale')+'</div><div class="big">'+(sp.kind==='telecentrique'?'≈ '+n(sp.m,3)+'×':'≈ '+n(sp.f,1)+' mm')+'</div>'
+      +'<dl><dt>Grossissement</dt><dd>'+n(sp.m,4)+'×</dd>'
+      +(sp.kind!=='telecentrique'?'<dt>Focales de série voisines</dt><dd>'+(sp.fBelow?sp.fBelow+' mm':'-')+' · '+(sp.fAbove?sp.fAbove+' mm':'-')+'</dd>':'<dt>Distance de travail</dt><dd>≈ '+n(inp.wd,0)+' mm, imposée</dd>')
+      +'<dt>Cercle d\'image minimal</dt><dd>≥ '+n(sp.circleMin,1)+' mm (≈ '+n(sp.inch,2)+'")</dd></dl></div>';
+    h += '<div><div class="k">Résolution de l\'objectif</div><div class="big">≥ '+n(sp.nuK,0)+' lp/mm</div>'
+      +'<dl><dt>Côté image, pour '+n(sp.kEff)+' px/défaut</dt><dd>'+n(sp.nuK,0)+' lp/mm</dd>'
+      +'<dt>Pixel effectif maximal</dt><dd>'+n(sp.pitchEq,2)+' µm</dd>'
+      +'<dt>Nyquist du capteur</dt><dd>'+n(sp.nuN,0)+' lp/mm</dd>'
+      +'<dt>Défaut seul (2 px)</dt><dd>'+n(sp.nuReq,0)+' lp/mm</dd>'
+      +'<dt>Côté objet</dt><dd>'+n(sp.objLpmm,1)+' lp/mm</dd>'
+      +'<dt>Mpx du capteur</dt><dd>'+n(sp.mpxSensor,1)+'</dd></dl></div>';
+    h += '<div><div class="k">Ouverture et diffraction</div><div class="big">f/'+n(inp.nom,1)+'</div>'
+      +'<dl><dt>Ouverture effective</dt><dd>f/'+n(sp.nEff,1)+'</dd><dt>Coupure à '+n(inp.lambda)+' nm</dt><dd>'+n(sp.cutoff,0)+' lp/mm</dd><dt>Contraste au Nyquist</dt><dd>'+n(sp.mtfNyq*100,0)+' %</dd>'
+      +(sp.dof?'<dt>Profondeur de champ</dt><dd>'+n(sp.dof.total,1)+' mm</dd>':'')+'</dl>'
+      +(sp.win.nMin!=null?(sp.win.nMin>sp.win.nMax?flagsHtml([{t:'bad',m:'Il faudrait au moins f/'+n(sp.win.nMin,1)+' pour tenir '+n(inp.depth)+' mm, mais la diffraction impose f/'+n(sp.win.nMax,1)+' au plus. Réduire la variation de hauteur, accepter 2 pixels de flou ou choisir un télécentrique.'}]):flagsHtml([{t:'good',m:'Plage d\'ouverture : f/'+n(Math.max(sp.win.nMin,1.4),1)+' à f/'+n(sp.win.nMax,1)+'.'}])):flagsHtml([{t:'good',m:'Ne pas dépasser f/'+n(sp.win.nMax,1)+' (diffraction).'}]))
+      +'</div></div></section>';
+
+    // catalogue
+    var cat=catalog(), prim=C.matchCatalog(ev, inp, cat, [lt.kind]), alts=lt.alt.length?C.matchCatalog(ev, inp, cat, lt.alt):[];
+    var nImp=imported.length;
+    h += '<section class="card"><div class="sec-head"><h2>Objectifs du catalogue : '+esc(lt.label.toLowerCase())+'</h2><p>'+(nImp?n(nImp)+' références importées. ':'')+'Une carte par spécification, aucune marque mise en avant.</p></div>';
+    if(!prim.length) h+='<div class="empty">Aucun objectif du catalogue ne correspond ('+esc(lt.label.toLowerCase())+', cercle d\'image ≥ '+n(ev.dims.D,1)+' mm).'+(nImp?'':' Importez votre gamme en CSV pour comparer.')+'</div>';
+    else h+='<div class="lenses">'+prim.slice(0,6).map(function(r){return lensCard(r,showBrand,ev)}).join('')+'</div>'+(prim.length>6?'<p class="note">'+(prim.length-6)+' autres spécifications non affichées.</p>':'');
+    if(alts.length) h+='<details><summary>Alternatives : '+lt.alt.map(function(k){return esc(C.KIND_LABEL[k])}).join(', ')+' ('+alts.length+')</summary><div class="lenses" style="margin-top:10px">'+alts.slice(0,6).map(function(r){return lensCard(r,showBrand,ev)}).join('')+'</div></details>';
+    h+='</section>';
+
+    // lumière
+    var f=L.filter;
+    h += '<section class="card"><div class="sec-head"><h2>Longueur d\'onde et filtre</h2><p>Longueur d\'onde retenue : '+n(L.lam)+' nm ('+esc(L.from)+')</p></div><div class="spec">';
+    h += '<div><div class="k">À observer · '+esc(L.mat.label)+'</div><dl>'+L.bands.map(function(b){ return '<dt>'+(b.lam!=null?n(b.lam)+' nm':n(b.lo)+'–'+n(b.hi)+' nm')+'</dt><dd style="text-align:left;font-family:var(--font-ui)">'+esc(b.role)+'</dd>'; }).join('')+'</dl>'
+      +'<ul class="flags" style="margin-top:8px">'+L.bands.map(function(b){return '<li class="info">'+esc(b.why)+'</li>'}).join('')+'</ul></div>';
+    h += '<div><div class="k">Filtre · '+esc(f.need)+'</div><div class="big">'+esc(f.name)+'</div>'
+      +'<dl>'+(f.kind==='longpass'?'<dt>Coupure</dt><dd>≥ '+n(f.cut,0)+' nm</dd>':'<dt>Centre</dt><dd>'+n(f.c0,0)+' nm</dd><dt>Largeur mi-hauteur</dt><dd>≥ '+n(f.bmin,0)+' nm</dd>')
+      +'<dt>Décalage bord de champ</dt><dd>'+(L.telecentric?'≈ 0':'−'+n(L.shift,1))+' nm</dd><dt>Angle de champ</dt><dd>'+(L.telecentric?'≈ 0':n(L.thetaDeg,1))+'°</dd></dl>'
+      +'<p class="note">'+esc(f.text)+'</p></div>';
+    h += '<div><div class="k">Polarisation</div><div class="big">'+(L.pol.use?'Conseillée':'Inutile')+'</div>'+(L.pol.use?'<p class="note">'+esc(L.pol.text)+'</p>':'<p class="note">Aucun reflet ni matière transparente signalés. Cocher « Reflets gênants » si la surface brille.</p>')+'</div>';
+    h += '</div>'+flagsHtml(L.flags.concat(L.notes.map(function(m){return {t:'info',m:m}})));
+    h += '<ul class="srcs">'+L.src.concat(inp.showPrice?['mvstore']:[]).map(function(k){var s=C.SRC[k]; return s?'<li><a href="'+s.u+'" target="_blank" rel="noopener noreferrer">'+esc(s.t)+'</a></li>':''}).join('')+'</ul>';
+    h += '<p class="note">Le décalage vers le bleu suit λ = λ₀ √(1 − (sin θ ÷ n*)²) avec n* ≈ 2 supposé, une valeur indicative : la fiche du filtre donne la valeur exacte. Les seuils et valeurs de travail sont à valider par un essai.</p></section>';
+
+    // détail
+    h+='<section class="card"><div class="sec-head"><h2>Contraste limité par la diffraction</h2><p>f/'+n(inp.nom,1)+', f/'+n(sp.nEff,1)+' effectif, '+n(inp.lambda)+' nm</p></div>'+chartSvg(sp)
+      +'<div class="legend"><span class="l1">contraste théorique de l\'objectif sans aberration</span><span class="l2">Nyquist du capteur</span><span class="l3">fréquence requise pour le défaut</span><span class="l4">20 %</span></div>'
+      +'<p class="note">Un objectif réel reste sous cette courbe : elle donne le plafond de la physique.</p>'
+      +'<details><summary>Détail des calculs</summary><div class="calc">'
+      +row('Pixels requis','N = FOV × k ÷ défaut','= '+n(inp.fovH)+' × '+n(req.kEff)+' ÷ '+n(inp.defect/1000,3)+' mm = '+n(req.nH)+' px (largeur)')
+      +row('Grandissement maximal','m = min(L<sub>h</sub> ÷ FOV<sub>h</sub>, L<sub>v</sub> ÷ FOV<sub>v</sub>)','= '+n(ev.m,4)+'×')
+      +(sp.f?row('Focale','f = WD × m ÷ (1 + m)','= '+n(inp.wd)+' × '+n(ev.m,4)+' ÷ '+n(1+ev.m,4)+' = '+n(sp.f,2)+' mm'):'')
+      +row('Pixel côté objet','p<sub>obj</sub> = pixel ÷ m','= '+n(ev.sensor.p,2)+' ÷ '+n(ev.m,4)+' = '+n(ev.pixObj,1)+' µm')
+      +row('Résolution requise','ν = 1000 ÷ (2 × p<sub>équiv</sub>), p<sub>équiv</sub> = défaut × m ÷ k','= '+n(sp.nuK,1)+' lp/mm côté image')
+      +row('Fréquence de Nyquist','ν<sub>N</sub> = 1000 ÷ (2 × pixel)','= '+n(sp.nuN,1)+' lp/mm')
+      +row('Pixel effectif de l\'objectif','p<sub>eff</sub> = 1000 ÷ (2 × résolution)','utilisé pour les Mpx résolus')
+      +row('Ouverture effective','N<sub>eff</sub> = N × (1 + m)','= '+n(inp.nom,1)+' × '+n(1+ev.m,3)+' = '+n(sp.nEff,2))
+      +row('Coupure de diffraction','ν<sub>c</sub> = 1 ÷ (λ × N<sub>eff</sub>)','= '+n(sp.cutoff,0)+' lp/mm à '+n(inp.lambda)+' nm')
+      +row('Erreur de perspective','Δ = FOV × Δz ÷ WD','= '+n(lt.perr,2)+' mm, soit '+n(lt.perrPx,1)+' px')
+      +row('Décalage du filtre','Δλ = λ₀ (1 − √(1 − (sin θ ÷ n*)²))','= '+n(L.shift,1)+' nm à '+n(L.thetaDeg,1)+'°')
+      +'</div></details></section>';
+    out.innerHTML = h;
+  }
+  function setMsg(t){ $('csvMsg').textContent=t; }
+  function loadCsv(text){
+    var r=C.parseCatalog(text);
+    imported=r.entries;
+    setMsg(r.entries.length+' référence'+(r.entries.length>1?'s':'')+' chargée'+(r.entries.length>1?'s':'')+(r.errors.length?'. '+r.errors.length+' erreur(s) : '+r.errors.slice(0,3).join(' '):'.'));
+    render();
+  }
+  document.addEventListener('input', function(e){ if(e.target.closest('#form') && e.target.id!=='csvText' && e.target.id!=='csvFile') render(); });
+  document.addEventListener('change', function(e){
+    if(e.target.id==='csvFile' && e.target.files && e.target.files[0]){ var fr=new FileReader(); fr.onload=function(){ $('csvText').value=String(fr.result); loadCsv(String(fr.result)); }; fr.readAsText(e.target.files[0]); }
+  });
+  document.addEventListener('click', function(e){
+    var p=e.target.closest('.preset[data-p]'); if(p){ var d=PRESETS[p.dataset.p]; Object.keys(d).forEach(function(k){ var el=$(k); if(!el) return; if(el.type==='checkbox') el.checked=d[k]; else el.value=d[k]; }); picked=false; render(); return; }
+    if(e.target.id==='csvLoad'){ loadCsv($('csvText').value); return; }
+    if(e.target.id==='csvTpl'){ $('csvText').value=C.CSV_TEMPLATE; setMsg('Modèle collé : remplacez par vos lignes puis chargez.'); return; }
+    if(e.target.id==='csvClear'){ imported=[]; $('csvText').value=''; setMsg('Aucun catalogue importé.'); render(); return; }
+    var tr=e.target.closest('tr[data-id]'); if(tr){ sel=tr.dataset.id; picked=true; render(); }
+  });
+  document.addEventListener('keydown', function(e){
+    if(e.key!=='Enter' && e.key!==' ') return;
+    var t=e.target.closest('tr[data-id]'); if(t){ e.preventDefault(); t.click(); }
+  });
+  render();
+})();
+</script>
+<script>
+(function(){
+  var C=OptiCalc, $=function(i){return document.getElementById(i)};
+  function n(x,d){ if(x==null||!isFinite(x)) return '∞'; return x.toLocaleString('fr-FR',{minimumFractionDigits:d||0,maximumFractionDigits:d||0}); }
+  function esc(t){return String(t).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function num(i){return parseFloat($(i).value)}
+  var PRE={
+    defaut:{o_sensor:'IMX250 / IMX264',o_fovH:100,o_fovV:80,o_wd:300,o_depth:5,o_task:'detection',o_defect:200,o_k:3,o_back:false,o_nom:5.6},
+    cote:{o_sensor:'IMX253 / IMX304',o_fovH:50,o_fovV:40,o_wd:250,o_depth:2,o_task:'mesure',o_prec:10,o_sub:3,o_back:true,o_nom:5.6},
+    micro:{o_sensor:'IMX250 / IMX264',o_fovH:10,o_fovV:8,o_wd:120,o_depth:0.5,o_task:'detection',o_defect:20,o_k:3,o_back:false,o_nom:8},
+    grand:{o_sensor:'IMX253 / IMX304',o_fovH:600,o_fovV:450,o_wd:1200,o_depth:20,o_task:'detection',o_defect:500,o_k:3,o_back:false,o_nom:5.6}
+  };
+  var selEl=$('o_sensor'), h='<option value="custom">Saisie libre</option>';
+  C.SENSORS.filter(function(s){return !s.swir}).forEach(function(s){ h+='<option value="'+esc(s.id)+'">'+esc(s.id)+' · '+s.w+' × '+s.h+', '+s.p+' µm</option>'; });
+  selEl.innerHTML=h; selEl.value='IMX250 / IMX264';
+  var mh='<option value="none">Non précisée (conseil automatique)</option>'; C.MOUNTS.forEach(function(m){ mh+='<option value="'+m.id+'">'+esc(m.label)+'</option>'; }); $('o_mount').innerHTML=mh;
+  var dl=''; C.SENSORS.concat(C.IMX_EXTRA).filter(function(s){return !s.swir}).forEach(function(s){ s.id.split(' / ').forEach(function(x){ dl+='<option value="'+esc(x)+'">'; }); }); $('o_imxList').innerHTML=dl;
+  function lookupImx(){
+    var q=$('o_imx').value.trim(), msg=$('o_imxMsg'); if(!q){ msg.textContent=''; return; }
+    var s=C.findSensor(q);
+    if(s){ $('o_sw').value=s.w; $('o_sh').value=s.h; $('o_p').value=s.p; var inList=C.SENSORS.filter(function(x){return x.id===s.id})[0]; selEl.value=inList?s.id:'custom'; msg.textContent='Trouvé : '+s.w+' × '+s.h+' px, pixel '+s.p+' µm, '+s.fmt+(inList?'':' (valeurs publiques usuelles, à confirmer sur la fiche)'); }
+    else msg.textContent='Référence absente de la base : saisissez ci-dessous la taille en pixels et le pixel. Le conseil de monture reste disponible.';
+  }
+  function fromSel(){ var s=C.SENSORS.filter(function(x){return x.id===selEl.value})[0]; if(s){ $('o_sw').value=s.w; $('o_sh').value=s.h; $('o_p').value=s.p; } }
+  var lastText='';
+  function chip(c,t){return '<span class="chip '+c+'">'+t+'</span>'}
+  function fl(a){return '<ul class="flags">'+a.map(function(f){return '<li class="'+(f.t==='good'?'good':f.t)+'">'+(f.n?'<b>'+esc(f.n)+'.</b> ':'')+esc(f.m)+'</li>'}).join('')+'</ul>'}
+  function render(){
+    var meas=$('o_task').value==='mesure';
+    $('o_detW').classList.toggle('hidden',meas); $('o_mesW').classList.toggle('hidden',!meas);
+    var s={sw:num('o_sw'),sh:num('o_sh'),p:num('o_p'),wd:num('o_wd'),fovH:num('o_fovH'),fovV:num('o_fovV'),depth:num('o_depth')||0,mount:$('o_mount').value,task:$('o_task').value,
+      defect:num('o_defect'),k:num('o_k'),prec:num('o_prec'),subdiv:num('o_sub'),nom:num('o_nom'),lambda:num('o_lam')||550,cocPx:num('o_coc'),backlight:$('o_back').checked};
+    var out=$('oOut');
+    var ok=s.sw>0&&s.sh>0&&s.p>0&&s.wd>0&&s.fovH>0&&s.fovV>0&&(meas?s.prec>0:s.defect>0);
+    if(!ok){ out.innerHTML='<div class="card empty">Renseignez le capteur, le champ de vue, la distance de travail et le détail à voir.</div>'; return; }
+    var R=C.adviseOptic(s), sp=R.spec, lt=R.lt, kind=lt.kind, st=R.status;
+    var stTxt={ok:'Capteur suffisant',limite:'Capteur à la limite',insuffisant:'Capteur insuffisant'}[st];
+    var h='<section class="card summary">'
+      +'<div><div class="k">Objectif conseillé</div><div class="v" style="font-size:18px">'+esc(R.headline)+'</div><div class="s">'+esc(lt.label)+'</div></div>'
+      +'<div><div class="k">Grandissement</div><div class="v">'+n(R.m,4)+'×</div><div class="s">focale calculée ≈ '+(kind==='telecentrique'?'sans objet':n(R.fNeed,1)+' mm')+'</div></div>'
+      +'<div><div class="k">Pixel côté objet</div><div class="v">'+n(R.pixObj,1)+' µm</div><div class="s">maximum admis : '+n(R.reqPix,1)+' µm</div></div>'
+      +'<div><div class="k">'+(R.meas?'Précision atteinte':'Défaut minimal vu')+'</div><div class="v">'+n(R.capab,1)+' µm</div><div class="s">'+chip(st==='ok'?'ok':st,stTxt)+'</div></div></section>';
+    h+=fl(R.flags.map(function(f){return f}));
+    // type
+    h+='<section class="card"><div class="sec-head"><h2>Type d\'objectif : '+esc(lt.label.toLowerCase())+'</h2><p>'+(R.meas?'Mesure':'Détection')+', '+n(s.fovH)+' × '+n(s.fovV)+' mm à '+n(s.wd)+' mm</p></div>'+fl(lt.reasons)
+      +(lt.alt.length?'<p class="note">Alternative : '+lt.alt.map(function(k){return esc(C.KIND_LABEL[k])}).join(', ')+'.</p>':'')+'</section>';
+    // focales
+    if(kind!=='telecentrique'){
+      h+='<section class="card"><div class="sec-head"><h2>Focales proches</h2><p>Focale exacte ≈ '+n(R.fNeed,1)+' mm. Deux façons de caler : garder la distance, ou garder le champ.</p></div><div class="scroll"><table><thead><tr><th>Focale</th><th class="n">Champ à '+n(s.wd)+' mm</th><th class="n">Pixel objet</th><th class="n">Distance pour le champ exact</th><th class="n">Allonge</th><th>Verdict</th></tr></thead><tbody>';
+      R.options.forEach(function(o){
+        var isRec=R.rec&&o.f===R.rec.f, v;
+        if(!o.covers) v=chip('limite','Champ trop petit à cette distance'); else if(!o.okAtWD) v=chip('limite','Résolution limite'); else v=chip('ok','Convient à la distance demandée');
+        h+='<tr class="'+(isRec?'sel':'')+'"><td><b>'+o.f+' mm</b>'+(isRec?' <span class="chip neutral">conseillée</span>':'')+'</td><td class="n num">'+n(o.fovHatWD,1)+' × '+n(o.fovVatWD,1)+' mm</td><td class="n num">'+n(o.pixAtWD,1)+' µm</td><td class="n num">'+n(o.wdExact,0)+' mm ('+(o.wdDelta>=0?'+':'')+n(o.wdDelta,0)+')</td><td class="n num">'+(o.tube>0.3?'≈ '+n(o.tube,1)+' mm':'non')+'</td><td>'+v+'</td></tr>';
+      });
+      h+='</tbody></table></div><p class="note">Distance pour le champ exact = f × (1 + m) ÷ m. Allonge : au-delà du tirage propre de l\'objectif (mise au point minimale type, à confirmer sur la fiche).</p></section>';
+    }
+    h+='<section class="card"><div class="sec-head"><h2>Doubleur, allonge et accessoires</h2></div>'+fl(R.acc)+'</section>';
+    // monture
+    var MT=R.mount, mc=MT.chosen;
+    h+='<section class="card"><div class="sec-head"><h2>Monture'+(mc?' : '+esc(mc.label):'')+'</h2><p>'+(mc?esc(mc.thread)+(mc.flange!=null?', tirage '+String(parseFloat(mc.flange.toFixed(3))).replace('.',',')+' mm':''):'Conseil selon le capteur')+'</p></div>';
+    h+=fl([{t:'info',m:MT.recText}].concat(MT.flags));
+    if(!mc) h+='<p class="note">Montures possibles : '+MT.rec.map(function(m){return esc(m.label)}).join(', ')+'. Choisissez-en une dans « Monture (option) » pour la vérifier.</p>';
+    h+='</section>';
+    // résolution
+    h+='<section class="card"><div class="sec-head"><h2>Résolution et ouverture</h2><p>À donner au fabricant d\'objectif, sans préférence de marque</p></div><div class="spec">';
+    h+='<div><div class="k">Résolution de l\'objectif</div><div class="big">≥ '+n(sp.nuK,0)+' lp/mm</div><dl><dt>Côté image</dt><dd>'+n(sp.nuK,0)+' lp/mm</dd><dt>Pixel effectif maximal</dt><dd>'+n(sp.pitchEq,2)+' µm</dd><dt>Nyquist du capteur</dt><dd>'+n(sp.nuN,0)+' lp/mm</dd><dt>Côté objet</dt><dd>'+n(1000/(2*R.pixObj),1)+' lp/mm</dd></dl></div>';
+    h+='<div><div class="k">Format</div><div class="big">cercle ≥ '+n(sp.circleMin,1)+' mm</div><dl><dt>Diagonale capteur</dt><dd>'+n(R.dims.D,1)+' mm</dd><dt>Équivalent optique</dt><dd>≈ '+n(sp.inch,2)+'"</dd><dt>Mégapixels</dt><dd>'+n(R.dims.mpx,1)+'</dd></dl></div>';
+    h+='<div><div class="k">Ouverture f/'+n(s.nom,1)+'</div><div class="big">f/'+n(sp.nEff,1)+' eff.</div><dl><dt>Coupure à '+n(s.lambda)+' nm</dt><dd>'+n(sp.cutoff,0)+' lp/mm</dd><dt>Contraste au Nyquist</dt><dd>'+n(sp.mtfNyq*100,0)+' %</dd>'+(sp.dof?'<dt>Profondeur de champ</dt><dd>'+n(sp.dof.total,1)+' mm</dd>':'')+'</dl>'
+      +(kind==='telecentrique'?fl([{t:'info',m:'La profondeur de champ d\'un télécentrique est fixée par sa conception, pas par le diaphragme : la lire sur la fiche et la comparer aux '+n(s.depth,1)+' mm. Ne pas dépasser f/'+n(sp.win.nMax,1)+' (diffraction).'}]):sp.win.nMin!=null&&s.depth>0?(sp.win.nMin>sp.win.nMax?fl([{t:'bad',m:'Pour tenir '+n(s.depth)+' mm il faut au moins f/'+n(sp.win.nMin,1)+', mais la diffraction limite à f/'+n(sp.win.nMax,1)+'. Réduire la variation de hauteur ou choisir un télécentrique.'}]):fl([{t:'good',m:'Plage d\'ouverture : f/'+n(Math.max(sp.win.nMin,1.4),1)+' à f/'+n(sp.win.nMax,1)+'.'}])):fl([{t:'good',m:'Ne pas dépasser f/'+n(sp.win.nMax,1)+' (diffraction).'}]))+'</div></div>';
+    h+=fl(R.notes.map(function(m){return {t:'info',m:m}}))+'</section>';
+    // résumé copiable
+    var lines=['Capteur : '+s.sw+' × '+s.sh+' px, pixel '+s.p+' µm ('+n(R.dims.D,1)+' mm de diagonale)',
+      'Scène : champ '+s.fovH+' × '+s.fovV+' mm, distance de travail '+s.wd+' mm, variation de hauteur '+s.depth+' mm',
+      (R.meas?'Mesure : précision visée '+s.prec+' µm, interpolation 1/'+s.subdiv+' pixel':'Détection : défaut de '+s.defect+' µm sur '+s.k+' pixels'),
+      'Objectif : '+R.headline,
+      'Grandissement : '+n(R.m,4)+'×, focale calculée '+(kind==='telecentrique'?'sans objet':n(R.fNeed,1)+' mm'),
+      'Résolution objectif : ≥ '+n(sp.nuK,0)+' lp/mm côté image, cercle d\'image ≥ '+n(sp.circleMin,1)+' mm',
+      'Monture : '+(mc?mc.label+' ('+mc.thread+(mc.flange!=null?', tirage '+String(parseFloat(mc.flange.toFixed(3))).replace('.',',')+' mm':'')+')':'non précisée, '+MT.recText),
+      'Ouverture de travail : f/'+n(s.nom,1)+' à '+s.lambda+' nm'];
+    lastText=lines.join('\n');
+    h+='<section class="card"><div class="sec-head"><h2>Cahier des charges de l\'objectif</h2><p>À envoyer à un fabricant ou à votre bureau d\'études</p></div><pre style="margin:0;white-space:pre-wrap;font:12px/1.5 var(--font-num);overflow-wrap:anywhere">'+esc(lastText)+'</pre><div class="btns" style="margin-top:10px"><button type="button" class="btn" id="oCopy">Copier le texte</button><span class="unit" id="oCopyMsg"></span></div></section>';
+    // détail
+    h+='<section class="card"><details><summary>Détail des calculs</summary><div class="calc">'
+      +'<div><span><b>Pixel objet maximal</b><br><code>'+(R.meas?'précision × interpolation':'défaut ÷ pixels')+'</code></span><span class="res">'+(R.meas?n(s.prec,1)+' × '+s.subdiv:n(s.defect,1)+' ÷ '+R.k)+' = '+n(R.reqPix,1)+' µm</span></div>'
+      +'<div><span><b>Grandissement</b><br><code>m = min(L<sub>h</sub> ÷ FOV<sub>h</sub>, L<sub>v</sub> ÷ FOV<sub>v</sub>)</code></span><span class="res">'+n(R.m,4)+'×'+(R.ev.portrait?' (capteur tourné)':'')+'</span></div>'
+      +'<div><span><b>Pixel objet atteint</b><br><code>p ÷ m</code></span><span class="res">'+n(s.p,2)+' ÷ '+n(R.m,4)+' = '+n(R.pixObj,1)+' µm</span></div>'
+      +'<div><span><b>Focale</b><br><code>f = WD × m ÷ (1 + m)</code></span><span class="res">'+n(s.wd)+' × '+n(R.m,4)+' ÷ '+n(1+R.m,4)+' = '+n(R.fNeed,1)+' mm</span></div>'
+      +'<div><span><b>Pixels requis</b><br><code>FOV ÷ pixel objet maximal</code></span><span class="res">'+n(R.need.nH)+' × '+n(R.need.nV)+' px ('+n(R.need.mpx,1)+' Mpx), disponibles '+n(R.have.nH)+' × '+n(R.have.nV)+'</span></div>'
+      +'<div><span><b>Champ maximal avec ce capteur</b><br><code>N<sub>px</sub> × pixel objet maximal</code></span><span class="res">'+n(R.fovMax.H,0)+' × '+n(R.fovMax.V,0)+' mm</span></div>'
+      +'<div><span><b>Distorsion estimée</b><br><code>'+n(R.distPct,1)+' % × FOV ÷ 2</code></span><span class="res">'+n(R.distErr,0)+' µm en bord de champ (valeur type, à confirmer)</span></div>'
+      +'<div><span><b>Erreur de perspective</b><br><code>Δ = FOV × Δz ÷ WD</code></span><span class="res">'+n(lt.perr||0,2)+' mm</span></div>'
+      +'</div><p class="note">Approximation lentille mince. La distorsion, la mise au point minimale et les focales de série sont des valeurs de travail : la fiche de l\'objectif fait foi.</p></details></section>';
+    out.innerHTML=h;
+  }
+  document.addEventListener('input',function(e){
+    var t=e.target; if(!t.closest||!t.closest('#oForm')) return;
+    if(t.id==='o_imx') lookupImx(); else if(t.id==='o_sensor'){ fromSel(); $('o_imx').value=''; $('o_imxMsg').textContent=''; } else if(t.id==='o_sw'||t.id==='o_sh'||t.id==='o_p') selEl.value='custom';
+    render();
+  });
+  document.addEventListener('click',function(e){
+    var p=e.target.closest&&e.target.closest('[data-o]');
+    if(p){ var d=PRE[p.dataset.o]; Object.keys(d).forEach(function(k){var el=$(k); if(!el) return; if(el.type==='checkbox') el.checked=d[k]; else el.value=d[k];}); fromSel(); render(); return; }
+    if(e.target.id==='oCopy'){
+      var done=function(m){$('oCopyMsg').textContent=m};
+      try{ navigator.clipboard.writeText(lastText).then(function(){done('Texte copié.')},function(){done('Copie refusée : sélectionnez le texte ci-dessus.')}); }catch(x){ done('Copie refusée : sélectionnez le texte ci-dessus.'); }
+    }
+  });
+  fromSel(); render();
+})();
+</script>
+<script>
+(function(){
+  var $=function(i){return document.getElementById(i)}, user=null, authed=false;
+  function setStep(n){
+    $('regForm').hidden=n!==1; $('stepMail').hidden=n!==2; $('pwForm').hidden=n!==3;
+    [].forEach.call($('steps').children,function(li){var s=+li.dataset.s; li.className=s===n?'on':(s<n?'done':'');});
+  }
+  function err(id,m){ $('e-'+id).textContent=m||''; }
+  function val(id){ return $(id).value.trim(); }
+  function validate(){
+    var ok=true;
+    [['prenom','Renseignez votre prénom.'],['nom','Renseignez votre nom.'],['societe','Renseignez le nom de la société.']].forEach(function(f){ if(!val(f[0])){err(f[0],f[1]);ok=false;} else err(f[0]); });
+    if(!$('dept').value){err('dept','Choisissez votre département.');ok=false;} else err('dept');
+    var em=val('email');
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)){err('email','Saisissez une adresse e-mail valide, par exemple prenom.nom@societe.com.');ok=false;} else err('email');
+    var tel=val('tel');
+    if(tel && !/^\+?[0-9 ().-]{7,20}$/.test(tel)){err('tel','Numéro non reconnu : utilisez des chiffres, des espaces et un + éventuel.');ok=false;} else err('tel');
+    if(!$('cgu').checked){err('cgu','Cochez la case pour continuer.');ok=false;} else err('cgu');
+    return ok;
+  }
+  $('regForm').addEventListener('submit',function(e){
+    e.preventDefault(); if(!validate()) return;
+    user={prenom:val('prenom'),nom:val('nom'),societe:val('societe'),dept:$('dept').value,email:val('email').toLowerCase(),tel:val('tel')};
+    $('mailTo').textContent=user.email; $('mailTo2').textContent=user.email; $('mailName').textContent=user.prenom; setStep(2);
+  });
+  $('backReg').addEventListener('click',function(){ setStep(1); });
+  $('openLink').addEventListener('click',function(){ $('okMail').textContent=user.email; setStep(3); $('pw1').focus(); });
+  function score(p){ var s=0; if(p.length>=12)s++; if(p.length>=16)s++; if(/[a-z]/.test(p)&&/[A-Z]/.test(p))s++; if(/\d/.test(p)&&/[^A-Za-z0-9]/.test(p))s++; return p.length<12?Math.min(s,1):s; }
+  $('pw1').addEventListener('input',function(){
+    var s=score($('pw1').value), bars=document.querySelectorAll('.meter i');
+    [].forEach.call(bars,function(b,i){ b.className=i<s?'on'+s:''; });
+    $('pwHint').textContent=!$('pw1').value?'Mélangez majuscules, minuscules, chiffres et symboles, ou choisissez une longue phrase.':(s<=1?'Trop court ou trop simple.':s===2?'Correct. Ajoutez de la longueur pour plus de sécurité.':'Bon niveau.');
+  });
+  $('pwForm').addEventListener('submit',function(e){
+    e.preventDefault(); var a=$('pw1').value, b=$('pw2').value, ok=true;
+    if(a.length<12){err('pw1','12 caractères minimum.');ok=false;} else err('pw1');
+    if(a!==b){err('pw2','Les deux mots de passe sont différents.');ok=false;} else err('pw2');
+    if(!ok) return;
+    $('pw1').value=''; $('pw2').value=''; enter();
+  });
+  function enter(){
+    authed=true; $('gate').hidden=true; $('app').hidden=false;
+    $('whoTxt').innerHTML='<b></b> · '+'<span></span>';
+    $('whoTxt').firstChild.textContent=user.prenom+' '+user.nom; $('whoTxt').lastChild.textContent=user.societe+', '+user.dept;
+    if(location.hash!=='#calculateur' && location.hash!=='#optique') location.hash='calculateur'; route();
+    window.scrollTo(0,0);
+  }
+  function leave(){
+    authed=false; user=null; $('app').hidden=true; $('gate').hidden=false;
+    ['prenom','nom','societe','email','tel','pw1','pw2'].forEach(function(i){$(i).value='';}); $('dept').value=''; $('cgu').checked=false;
+    setStep(1); if(location.hash) location.hash='acces';
+  }
+  $('logout').addEventListener('click',leave);
+  function route(){ var o=location.hash==='#optique'; $('tabFull').hidden=o; $('tabOpt').hidden=!o; $('tabA').setAttribute('aria-current',o?'false':'page'); $('tabB').setAttribute('aria-current',o?'page':'false'); }
+  window.addEventListener('hashchange',function(){ if((location.hash==='#calculateur'||location.hash==='#optique') && !authed){ location.hash='acces'; return; } if(authed) route(); });
+  if(location.hash==='#calculateur'||location.hash==='#optique') location.hash='acces';
+})();
+</script>
