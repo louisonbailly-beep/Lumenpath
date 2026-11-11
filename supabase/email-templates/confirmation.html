@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Confirmez votre adresse</title>
+</head>
+<body style="margin:0;padding:0;background:#F5F5F7;">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;">Un clic pour confirmer votre adresse, puis vous choisirez votre mot de passe.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F5F5F7;">
+  <tr><td align="center" style="padding:40px 16px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;">
+      <tr><td style="padding:0 8px 24px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:20px;font-weight:600;letter-spacing:-0.4px;color:#1D1D1F;">
+        lumen<span style="font-weight:400;color:#6E6E73;">path</span>&nbsp;<span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#0066CC;vertical-align:middle;"></span>
+      </td></tr>
+      <tr><td style="background:#FFFFFF;border:1px solid #E5E5EA;border-radius:18px;padding:36px 32px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#1D1D1F;">
+        <h1 style="margin:0 0 14px;font-size:26px;line-height:1.2;font-weight:600;letter-spacing:-0.6px;color:#1D1D1F;">Confirmez votre adresse</h1>
+        <p style="margin:0 0 26px;font-size:16px;line-height:1.55;color:#1D1D1F;">Bonjour {{ .Data.prenom }}, merci pour votre inscription à Lumenpath. Confirmez votre adresse pour activer votre accès professionnel.</p>
+        <table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="border-radius:999px;background:#0066CC;">
+          <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:13px 26px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;color:#FFFFFF;text-decoration:none;border-radius:999px;">Confirmer mon adresse</a>
+        </td></tr></table>
+        <p style="margin:26px 0 0;font-size:14px;line-height:1.55;color:#6E6E73;">Vous choisirez ensuite votre mot de passe sur le site. Ce lien est à usage unique et expire après 24 heures.</p>
+        <p style="margin:18px 0 0;font-size:13px;line-height:1.5;color:#6E6E73;word-break:break-all;">Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :<br><a href="{{ .ConfirmationURL }}" style="color:#0066CC;">{{ .ConfirmationURL }}</a></p>
+      </td></tr>
+      <tr><td style="padding:22px 8px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;line-height:1.5;color:#6E6E73;">
+        Vous n'êtes pas à l'origine de cette inscription ? Ignorez cet e-mail : aucun compte ne sera activé.<br>Lumenpath · calcul optique pour la vision industrielle
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>
