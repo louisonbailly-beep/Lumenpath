@@ -285,6 +285,9 @@
   ['click','keydown','scroll','pointermove'].forEach(function(ev){ document.addEventListener(ev,admBump,{passive:true}); });
 
   /* ---------- Tableau de bord admin ---------- */
+  var AUDIT_LABEL={connexion:'connexion',connexion_admin:'connexion administrateur',connexion_admin_refusee:'connexion administrateur refusée',compte_active:'compte activé',
+    mot_de_passe_reinitialise:'mot de passe réinitialisé',projet_enregistre:'projet enregistré',projet_supprime:'projet supprimé',accord_donne:'accord donné',accord_retire:'accord retiré',
+    profil_modifie:'profil modifié',deconnexion:'déconnexion',deconnexion_inactivite:'déconnexion après inactivité',bot_role_modifie:'rôle modifié (Telegram)',bot_compte_bloque:'compte bloqué (Telegram)',bot_compte_debloque:'compte débloqué (Telegram)'};
   var admUsers=[], admCons={};
   /* Démonstration : tableau de bord rempli d'exemples fictifs, sans base de données */
   function loadAdminDemo(){
@@ -319,7 +322,7 @@
       $('stBe').textContent=(r[1].data||[]).filter(function(c){return c.granted&&c.kind==='bureau_etudes'}).length;
       var names={}; admUsers.forEach(function(u){ names[u.id]=((u.prenom||'')+' '+(u.nom||'')).trim(); });
       var au=r[2].data||[];
-      $('admAudit').innerHTML=au.length?au.map(function(a){ return '<li>'+esc(date(a.at))+' · '+esc(a.action.replace(/_/g,' '))+' · '+esc(names[a.actor]||'—')+(a.ip?' · '+esc(a.ip):'')+'</li>'; }).join(''):'<li>Aucune entrée pour l\'instant.</li>';
+      $('admAudit').innerHTML=au.length?au.map(function(a){ return '<li>'+esc(date(a.at))+' · '+esc(AUDIT_LABEL[a.action]||a.action.replace(/_/g,' '))+' · '+esc(names[a.actor]||'—')+(a.ip?' · '+esc(a.ip):'')+'</li>'; }).join(''):'<li>Aucune entrée pour l\'instant.</li>';
       renderUsers();
     });
   }
