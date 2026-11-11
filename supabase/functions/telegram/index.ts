@@ -3,10 +3,20 @@
 // Ne répond qu'au propriétaire. Toute action qui modifie quelque chose passe par Confirmer / Annuler.
 // Secrets lus dans le coffre Supabase (Vault) : telegram_bot_token, telegram_owner_chat_id, telegram_webhook_secret.
 import { createClient } from "npm:@supabase/supabase-js@2.45.4";
-import "./core.js";
-
+// Moteur de calcul : le même fichier que le site (app/src/core.js), chargé depuis le dépôt public.
+const CORE_URLS = [
+  "https://cdn.jsdelivr.net/gh/louisonbailly-beep/Lumenpath@main/app/src/core.js",
+  "https://louisonbailly-beep.github.io/Lumenpath/app/src/core.js",
+];
 // deno-lint-ignore no-explicit-any
-const C = (globalThis as any).OptiCalc;
+let C: any = null;
+async function engine() {
+  if (C) return C;
+  for (const u of CORE_URLS) {
+    try { const r = await fetch(u); if (!r.ok) continue; new Function(await r.text()).call(globalThis); C = (globalThis as any).OptiCalc; if (C) return C; } catch (_) { /* source suivante */ }
+  }
+  throw new Error("moteur indisponible");
+}
 const SITE = "https://louisonbailly-beep.github.io/Lumenpath/";
 const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { auth: { persistSession: false } });
 
@@ -164,9 +174,10 @@ async function perform(op: string, id: string): Promise<string> {
 
 // ---------- Calcul optique ----------
 function calcHelp() {
-  return "<b>🔭 Calcul optique</b>\n\nEnvoyez :\n<code>/calcul 100x80 300 200</code>\n= champ 100 × 80 mm, distance de travail 300 mm, plus petit défaut 200 µm.\n\nAjoutez <code>mesure</code> à la fin pour une mesure dimensionnelle.";
+  return card("🔭 Calcul optique", ["Envoyez par exemple :\n<code>/calcul 100x80 300 200</code>", table([["Champ", "100 × 80 mm"], ["Distance", "300 mm"], ["Défaut", "200 µm"]])], "Ajoutez « mesure » à la fin pour une mesure dimensionnelle.");
 }
-function calc(args: string): [string, Btn[][]] {
+async function calc(args: string): Promise<[string, Btn[][]]> {
+  try { await engine(); } catch (_) { return [card("🔭 Calcul optique", ["Le moteur de calcul n'est pas encore accessible : il sera chargé depuis le dépôt GitHub dès que le site est publié."]), [BACK]]; }
   const m = args.replace(/,/g, ".").match(/([\d.]+)\s*[x×*]\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)/i);
   if (!m) return ["Format non reconnu.\n\n" + calcHelp(), [BACK]];
   const meas = /mesure/i.test(args);
@@ -230,7 +241,7 @@ Deno.serve(async (req) => {
 
     if (msg?.text) {
       const t: string = msg.text.trim();
-      if (/^\/calcul\b/i.test(t)) { const [x, k] = calc(t.replace(/^\/calcul\S*/i, "").trim()); await send(x, k); }
+      if (/^\/calcul\b/i.test(t)) { const [x, k] = await calc(t.replace(/^\/calcul\S*/i, "").trim()); await send(x, k); }
       else if (/^\/stats\b/i.test(t)) await send(await statsText(), [[{ text: "🔄 Actualiser", callback_data: "stats" }, ...BACK]]);
       else await send(HELLO, MENU);
       return new Response("ok");
@@ -244,7 +255,7 @@ Deno.serve(async (req) => {
       else if (d === "users") [text, rows] = await usersScreen();
       else if (d === "audit") [text, rows] = await auditScreen();
       else if (d === "calchelp") { text = calcHelp(); rows = [BACK]; }
-      else if (d.startsWith("c:")) [text, rows] = calc(d.slice(2));
+      else if (d.startsWith("c:")) [text, rows] = await calc(d.slice(2));
       else if (d.startsWith("u:")) [text, rows] = await userScreen(d.slice(2));
       else if (d.startsWith("ask:")) {
         const [, op, id] = d.split(":");
