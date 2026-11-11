@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Lumenpath</title>
+<meta name="description" content="Calcul optique pour la vision industrielle : du champ de vue à l'objectif, au capteur et au filtre.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13.5' fill='none' stroke='%230E1116' stroke-width='2'/%3E%3Cpath d='M8.5 9.5 16 20.5 23.5 9.5' fill='none' stroke='%230B5FFF' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='13.8' y='18.3' width='4.4' height='4.4' fill='%230E1116'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400..600&display=swap">
+<link rel="stylesheet" href="web/styles.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="logo" viewBox="0 0 32 32"><circle cx="16" cy="16" r="13.5" fill="none" stroke="var(--ink)" stroke-width="2"/><path d="M8.5 9.5 16 20.5 23.5 9.5" fill="none" stroke="var(--accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><rect x="13.8" y="18.3" width="4.4" height="4.4" fill="var(--ink)"/></symbol>
+</svg>
+
+<!-- ================= Accueil ================= -->
+<div data-view="home" hidden>
+  <header class="site-head"><div class="wrap">
+    <a class="brand" href="#/"><svg width="26" height="26"><use href="#logo"/></svg><span>lumen<span class="light">path</span></span></a>
+    <nav aria-label="Navigation"><a href="#/" data-scroll="outils">Outils</a><a href="#/" data-scroll="methode">Méthode</a><a href="#/" data-scroll="donnees">Données</a></nav>
+    <div class="actions"><a class="btn sm" href="#/connexion">Se connecter</a><a class="btn sm pri" href="#/inscription">Créer un accès</a></div>
+  </div></header>
+
+  <section class="wrap hero">
+    <div class="txt">
+      <div class="cap">Calcul optique pour la vision industrielle</div>
+      <h1>Du champ de vue à l'objectif, au capteur et au filtre.</h1>
+      <p class="lead">Décrivez votre inspection : distance, champ, plus petit défaut, matière. Lumenpath calcule la résolution requise et spécifie l'objectif, la monture, le capteur et la lumière, formules à l'appui.</p>
+      <div class="actions"><a class="btn lg pri" href="#/inscription">Créer un accès</a><a class="btn lg" href="#/connexion">Se connecter</a></div>
+      <div class="mono muted" style="font-size:12px">Accès réservé aux professionnels · Chaque résultat affiche sa formule</div>
+    </div>
+    <div class="card sample" style="overflow:hidden">
+      <div class="top"><span>exemple de calcul</span><span>lumenpath / optique</span></div>
+      <svg viewBox="0 0 520 170" role="img" aria-label="Schéma : pièce, objectif, capteur, distance de travail">
+        <rect x="40" y="48" width="8" height="74" fill="var(--muted)" opacity="0.5"/>
+        <line x1="44" y1="140" x2="250" y2="140" stroke="var(--line-strong)" stroke-dasharray="3 3"/>
+        <ellipse cx="250" cy="85" rx="9" ry="44" fill="none" stroke="var(--ink)" stroke-width="1.5"/>
+        <line x1="48" y1="48" x2="250" y2="42" stroke="var(--accent)" stroke-width="1.2"/><line x1="250" y1="42" x2="452" y2="104" stroke="var(--accent)" stroke-width="1.2"/>
+        <line x1="48" y1="122" x2="250" y2="128" stroke="var(--accent)" stroke-width="1.2"/><line x1="250" y1="128" x2="452" y2="66" stroke="var(--accent)" stroke-width="1.2"/>
+        <rect x="452" y="58" width="7" height="54" fill="none" stroke="var(--ink)" stroke-width="1.5"/>
+        <text x="146" y="158" text-anchor="middle" font-family="Geist Mono, monospace" font-size="10" fill="var(--muted)">WD 300 mm</text>
+        <text x="44" y="36" text-anchor="middle" font-family="Geist Mono, monospace" font-size="10" fill="var(--muted)">100 × 80 mm</text>
+        <text x="455" y="48" text-anchor="middle" font-family="Geist Mono, monospace" font-size="10" fill="var(--muted)">2448 × 2048</text>
+      </svg>
+      <dl>
+        <div><dt>Grandissement</dt><dd>0,0845×</dd></div>
+        <div><dt>Focale</dt><dd>≈ 23,4 mm, soit 25 mm</dd></div>
+        <div><dt>Type</dt><dd>standard</dd></div>
+        <div><dt>Résolution objectif</dt><dd>≥ 89 lp/mm</dd></div>
+        <div><dt>Cercle d'image</dt><dd>≥ 11,0 mm</dd></div>
+        <div><dt>Ouverture</dt><dd>f/2,4 à f/7,9</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <section class="wrap sec" id="outils">
+    <div class="head2"><div class="cap">Outils</div><h2>Trois calculateurs, une même méthode.</h2></div>
+    <div class="card tools" style="overflow:hidden">
+      <a href="#/calculateur"><span class="k">calculateur complet</span><span class="t">Capteur, objectif, lumière</span><span class="d">Classement des capteurs, spécification d'objectif sans marque, catalogue importable, prix indicatif des caméras.</span></a>
+      <a href="#/optique"><span class="k">optique conseillée</span><span class="t">À partir de votre capteur</span><span class="d">Focale, standard, macro ou télécentrique, doubleur, allonge et monture. Détection ou mesure.</span></a>
+      <div><span class="k">lumière et filtre</span><span class="t">Longueur d'onde et filtre</span><span class="d">De la matière inspectée à la longueur d'onde, au filtre et à la polarisation, avec le décalage en bord de champ.</span></div>
+    </div>
+  </section>
+
+  <section class="wrap sec" id="methode">
+    <div class="head2"><div class="cap">Méthode</div><h2>Trois étapes, de la contrainte à la fiche.</h2></div>
+    <ol class="steps3">
+      <li><span class="mono muted" style="font-size:12px">01</span><span class="t">Décrire</span><span class="d">Capteur, champ de vue, distance de travail, taille du défaut ou précision de mesure.</span></li>
+      <li><span class="mono muted" style="font-size:12px">02</span><span class="t">Calculer</span><span class="d">Grandissement, focale, Nyquist, diffraction, profondeur de champ, distorsion.</span></li>
+      <li><span class="mono muted" style="font-size:12px">03</span><span class="t">Spécifier</span><span class="d">Un cahier des charges d'objectif neutre, à envoyer à un fabricant ou à votre bureau d'études.</span></li>
+    </ol>
+  </section>
+
+  <section class="wrap sec two" id="donnees">
+    <div class="head2"><div class="cap">Données</div><h2>Vos projets restent les vôtres.</h2></div>
+    <ul class="lines">
+      <li><span style="font-weight:500">Confidentiel par défaut</span><span class="d">Un projet n'est visible que de son auteur et des administrateurs habilités.</span></li>
+      <li><span style="font-weight:500">Deux accords séparés et révocables</span><span class="d">L'entraînement de l'IA et la transmission à un intégrateur ou à un bureau d'études demandent chacun votre accord.</span></li>
+      <li><span style="font-weight:500">Calculs vérifiables</span><span class="d">L'IA conseille, mais ne remplace jamais une formule affichée.</span></li>
+    </ul>
+  </section>
+
+  <section class="wrap" style="padding-bottom:80px">
+    <div class="card cta-band">
+      <div class="head2"><span style="font-size:26px;letter-spacing:-.03em;font-weight:500">Prêt à dimensionner votre prochain poste ?</span><span class="muted">Créez un accès professionnel en deux minutes.</span></div>
+      <a class="btn lg pri" href="#/inscription">Créer un accès</a>
+    </div>
+  </section>
+
+  <footer class="site-foot"><div class="wrap"><span>lumenpath · conseil optique pour la vision industrielle</span><span>Confidentialité · Conditions · Contact</span></div></footer>
+</div>
+
+<!-- ================= Connexion utilisateur ================= -->
+<div data-view="login" class="auth" hidden>
+  <header><a class="brand" href="#/"><svg width="26" height="26"><use href="#logo"/></svg><span>lumen<span class="light">path</span></span></a><a href="#/">Retour à l'accueil</a></header>
+  <main><div class="box">
+    <div class="head2"><span class="cap">Espace utilisateur</span><h1>Connexion</h1></div>
+    <div class="msg" id="loginMsg"></div>
+    <form id="loginForm" novalidate>
+      <label class="f">Adresse e-mail professionnelle<input id="l_email" type="email" autocomplete="email" placeholder="prenom.nom@societe.com" required></label>
+      <label class="f"><span style="display:flex;justify-content:space-between;gap:8px"><span>Mot de passe</span><a href="#/mot-de-passe-oublie" style="color:var(--accent)">Mot de passe oublié</a></span><input id="l_pw" type="password" autocomplete="current-password" required></label>
+      <label class="check"><input id="l_remember" type="checkbox" checked> Rester connecté sur cet appareil</label>
+      <span class="err" id="l_err"></span>
+      <button class="btn pri" type="submit">Se connecter</button>
+    </form>
+    <div class="foot">
+      <span>Pas encore d'accès ? <a href="#/inscription" class="link">Créer un accès</a></span>
+      <span>Vous administrez la plateforme ? <a href="#/admin" style="color:var(--ink);font-weight:500">Accès administrateur</a></span>
+    </div>
+  </div></main>
+</div>
+
+<!-- ================= Mot de passe oublié ================= -->
+<div data-view="forgot" class="auth" hidden>
+  <header><a class="brand" href="#/"><svg width="26" height="26"><use href="#logo"/></svg><span>lumen<span class="light">path</span></span></a><a href="#/connexion">Retour à la connexion</a></header>
+  <main><div class="box">
+    <div class="head2"><span class="cap">Espace utilisateur</span><h1>Mot de passe oublié</h1></div>
+    <p class="muted" style="font-size:15px">Saisissez votre adresse : vous recevrez un lien à usage unique pour choisir un nouveau mot de passe.</p>
+    <form id="forgotForm" novalidate>
+      <label class="f">Adresse e-mail professionnelle<input id="fg_email" type="email" autocomplete="email" required></label>
+      <span class="err" id="fg_err"></span>
+      <button class="btn pri" type="submit">Recevoir le lien</button>
+    </form>
+    <div class="msg ok" id="fg_ok"></div>
+  </div></main>
+</div>
+
+<!-- ================= Inscription ================= -->
+<div data-view="signup" class="auth" hidden>
+  <header><a class="brand" href="#/"><svg width="26" height="26"><use href="#logo"/></svg><span>lumen<span class="light">path</span></span></a><span>Déjà un accès ? <a href="#/connexion" class="link">Se connecter</a></span></header>
+  <div class="reg"><div class="reg-in">
+    <div class="reg-main">
+      <div id="regStep1" style="display:flex;flex-direction:column;gap:28px">
+        <div class="head2" style="gap:10px"><span class="cap">Étape 1 sur 3 · Inscription</span><h1>Créer votre accès</h1><p class="muted" style="max-width:520px">L'accès est réservé aux professionnels. Les champs marqués d'une étoile sont obligatoires.</p></div>
+        <form class="reg-form" id="regForm" novalidate autocomplete="on">
+          <label class="f">Prénom *<input id="r_prenom" type="text" autocomplete="given-name"><span class="err" id="e_prenom"></span></label>
+          <label class="f">Nom *<input id="r_nom" type="text" autocomplete="family-name"><span class="err" id="e_nom"></span></label>
+          <label class="f full">Société *<input id="r_societe" type="text" autocomplete="organization"><span class="err" id="e_societe"></span></label>
+          <label class="f full">Département dans la société *
+            <select id="r_dept"><option value="">Choisir…</option><option>Bureau d'études</option><option>R&amp;D</option><option>Production</option><option>Qualité</option><option>Maintenance</option><option>Intégration, projets</option><option>Achats</option><option>Commercial</option><option>Direction</option><option>Autre</option></select><span class="err" id="e_dept"></span></label>
+          <label class="f full">Adresse e-mail professionnelle *<input id="r_email" type="email" autocomplete="email" placeholder="prenom.nom@societe.com"><span class="err" id="e_email"></span></label>
+          <label class="f full">Téléphone, facultatif<input id="r_tel" type="tel" autocomplete="tel" placeholder="+33 1 23 45 67 89" style="font-family:var(--mono)"><span class="err" id="e_tel"></span></label>
+          <label class="check full"><input id="r_cgu" type="checkbox"> J'accepte les conditions d'utilisation et la politique de confidentialité. *</label>
+          <span class="err full" id="e_cgu"></span>
+          <p class="full muted" style="font-size:13px">Vos projets restent confidentiels. Le partage avec un bureau d'études, un intégrateur ou l'entraînement de l'IA demande un accord séparé, que vous donnez plus tard et pouvez retirer.</p>
+          <span class="err full" id="e_reg"></span>
+          <button class="btn pri full" type="submit">Recevoir le lien de vérification</button>
+        </form>
+      </div>
+      <div id="regStep2" hidden style="display:flex;flex-direction:column;gap:20px">
+        <div class="head2" style="gap:10px"><span class="cap">Étape 2 sur 3 · Vérification</span><h1>Vérifiez votre adresse</h1></div>
+        <div class="card pad" style="display:flex;flex-direction:column;gap:12px">
+          <p>Un lien de vérification vient d'être envoyé à <b class="mono" id="regSentTo"></b>.</p>
+          <p class="muted" style="font-size:15px">Ouvrez-le depuis cet appareil ou un autre : il est à usage unique et expire après 24 heures. Vous choisirez ensuite votre mot de passe. Pensez à regarder dans les indésirables.</p>
+          <div class="actions"><button class="btn" type="button" id="regResend">Renvoyer le lien</button><button class="btn ghost" type="button" id="regBack">Modifier mes informations</button></div>
+          <div class="msg" id="regResendMsg"></div>
+        </div>
+      </div>
+    </div>
+    <aside class="reg-aside">
+      <span class="cap">Ce qui se passe ensuite</span>
+      <ol class="tl" id="regTl">
+        <li class="on"><span class="n">01</span><span style="display:flex;flex-direction:column;gap:2px"><span class="t">Inscription</span><span class="d">Vous remplissez ce formulaire.</span></span></li>
+        <li><span class="n">02</span><span style="display:flex;flex-direction:column;gap:2px"><span class="t">Vérification de l'adresse</span><span class="d">Un lien à usage unique est envoyé à votre adresse. Il expire après 24 heures.</span></span></li>
+        <li><span class="n">03</span><span style="display:flex;flex-direction:column;gap:2px"><span class="t">Votre mot de passe</span><span class="d">Vous le choisissez vous-même. Il n'est jamais envoyé par e-mail, et jamais stocké en clair.</span></span></li>
+      </ol>
+    </aside>
+  </div></div>
+</div>
+
+<!-- ================= Choix du mot de passe ================= -->
+<div data-view="password" class="auth" hidden>
+  <header><a class="brand" href="#/"><svg width="26" height="26"><use href="#logo"/></svg><span>lumen<span class="light">path</span></span></a><span></span></header>
+  <main><div class="box w440">
+    <div class="head2"><span class="cap" id="pwCap">Étape 3 sur 3 · Mot de passe</span><h1>Choisissez votre mot de passe</h1><p class="muted" style="font-size:15px">Adresse confirmée : <b class="mono" id="pwMail"></b></p></div>
+    <form id="pwForm" novalidate>
+      <label class="f">Mot de passe, 12 caractères minimum<input id="pw1" type="password" autocomplete="new-password"><span class="err" id="e_pw1"></span></label>
+      <div><div class="meter" aria-hidden="true"><i></i><i></i><i></i><i></i></div><p class="muted" id="pwHint" style="font-size:13px;margin-top:6px">Mélangez majuscules, minuscules, chiffres et symboles, ou choisissez une longue phrase.</p></div>
+      <label class="f">Confirmer le mot de passe<input id="pw2" type="password" autocomplete="new-password"><span class="err" id="e_pw2"></span></label>
+      <span class="err" id="e_pw"></span>
+      <button class="btn pri" type="submit">Activer mon accès</button>
+    </form>
+    <div class="foot" style="font-size:13px">Le mot de passe n'est jamais stocké en clair : le serveur n'en garde qu'une empreinte (hachage lent).</div>
+  </div></main>
+</div>
+
+<!-- ================= Connexion administrateur ================= -->
+<div data-view="admin-login" class="auth admin dark" hidden>
+  <header><a class="brand" href="#/"><svg width="26" height="26"><use href="#logo"/></svg><span>lumen<span class="light">path</span></span><span class="badge">ADMIN</span></a><a href="#/connexion">Retour à l'espace utilisateur</a></header>
+  <main><div class="box w440">
+    <div class="head2"><span class="cap">Espace d'administration</span><h1>Connexion administrateur</h1></div>
+    <form id="admForm" novalidate>
+      <div id="admCreds" style="display:flex;flex-direction:column;gap:16px">
+        <label class="f">Adresse e-mail<input id="a_email" type="email" autocomplete="username"></label>
+        <label class="f">Mot de passe<input id="a_pw" type="password" autocomplete="current-password"></label>
+      </div>
+      <div id="admEnroll" hidden style="display:flex;flex-direction:column;gap:12px">
+        <p style="font-size:15px">Première connexion : activez la double authentification. Scannez ce code avec une application d'authentification (Google Authenticator, Microsoft Authenticator, 1Password…).</p>
+        <div class="qr"><img id="admQr" alt="Code QR de double authentification"></div>
+        <p class="muted mono" style="font-size:12px;overflow-wrap:anywhere">Clé manuelle : <span id="admSecret"></span></p>
+      </div>
+      <label class="f" id="admCodeW" hidden>Code de l'application d'authentification<input id="a_code" class="otp" type="text" inputmode="numeric" maxlength="6" placeholder="000000" autocomplete="one-time-code"></label>
+      <span class="err" id="a_err"></span>
+      <button class="btn pri" type="submit" id="admBtn">Se connecter</button>
+    </form>
+    <div class="foot mono"><span>Connexion journalisée : date, adresse IP, appareil.</span><span>Session administrateur limitée à 30 minutes d'inactivité.</span></div>
+  </div></main>
+</div>
+
+<!-- ================= Tableau de bord admin ================= -->
+<div data-view="admin" class="adm" hidden>
+  <aside>
+    <div class="brand" style="font-size:17px;padding:0 8px"><svg width="24" height="24"><use href="#logo"/></svg><span>lumen<span class="light">path</span></span><span class="badge" style="font-size:10px;padding:2px 6px">ADMIN</span></div>
+    <nav aria-label="Administration">
+      <a href="#/admin/tableau" class="on">Utilisateurs</a>
+      <a class="soon">Demandes d'accès</a>
+      <a class="soon">Catalogue d'objectifs</a>
+      <a class="soon">Capteurs et prix</a>
+      <a href="#/admin/tableau" data-scroll="admAuditCard">Journal d'audit</a>
+      <a href="#/calculateur">Ouvrir les calculateurs</a>
+    </nav>
+    <div class="who"><span style="color:var(--ink);font-weight:500" id="admWho">Administrateur</span><button class="link" style="color:var(--muted);text-align:left;font-weight:400" type="button" data-logout>Se déconnecter</button></div>
+  </aside>
+  <main>
+    <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px">
+      <div class="head2"><span class="cap">Administration</span><h1>Utilisateurs</h1></div>
+      <input id="admQ" type="text" placeholder="Rechercher un nom, une société, un département" style="width:320px;max-width:100%;background:var(--panel)">
+    </div>
+    <section class="card stats">
+      <div><span class="cap" style="font-size:11px">Utilisateurs</span><b id="stUsers">–</b></div>
+      <div><span class="cap" style="font-size:11px">Admins et éditeurs</span><b id="stAdmins">–</b></div>
+      <div><span class="cap" style="font-size:11px">Accord IA</span><b id="stIa">–</b></div>
+      <div><span class="cap" style="font-size:11px">Accord mise en relation</span><b id="stBe">–</b></div>
+    </section>
+    <section class="card" style="overflow:hidden">
+      <div class="scroll"><table class="t"><thead><tr><th>Utilisateur</th><th>Société</th><th>Département</th><th>Rôle</th><th>Accords</th><th>Inscription</th></tr></thead><tbody id="admRows"><tr><td colspan="6" class="muted">Chargement…</td></tr></tbody></table></div>
+    </section>
+    <section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px">
+      <div class="card pad" style="display:flex;flex-direction:column;gap:12px">
+        <span style="font-weight:500">Rôles</span>
+        <ul class="lines" style="font-size:14px">
+          <li style="flex-direction:row;justify-content:space-between;padding:10px 0"><span>Utilisateur</span><span class="muted">calculateurs et projets personnels</span></li>
+          <li style="flex-direction:row;justify-content:space-between;padding:10px 0"><span>Éditeur du catalogue</span><span class="muted">objectifs, capteurs, prix</span></li>
+          <li style="flex-direction:row;justify-content:space-between;padding:10px 0"><span>Administrateur</span><span class="muted">comptes, accords, journal</span></li>
+        </ul>
+      </div>
+      <div class="card pad" id="admAuditCard" style="display:flex;flex-direction:column;gap:12px">
+        <span style="font-weight:500">Journal d'audit récent</span>
+        <ul class="audit" id="admAudit"><li>Chargement…</li></ul>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- ================= Application ================= -->
+<div data-view="app" hidden>
+  <header class="app-head">
+    <a class="brand" href="#/"><svg width="26" height="26"><use href="#logo"/></svg><span>lumen<span class="light">path</span></span></a>
+    <nav class="tabs" aria-label="Outils"><a href="#/calculateur" data-tab="calculateur">Calculateur complet</a><a href="#/optique" data-tab="optique">Optique conseillée</a></nav>
+    <div class="user"><a class="name" href="#/compte" id="whoTxt"></a><button class="btn sm" type="button" data-logout>Se déconnecter</button></div>
+  </header>
+  <div class="demo-band" id="demoBand" hidden><b>Démonstration.</b> Les comptes, l'enregistrement des projets et l'administration fonctionnent sur le site en ligne.</div>
+
+  <!-- ---------- Calculateur complet ---------- -->
+  <div class="main" data-tab-view="calculateur">
+    <form class="card side" id="form" autocomplete="off" onsubmit="return false">
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <span class="cap">Partir d'un exemple</span>
+        <div class="chips"><button type="button" class="chip on" data-p="aspect">Aspect pièce</button><button type="button" class="chip" data-p="cote">Mesure de cote</button><button type="button" class="chip" data-p="code">DataMatrix</button><button type="button" class="chip" data-p="colle">Colle UV</button></div>
+      </div>
+      <div class="grp">
+        <div class="step"><em>1</em>Scène à observer</div>
+        <div class="two-col">
+          <label class="f strong">Largeur<span class="inp"><input id="fovH" type="number" inputmode="decimal" min="0.1" step="any" value="100"><i>mm</i></span></label>
+          <label class="f strong">Hauteur<span class="inp"><input id="fovV" type="number" inputmode="decimal" min="0.1" step="any" value="80"><i>mm</i></span></label>
+        </div>
+        <label class="f strong">Distance de travail<small>De l'avant de l'objectif à la pièce.</small><span class="inp"><input id="wd" type="number" inputmode="decimal" min="1" step="any" value="300"><i>mm</i></span></label>
+        <label class="f strong">Variation de hauteur<small>Profondeur à garder nette.</small><span class="inp"><input id="depth" type="number" inputmode="decimal" min="0" step="any" value="5"><i>mm</i></span></label>
+      </div>
+      <div class="grp">
+        <div class="step"><em>2</em>Ce qu'il faut voir</div>
+        <input type="hidden" id="task" value="detection">
+        <div class="seg" role="group" aria-label="Type d'inspection"><button type="button" class="chip on" data-task="detection">Détection</button><button type="button" class="chip" data-task="mesure">Mesure</button></div>
+        <div class="two-col">
+          <label class="f strong">Plus petit défaut<span class="inp"><input id="defect" type="number" inputmode="decimal" min="1" step="any" value="200"><i>µm</i></span></label>
+          <label class="f strong">Pixels dessus<select id="k"><option value="2">2 · détection</option><option value="3" selected>3 (conseillé)</option><option value="4">4 · mesure</option><option value="6">6 · mesure fine</option></select></label>
+        </div>
+        <label class="check"><input id="color" type="checkbox"> Caméra couleur (matrice de Bayer) : double le nombre de pixels exigé.</label>
+      </div>
+      <div class="grp">
+        <div class="step"><em>3</em>Matière et lumière</div>
+        <label class="f strong">Matière<select id="material"></select></label>
+        <label class="f strong hidden" id="tcolorW">Couleur du motif à contraster<select id="tcolor"><option value="rouge">Rouge</option><option value="vert">Vert</option><option value="bleu">Bleu</option><option value="jaune">Jaune</option></select></label>
+        <label class="check"><input id="glare" type="checkbox"> Reflets gênants sur la surface (polarisation).</label>
+      </div>
+      <details>
+        <summary>Options avancées</summary>
+        <div>
+          <label class="check"><input id="backlight" type="checkbox"> Contre-jour (silhouette de la pièce).</label>
+          <h3>Mouvement</h3>
+          <div class="two-col">
+            <label class="f">Vitesse de la pièce<span class="inp"><input id="speed" type="number" min="0" step="any" value="0"><i>mm/s</i></span></label>
+            <label class="f">Exposition<span class="inp"><input id="exposure" type="number" min="1" step="any" value="200"><i>µs</i></span></label>
+          </div>
+          <label class="check"><input id="globalOnly" type="checkbox" checked> Obturateur global uniquement (pièce en mouvement).</label>
+          <h3>Longueur d'onde</h3>
+          <label class="f">Contrainte<select id="lamCons"><option value="auto" selected>Aucune : conseil selon la matière</option><option value="source">Source ou éclairage imposé</option><option value="band">Plage imposée</option></select></label>
+          <div class="two-col hidden" id="lamSrcW">
+            <label class="f">Centre<span class="inp"><input id="lamC" type="number" min="200" max="1700" step="any" value="850"><i>nm</i></span></label>
+            <label class="f">Largeur mi-hauteur<span class="inp"><input id="lamFwhm" type="number" min="1" step="any" value="30"><i>nm</i></span></label>
+          </div>
+          <div class="two-col hidden" id="lamBandW">
+            <label class="f">λ minimale<span class="inp"><input id="lamMin" type="number" min="200" max="1700" step="any" value="620"><i>nm</i></span></label>
+            <label class="f">λ maximale<span class="inp"><input id="lamMax" type="number" min="200" max="1700" step="any" value="680"><i>nm</i></span></label>
+          </div>
+          <label class="f">Lumière ambiante<select id="ambient"><option value="maitrisee" selected>Maîtrisée (carter, local sombre)</option><option value="forte">Forte (jour, atelier éclairé)</option></select></label>
+          <h3>Optique</h3>
+          <div class="two-col">
+            <label class="f">Ouverture nominale<select id="nom"><option>1.4</option><option>2</option><option>2.8</option><option>4</option><option selected>5.6</option><option>8</option><option>11</option><option>16</option></select></label>
+            <label class="f">Flou admis<select id="coc"><option value="1">1 pixel</option><option value="2" selected>2 pixels</option></select></label>
+          </div>
+          <h3>Chiffrage</h3>
+          <label class="check"><input id="showPrice" type="checkbox" checked> Prix indicatif de caméra pour chaque capteur.</label>
+          <div class="two-col">
+            <label class="f">Devise<select id="cur"><option value="USD">Dollar US</option><option value="EUR">Euro</option></select></label>
+            <label class="f">Taux USD → EUR<span class="inp"><input id="rate" type="number" min="0.1" step="0.01" value="0.92"></span></label>
+          </div>
+          <h3>Catalogue d'objectifs</h3>
+          <label class="check"><input id="useDemo" type="checkbox" checked> Exemples d'objectifs sans marque</label>
+          <label class="check"><input id="showBrand" type="checkbox"> Afficher fabricant et référence</label>
+          <label class="f">Importer un catalogue (CSV)<input id="csvFile" type="file" accept=".csv,.txt,text/csv"></label>
+          <label class="f">ou coller le contenu<textarea id="csvText" placeholder="ref;fabricant;serie;type;focale_mm;..." spellcheck="false"></textarea></label>
+          <div class="actions"><button type="button" class="btn sm" id="csvLoad">Charger</button><button type="button" class="btn sm" id="csvTpl">Remplir un modèle</button><button type="button" class="btn sm" id="csvClear">Vider</button></div>
+          <span class="muted mono" style="font-size:12px" id="csvMsg">Aucun catalogue importé.</span>
+        </div>
+      </details>
+      <p class="muted" style="font-size:13px">Les résultats se mettent à jour en direct. Rien à valider.</p>
+    </form>
+    <div class="results" id="out" aria-live="polite"></div>
+  </div>
+
+  <!-- ---------- Optique conseillée ---------- -->
+  <div class="main" data-tab-view="optique" hidden>
+    <form class="card side" id="oForm" autocomplete="off" onsubmit="return false">
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <span class="cap">Partir d'un exemple</span>
+        <div class="chips"><button type="button" class="chip" data-o="defaut">Défaut sur pièce</button><button type="button" class="chip" data-o="cote">Mesure de cote</button><button type="button" class="chip" data-o="micro">Petit champ</button><button type="button" class="chip" data-o="grand">Grand champ</button></div>
+      </div>
+      <div class="grp">
+        <div class="step"><em>1</em>Votre capteur</div>
+        <label class="f strong">Référence IMX, ou autre<input id="o_imx" type="text" list="o_imxList" placeholder="par exemple IMX253" autocomplete="off" style="font-family:var(--mono)"><small id="o_imxMsg"></small></label>
+        <datalist id="o_imxList"></datalist>
+        <label class="f">Modèle de la base, ou saisie libre<select id="o_sensor"></select></label>
+        <div class="two-col">
+          <label class="f">Pixels en largeur<span class="inp"><input id="o_sw" type="number" min="1" step="1" value="2448"></span></label>
+          <label class="f">Pixels en hauteur<span class="inp"><input id="o_sh" type="number" min="1" step="1" value="2048"></span></label>
+        </div>
+        <label class="f">Taille du pixel<span class="inp"><input id="o_p" type="number" min="0.5" step="any" value="3.45"><i>µm</i></span></label>
+        <label class="f">Monture, facultatif<select id="o_mount"></select></label>
+      </div>
+      <div class="grp">
+        <div class="step"><em>2</em>Scène</div>
+        <div class="two-col">
+          <label class="f strong">Largeur<span class="inp"><input id="o_fovH" type="number" min="0.1" step="any" value="100"><i>mm</i></span></label>
+          <label class="f strong">Hauteur<span class="inp"><input id="o_fovV" type="number" min="0.1" step="any" value="80"><i>mm</i></span></label>
+        </div>
+        <div class="two-col">
+          <label class="f strong">Distance de travail<span class="inp"><input id="o_wd" type="number" min="1" step="any" value="300"><i>mm</i></span></label>
+          <label class="f strong">Variation de hauteur<span class="inp"><input id="o_depth" type="number" min="0" step="any" value="5"><i>mm</i></span></label>
+        </div>
+        <label class="check"><input id="o_back" type="checkbox"> Contre-jour (silhouette de la pièce).</label>
+      </div>
+      <div class="grp">
+        <div class="step"><em>3</em>Objectif de l'inspection</div>
+        <input type="hidden" id="o_task" value="detection">
+        <div class="seg" role="group" aria-label="Type d'inspection"><button type="button" class="chip on" data-otask="detection">Détection</button><button type="button" class="chip" data-otask="mesure">Mesure</button></div>
+        <div class="two-col" id="o_detW">
+          <label class="f strong">Plus petit défaut<span class="inp"><input id="o_defect" type="number" min="1" step="any" value="200"><i>µm</i></span></label>
+          <label class="f strong">Pixels dessus<select id="o_k"><option value="2">2 · détection</option><option value="3" selected>3 (conseillé)</option><option value="4">4 · fiable</option></select></label>
+        </div>
+        <div class="two-col hidden" id="o_mesW">
+          <label class="f strong">Précision visée<span class="inp"><input id="o_prec" type="number" min="0.1" step="any" value="10"><i>µm</i></span></label>
+          <label class="f strong">Sous-pixel<select id="o_sub"><option value="1">Aucun, 1 px</option><option value="3" selected>1/3 px</option><option value="5">1/5 px</option><option value="10">1/10 px</option></select></label>
+        </div>
+      </div>
+      <details>
+        <summary>Options avancées</summary>
+        <div>
+          <div class="two-col">
+            <label class="f">Ouverture nominale<select id="o_nom"><option>1.4</option><option>2</option><option>2.8</option><option>4</option><option selected>5.6</option><option>8</option><option>11</option><option>16</option></select></label>
+            <label class="f">Longueur d'onde<span class="inp"><input id="o_lam" type="number" min="200" max="1700" step="any" value="550"><i>nm</i></span></label>
+          </div>
+          <label class="f">Flou admis pour la profondeur de champ<select id="o_coc"><option value="1">1 pixel</option><option value="2" selected>2 pixels</option></select></label>
+        </div>
+      </details>
+    </form>
+    <div class="results" id="oOut" aria-live="polite"></div>
+  </div>
+
+  <!-- ---------- Compte ---------- -->
+  <div class="page" data-tab-view="compte" hidden>
+    <div class="head2"><span class="cap">Mon compte</span><h1 id="accName"></h1><p class="muted" id="accSub"></p></div>
+    <section class="card">
+      <div class="ch"><b>Mes projets</b><span>Enregistrés depuis les calculateurs</span></div>
+      <div id="accProjects"><div class="empty">Chargement…</div></div>
+    </section>
+    <section class="card">
+      <div class="ch"><b>Accords</b><span>Séparés, révocables à tout moment</span></div>
+      <div class="pad" style="display:flex;flex-direction:column;gap:12px">
+        <label class="check" style="color:var(--ink)"><input type="checkbox" data-consent="bureau_etudes"> <span>Transmettre mes projets à un intégrateur ou à un bureau d'études partenaire, pour être recontacté.</span></label>
+        <label class="check" style="color:var(--ink)"><input type="checkbox" data-consent="ia"> <span>Utiliser mes projets, anonymisés, pour améliorer les conseils de l'IA.</span></label>
+        <span class="muted" style="font-size:13px" id="accConsentMsg"></span>
+      </div>
+    </section>
+    <section class="card">
+      <div class="ch"><b>Profil</b><span>Modifiable</span></div>
+      <form class="pad two-col" id="accForm" novalidate style="gap:14px">
+        <label class="f">Prénom<input id="ac_prenom" type="text" autocomplete="given-name"></label>
+        <label class="f">Nom<input id="ac_nom" type="text" autocomplete="family-name"></label>
+        <label class="f">Société<input id="ac_societe" type="text" autocomplete="organization"></label>
+        <label class="f">Département<input id="ac_dept" type="text"></label>
+        <label class="f">Téléphone<input id="ac_tel" type="tel" autocomplete="tel"></label>
+        <div style="display:flex;align-items:flex-end;gap:12px"><button class="btn pri" type="submit">Enregistrer</button><span class="muted" style="font-size:13px" id="accMsg"></span></div>
+      </form>
+    </section>
+    <div><button class="btn" type="button" data-logout>Se déconnecter</button></div>
+  </div>
+
+  <nav class="bottom" aria-label="Navigation"><a href="#/calculateur" data-tab="calculateur"><span aria-hidden="true">▦</span>Calcul</a><a href="#/optique" data-tab="optique"><span aria-hidden="true">◎</span>Optique</a><a href="#/compte" data-tab="compte"><span aria-hidden="true">●</span>Compte</a></nav>
+</div>
+
+<div class="toast" id="toast" hidden role="status"></div>
+
+<script src="app/src/core.js"></script>
+<script src="app/supabase-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="web/calc.js"></script>
+<script src="web/optique.js"></script>
+<script src="web/app.js"></script>
+</body>
+</html>
