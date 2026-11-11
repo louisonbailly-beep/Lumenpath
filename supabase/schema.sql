@@ -24,19 +24,22 @@ language sql stable security definer set search_path = public as $$
      and coalesce(auth.jwt() ->> 'aal', '') = 'aal2';
 $$;
 
--- Profil créé automatiquement à l'inscription, à partir des champs du formulaire
--- (supabase.auth.signUp({ email, password, options: { data: { prenom, nom, ... } } })).
+-- Profil créé automatiquement à l'inscription, à partir des champs du formulaire.
+-- L'adresse rangée dans le coffre (secret Vault « owner_admin_email ») reçoit directement le rôle admin.
 create or replace function handle_new_user() returns trigger
 language plpgsql security definer set search_path = public as $$
+declare owner_email text;
 begin
-  insert into profiles (id, prenom, nom, societe, departement, telephone)
+  select lower(decrypted_secret) into owner_email from vault.decrypted_secrets where name = 'owner_admin_email';
+  insert into profiles (id, prenom, nom, societe, departement, telephone, role)
   values (
     new.id,
     coalesce(new.raw_user_meta_data ->> 'prenom', ''),
     coalesce(new.raw_user_meta_data ->> 'nom', ''),
     coalesce(new.raw_user_meta_data ->> 'societe', ''),
     coalesce(new.raw_user_meta_data ->> 'departement', ''),
-    nullif(new.raw_user_meta_data ->> 'telephone', '')
+    nullif(new.raw_user_meta_data ->> 'telephone', ''),
+    case when owner_email is not null and lower(new.email) = owner_email then 'admin'::role_app else 'utilisateur'::role_app end
   );
   return new;
 end $$;
