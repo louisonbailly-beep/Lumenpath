@@ -1,4 +1,4 @@
-/* Lumenpath : navigation, comptes (Supabase Auth), projets, accords, administration.
+/* Vision Path : navigation, comptes (Supabase Auth), projets, accords, administration.
    Règles : aucun mot de passe envoyé par e-mail (lien de vérification puis choix du mot de passe),
    admin protégé par double authentification (TOTP), actions sensibles journalisées. */
 (function(){
@@ -89,7 +89,7 @@
     if(view==='password'){ $('pwMail').textContent=session&&session.user.email||''; $('pwCap').textContent=recovery?'Nouveau mot de passe':'Étape 3 sur 3 · Mot de passe'; }
     if(view==='login'){ $('loginMsg').textContent=linkError; $('loginMsg').className='msg'+(linkError?' bad':''); linkError=''; }
     if(view==='admin-login') resetAdminForm();
-    document.title = {home:'Lumenpath',login:'Connexion · Lumenpath',signup:'Créer un accès · Lumenpath',forgot:'Mot de passe oublié · Lumenpath',password:'Mot de passe · Lumenpath','admin-login':'Administration · Lumenpath',admin:'Administration · Lumenpath'}[view] || ({calculateur:'Calculateur complet',optique:'Optique conseillée',compte:'Mon compte'}[tab]+' · Lumenpath');
+    document.title = {home:'Vision Path',login:'Connexion · Vision Path',signup:'Créer un accès · Vision Path',forgot:'Mot de passe oublié · Vision Path',password:'Mot de passe · Vision Path','admin-login':'Administration · Vision Path',admin:'Administration · Vision Path'}[view] || ({calculateur:'Calculateur complet',optique:'Optique conseillée',compte:'Mon compte'}[tab]+' · Vision Path');
     adminTimer(view==='admin');
     window.scrollTo(0,0);
   }
@@ -243,7 +243,7 @@
       if(verified){ admFactor=verified.id; $('admEnroll').hidden=true; setTimeout(function(){$('a_code').focus()},0); return; }
       var stale=(r.data.all||[]).filter(function(f){return f.status!=='verified'});
       return Promise.all(stale.map(function(f){ return sb.auth.mfa.unenroll({factorId:f.id}); })).then(function(){
-        return sb.auth.mfa.enroll({factorType:'totp',friendlyName:'Lumenpath admin'});
+        return sb.auth.mfa.enroll({factorType:'totp',friendlyName:'Vision Path admin'});
       }).then(function(en){
         if(en.error){ $('a_err').textContent=fr(en.error); return; }
         admFactor=en.data.id; $('admQr').src=en.data.totp.qr_code; $('admSecret').textContent=en.data.totp.secret; $('admEnroll').hidden=false;

@@ -1,4 +1,4 @@
-// Gérard, le bot Telegram de Lumenpath.
+// Gérard, le bot Telegram de Vision Path.
 // Reçoit les messages Telegram (webhook) et les alertes de la base (déclencheur pg_net).
 // Ne répond qu'au propriétaire. Toute action qui modifie quelque chose passe par Confirmer / Annuler.
 // Secrets lus dans le coffre Supabase (Vault) : telegram_bot_token, telegram_owner_chat_id, telegram_webhook_secret.
@@ -60,9 +60,9 @@ function card(title: string, body: string[], foot?: string) {
 const MENU: Btn[][] = [
   [{ text: "📊 Statistiques", callback_data: "stats" }, { text: "👥 Inscriptions", callback_data: "users" }],
   [{ text: "📜 Journal d'audit", callback_data: "audit" }, { text: "🔭 Calcul optique", callback_data: "calchelp" }],
-  [{ text: "🌐 Ouvrir Lumenpath", url: SITE }],
+  [{ text: "🌐 Ouvrir Vision Path", url: SITE }],
 ];
-const HELLO = card("🤖 Gérard · Lumenpath", ["Bonjour ! Que voulez-vous voir ?"], "Les actions qui modifient un compte demandent toujours une confirmation.");
+const HELLO = card("🤖 Gérard · Vision Path", ["Bonjour ! Que voulez-vous voir ?"], "Les actions qui modifient un compte demandent toujours une confirmation.");
 const BACK: Btn[] = [{ text: "↩︎ Menu", callback_data: "menu" }];
 const ROLE: Record<string, string> = { utilisateur: "utilisateur", editeur_catalogue: "éditeur du catalogue", admin: "administrateur" };
 const ACTION: Record<string, string> = {
@@ -92,7 +92,7 @@ async function statsText() {
   ]);
   const users = p.data ?? [], cons = c.data ?? [];
   const by = (r: string) => users.filter((u) => u.role === r).length;
-  return card("📊 Lumenpath en chiffres", [
+  return card("📊 Vision Path en chiffres", [
     table([
       ["Utilisateurs", String(users.length)],
       ["Cette semaine", "+" + (w.count ?? 0)],
@@ -202,7 +202,7 @@ async function calc(args: string): Promise<[string, Btn[][]]> {
     ]),
   ], "Ordre de grandeur, à valider sur la fiche de l'objectif.");
   const other = meas ? args.replace(/mesure/i, "").trim() : args + " mesure";
-  return [text, [[{ text: meas ? "🔍 En détection" : "📏 En mesure", callback_data: ("c:" + other).slice(0, 64) }], [{ text: "🌐 Détail complet sur Lumenpath", url: SITE + "#/calculateur" }], BACK]];
+  return [text, [[{ text: meas ? "🔍 En détection" : "📏 En mesure", callback_data: ("c:" + other).slice(0, 64) }], [{ text: "🌐 Détail complet sur Vision Path", url: SITE + "#/calculateur" }], BACK]];
 }
 
 // ---------- Alertes venant de la base ----------

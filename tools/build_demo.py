@@ -22,7 +22,7 @@ def script(code):
     return "<script>\n" + code.replace("</script", "<\\/script") + "\n</script>\n"
 
 page = (
-    "<title>Lumenpath</title>\n"
+    "<title>Vision Path</title>\n"
     '<link rel="preconnect" href="https://fonts.googleapis.com">\n'
     '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n'
     '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400..700&display=swap">\n'

@@ -1,4 +1,4 @@
-# Lumenpath — contexte pour Claude Code
+# Vision Path (anciennement Lumenpath) — contexte pour Claude Code
 
 Outil web pour intégrateurs, constructeurs de machines et utilisateurs finaux de vision industrielle (optiques, filtres, éclairage). Langue de l'interface : français (anglais à prévoir pour le marché européen).
 
