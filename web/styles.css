@@ -285,7 +285,7 @@ pre.spec-txt{margin:0 22px 22px;padding:16px 18px;border-radius:var(--r);border:
 }
 @media (max-width:420px){
   .hero h1{font-size:36px}
-  .site-head .actions .btn:first-child{display:none}
+  .site-head .actions .btn{display:none} /* le choix de langue reste dans l'en-tête ; les deux boutons sont juste en dessous, dans le hero */
   .sample dd{font-size:18px}
   .sample dl>div{padding:14px 16px}
   .tools>*{padding:24px 20px}
@@ -425,6 +425,8 @@ pre.spec-txt{margin:0 22px 22px;padding:16px 18px;border-radius:var(--r);border:
 .adm aside nav a.on{background:var(--fill);color:var(--ink);font-weight:600}
 .adm aside nav a.soon{color:var(--faint);pointer-events:none}
 .adm aside nav a.soon::after{content:"Bientôt";font-size:11px;color:var(--faint)}
+html[lang="en"] .adm aside nav a.soon::after{content:"Soon"}
+html[lang="de"] .adm aside nav a.soon::after{content:"Bald"}
 .adm aside .who{margin-top:auto;border-top:1px solid var(--line);padding:16px 10px 4px;font-size:14px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
 .adm>main{flex:1 1 640px;min-width:0;padding:40px 44px 64px;display:flex;flex-direction:column;gap:24px}
 .adm h1{font-size:40px;letter-spacing:-.04em}
@@ -539,3 +541,18 @@ pre.spec-txt{margin:0 22px 22px;padding:16px 18px;border-radius:var(--r);border:
   .figs{gap:14px 32px}
   .figs dd{font-size:34px}
 }
+
+/* ---------- Choix de la langue (FR · EN · DE) ---------- */
+.lang{display:inline-grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:2px;padding:2px;background:var(--fill);border-radius:9px;flex:none;vertical-align:middle}
+.lang button{min-width:32px;min-height:28px;padding:0 7px;border:0;border-radius:7px;background:transparent;color:var(--muted);font:inherit;font-size:12px;font-weight:500;letter-spacing:.02em;cursor:pointer;touch-action:manipulation}
+.lang button:hover{color:var(--ink)}
+.lang button[aria-pressed="true"]{background:var(--elev);color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.12),0 0 0 .5px rgba(0,0,0,.04)}
+.lang button:focus-visible{outline:2px solid var(--ring);outline-offset:1px}
+.auth>header .hd-r{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:8px 14px;margin-left:auto}
+@media (max-width:620px){.auth>header .hd-r{display:contents}.auth>header .hd-r>:not(.lang){flex:1 1 100%}}
+.adm aside .lang{align-self:flex-start;margin:0 10px}
+.site-foot .lang{font-size:12px}
+.app-head>.lang{display:none}
+@media (max-width:860px){.app-head>.lang{display:inline-grid}}
+@media (min-width:1100px){[data-view="app"]>.app-head .user .lang{align-self:flex-start}}
+@media (max-width:420px){.lang button{min-width:30px;padding:0 5px}}

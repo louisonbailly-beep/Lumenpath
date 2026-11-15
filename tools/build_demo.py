@@ -13,6 +13,7 @@ out = pathlib.Path(sys.argv[1])
 html = (ROOT / "index.html").read_text(encoding="utf-8")
 css = (ROOT / "web/styles.css").read_text(encoding="utf-8")
 js = {name: (ROOT / path).read_text(encoding="utf-8") for name, path in {
+    "i18n": "web/i18n.js", "i18n_en": "web/i18n-en.js", "i18n_de": "web/i18n-de.js",
     "core": "app/src/core.js", "calc": "web/calc.js", "optique": "web/optique.js", "app": "web/app.js"}.items()}
 
 body = re.search(r"<body>(.*)</body>", html, re.S).group(1)
@@ -29,6 +30,7 @@ page = (
     "<style>\n" + css + "\n</style>\n"
     + body.strip() + "\n"
     + script("window.LUMENPATH_DEMO = true;")
+    + script(js["i18n"]) + script(js["i18n_en"]) + script(js["i18n_de"])
     + script(js["core"]) + script(js["calc"]) + script(js["optique"]) + script(js["app"])
 )
 out.write_text(page, encoding="utf-8")

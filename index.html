@@ -21,7 +21,7 @@
   <header class="site-head"><div class="wrap">
     <a class="brand" href="#/"><svg width="28" height="21" aria-hidden="true"><use href="#logo"/></svg><span>vision<span class="light">path</span></span></a>
     <nav aria-label="Sections"><a href="#/" data-scroll="applications">Applications</a><a href="#/" data-scroll="outils">Outils</a><a href="#/" data-scroll="methode">Méthode</a><a href="#/" data-scroll="donnees">Données</a></nav>
-    <div class="actions"><a class="btn sm" href="#/connexion">Se connecter</a><a class="btn sm pri" href="#/inscription">Créer un accès</a></div>
+    <div class="actions"><div class="lang" role="group" aria-label="Langue"><button type="button" data-lang="fr" lang="fr" title="Français" aria-pressed="true">FR</button><button type="button" data-lang="en" lang="en" title="English" aria-pressed="false">EN</button><button type="button" data-lang="de" lang="de" title="Deutsch" aria-pressed="false">DE</button></div><a class="btn sm" href="#/connexion">Se connecter</a><a class="btn sm pri" href="#/inscription">Créer un accès</a></div>
   </div></header>
 
   <section class="wrap hero">
@@ -109,12 +109,12 @@
     <div class="actions" style="justify-content:center"><a class="btn lg pri" href="#/inscription">Créer un accès</a></div>
   </section>
 
-  <footer class="site-foot"><div class="wrap"><span>lumenpath · conseil optique pour la vision industrielle</span><span>Photos : <a href="https://unsplash.com/license" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline">Unsplash</a> · Confidentialité · Conditions · Contact</span></div></footer>
+  <footer class="site-foot"><div class="wrap"><span>Vision Path · conseil optique pour la vision industrielle</span><span>Photos : <a href="https://unsplash.com/license" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline">Unsplash</a> · Confidentialité · Conditions · Contact</span><div class="lang" role="group" aria-label="Langue"><button type="button" data-lang="fr" lang="fr" title="Français" aria-pressed="true">FR</button><button type="button" data-lang="en" lang="en" title="English" aria-pressed="false">EN</button><button type="button" data-lang="de" lang="de" title="Deutsch" aria-pressed="false">DE</button></div></div></footer>
 </div>
 
 <!-- ================= Connexion utilisateur ================= -->
 <div data-view="login" class="auth" hidden>
-  <header><a class="brand" href="#/"><svg width="28" height="21" aria-hidden="true"><use href="#logo"/></svg><span>vision<span class="light">path</span></span></a><a href="#/">Retour à l'accueil</a></header>
+  <header><a class="brand" href="#/"><svg width="28" height="21" aria-hidden="true"><use href="#logo"/></svg><span>vision<span class="light">path</span></span></a><div class="hd-r"><div class="lang" role="group" aria-label="Langue"><button type="button" data-lang="fr" lang="fr" title="Français" aria-pressed="true">FR</button><button type="button" data-lang="en" lang="en" title="English" aria-pressed="false">EN</button><button type="button" data-lang="de" lang="de" title="Deutsch" aria-pressed="false">DE</button></div><a href="#/">Retour à l'accueil</a></div></header>
   <main><div class="box">
     <div class="head2"><span class="cap">Espace utilisateur</span><h1>Connexion</h1></div>
     <div class="msg" id="loginMsg"></div>
@@ -134,7 +134,7 @@
 
 <!-- ================= Mot de passe oublié ================= -->
 <div data-view="forgot" class="auth" hidden>
-  <header><a class="brand" href="#/"><svg width="28" height="21" aria-hidden="true"><use href="#logo"/></svg><span>vision<span class="light">path</span></span></a><a href="#/connexion">Retour à la connexion</a></header>
+  <header><a class="brand" href="#/"><svg width="28" height="21" aria-hidden="true"><use href="#logo"/></svg><span>vision<span class="light">path</span></span></a><div class="hd-r"><div class="lang" role="group" aria-label="Langue"><button type="button" data-lang="fr" lang="fr" title="Français" aria-pressed="true">FR</button><button type="button" data-lang="en" lang="en" title="English" aria-pressed="false">EN</button><button type="button" data-lang="de" lang="de" title="Deutsch" aria-pressed="false">DE</button></div><a href="#/connexion">Retour à la connexion</a></div></header>
   <main><div class="box">
     <div class="head2"><span class="cap">Espace utilisateur</span><h1>Mot de passe oublié</h1></div>
     <p class="muted" style="font-size:15px">Saisissez votre adresse : vous recevrez un lien à usage unique pour choisir un nouveau mot de passe.</p>
@@ -149,7 +149,7 @@
 
 <!-- ================= Inscription ================= -->
 <div data-view="signup" class="auth" hidden>
-  <header><a class="brand" href="#/"><svg width="28" height="21" aria-hidden="true"><use href="#logo"/></svg><span>vision<span class="light">path</span></span></a><span>Déjà un accès ? <a href="#/connexion" class="link">Se connecter</a></span></header>
+  <header><a class="brand" href="#/"><svg width="28" height="21" aria-hidden="true"><use href="#logo"/></svg><span>vision<span class="light">path</span></span></a><div class="hd-r"><div class="lang" role="group" aria-label="Langue"><button type="button" data-lang="fr" lang="fr" title="Français" aria-pressed="true">FR</button><button type="button" data-lang="en" lang="en" title="English" aria-pressed="false">EN</button><button type="button" data-lang="de" lang="de" title="Deutsch" aria-pressed="false">DE</button></div><span>Déjà un accès ? <a href="#/connexion" class="link">Se connecter</a></span></div></header>
   <div class="reg"><div class="reg-in">
     <div class="reg-main">
       <div id="regStep1" style="display:flex;flex-direction:column;gap:28px">
@@ -159,7 +159,7 @@
           <label class="f">Nom *<input id="r_nom" type="text" autocomplete="family-name"><span class="err" id="e_nom"></span></label>
           <label class="f full">Société *<input id="r_societe" type="text" autocomplete="organization"><span class="err" id="e_societe"></span></label>
           <label class="f full">Département dans la société *
-            <select id="r_dept"><option value="">Choisir…</option><option>Bureau d'études</option><option>R&amp;D</option><option>Production</option><option>Qualité</option><option>Maintenance</option><option>Intégration, projets</option><option>Achats</option><option>Commercial</option><option>Direction</option><option>Autre</option></select><span class="err" id="e_dept"></span></label>
+            <select id="r_dept"><option value="">Choisir…</option><option value="Bureau d'études">Bureau d'études</option><option value="R&amp;D">R&amp;D</option><option value="Production">Production</option><option value="Qualité">Qualité</option><option value="Maintenance">Maintenance</option><option value="Intégration, projets">Intégration, projets</option><option value="Achats">Achats</option><option value="Commercial">Commercial</option><option value="Direction">Direction</option><option value="Autre">Autre</option></select><span class="err" id="e_dept"></span></label>
           <label class="f full">Adresse e-mail professionnelle *<input id="r_email" type="email" autocomplete="email" placeholder="prenom.nom@societe.com"><span class="err" id="e_email"></span></label>
           <label class="f full">Téléphone, facultatif<input id="r_tel" type="tel" autocomplete="tel" placeholder="+33 1 23 45 67 89" style="font-family:var(--mono)"><span class="err" id="e_tel"></span></label>
           <label class="check full"><input id="r_cgu" type="checkbox"> J'accepte les conditions d'utilisation et la politique de confidentialité. *</label>
@@ -192,7 +192,7 @@
 
 <!-- ================= Choix du mot de passe ================= -->
 <div data-view="password" class="auth" hidden>
-  <header><a class="brand" href="#/"><svg width="28" height="21" aria-hidden="true"><use href="#logo"/></svg><span>vision<span class="light">path</span></span></a><span></span></header>
+  <header><a class="brand" href="#/"><svg width="28" height="21" aria-hidden="true"><use href="#logo"/></svg><span>vision<span class="light">path</span></span></a><div class="hd-r"><div class="lang" role="group" aria-label="Langue"><button type="button" data-lang="fr" lang="fr" title="Français" aria-pressed="true">FR</button><button type="button" data-lang="en" lang="en" title="English" aria-pressed="false">EN</button><button type="button" data-lang="de" lang="de" title="Deutsch" aria-pressed="false">DE</button></div></div></header>
   <main><div class="box w440">
     <div class="head2"><span class="cap" id="pwCap">Étape 3 sur 3 · Mot de passe</span><h1>Choisissez votre mot de passe</h1><p class="muted" style="font-size:15px">Adresse confirmée : <b class="mono" id="pwMail"></b></p></div>
     <form id="pwForm" novalidate>
@@ -208,7 +208,7 @@
 
 <!-- ================= Connexion administrateur ================= -->
 <div data-view="admin-login" class="auth admin dark" hidden>
-  <header><a class="brand" href="#/"><svg width="28" height="21" aria-hidden="true"><use href="#logo"/></svg><span>vision<span class="light">path</span></span><span class="badge">ADMIN</span></a><a href="#/connexion">Retour à l'espace utilisateur</a></header>
+  <header><a class="brand" href="#/"><svg width="28" height="21" aria-hidden="true"><use href="#logo"/></svg><span>vision<span class="light">path</span></span><span class="badge">ADMIN</span></a><div class="hd-r"><div class="lang" role="group" aria-label="Langue"><button type="button" data-lang="fr" lang="fr" title="Français" aria-pressed="true">FR</button><button type="button" data-lang="en" lang="en" title="English" aria-pressed="false">EN</button><button type="button" data-lang="de" lang="de" title="Deutsch" aria-pressed="false">DE</button></div><a href="#/connexion">Retour à l'espace utilisateur</a></div></header>
   <main><div class="box w440">
     <div class="head2"><span class="cap">Espace d'administration</span><h1>Connexion administrateur</h1></div>
     <form id="admForm" novalidate>
@@ -241,6 +241,7 @@
       <a href="#/admin/tableau" data-scroll="admAuditCard">Journal d'audit</a>
       <a href="#/calculateur">Ouvrir les calculateurs</a>
     </nav>
+    <div class="lang" role="group" aria-label="Langue"><button type="button" data-lang="fr" lang="fr" title="Français" aria-pressed="true">FR</button><button type="button" data-lang="en" lang="en" title="English" aria-pressed="false">EN</button><button type="button" data-lang="de" lang="de" title="Deutsch" aria-pressed="false">DE</button></div>
     <div class="who"><span style="color:var(--ink);font-weight:500" id="admWho">Administrateur</span><button class="link" style="color:var(--muted);text-align:left;font-weight:400" type="button" data-logout>Se déconnecter</button></div>
   </aside>
   <main>
@@ -280,7 +281,8 @@
   <header class="app-head">
     <a class="brand" href="#/"><svg width="28" height="21" aria-hidden="true"><use href="#logo"/></svg><span>vision<span class="light">path</span></span></a>
     <nav class="tabs" aria-label="Outils"><a href="#/calculateur" data-tab="calculateur"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8 7h8M8 12h2M14 12h2M8 16h2M14 16h2"/></svg>Calculateur complet</a><a href="#/optique" data-tab="optique"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><ellipse cx="12" cy="12" rx="3.5" ry="8.5"/><path d="M2 8l7 1M2 16l7-1M15 9l7 3-7 3"/></svg>Optique conseillée</a><a href="#/compte" data-tab="compte"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c1.2-3.5 4-5 7-5s5.8 1.5 7 5"/></svg>Mon compte</a></nav>
-    <div class="user"><a class="name" href="#/compte" id="whoTxt"></a><button class="btn sm" type="button" data-logout>Se déconnecter</button></div>
+    <div class="lang" role="group" aria-label="Langue"><button type="button" data-lang="fr" lang="fr" title="Français" aria-pressed="true">FR</button><button type="button" data-lang="en" lang="en" title="English" aria-pressed="false">EN</button><button type="button" data-lang="de" lang="de" title="Deutsch" aria-pressed="false">DE</button></div>
+    <div class="user"><div class="lang" role="group" aria-label="Langue"><button type="button" data-lang="fr" lang="fr" title="Français" aria-pressed="true">FR</button><button type="button" data-lang="en" lang="en" title="English" aria-pressed="false">EN</button><button type="button" data-lang="de" lang="de" title="Deutsch" aria-pressed="false">DE</button></div><a class="name" href="#/compte" id="whoTxt"></a><button class="btn sm" type="button" data-logout>Se déconnecter</button></div>
   </header>
   <div class="demo-band" id="demoBand" hidden><b>Démonstration.</b> Les comptes, l'enregistrement des projets et l'administration fonctionnent sur le site en ligne.</div>
 
@@ -454,6 +456,9 @@
 
 <div class="toast" id="toast" hidden role="status"></div>
 
+<script src="web/i18n.js"></script>
+<script src="web/i18n-en.js"></script>
+<script src="web/i18n-de.js"></script>
 <script src="app/src/core.js"></script>
 <script src="app/supabase-config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>

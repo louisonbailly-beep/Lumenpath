@@ -4,6 +4,14 @@
 (function (root) {
   'use strict';
 
+  /* ---------- Traduction des textes affichés ----------
+     Dans le navigateur, web/i18n.js expose self.I18N ; les textes passent par tr() au moment de l'appel.
+     Sans I18N (Node, Deno), tr() rend le français source avec ses variables {k} remplies. */
+  function fill(s, v) { return v ? String(s).replace(/\{(\w+)\}/g, function (m, k) { return Object.prototype.hasOwnProperty.call(v, k) ? String(v[k]) : m; }) : s; }
+  function i18n() { return (typeof self !== 'undefined' && self.I18N && typeof self.I18N.t === 'function') ? self.I18N : null; }
+  function tr(s, v) { var I = i18n(); return I ? I.t(s, v) : fill(s, v); }
+  function dc(s) { var I = i18n(); return I && I.lang === 'en' ? String(s) : String(s).replace('.', ','); }
+
   /* ---------- Sources citées dans l'interface ---------- */
   var SRC = {
     basler: { t: 'Basler : sélection de l\'éclairage', u: 'https://www.baslerweb.com/en-us/learning/illumination-selection' },
@@ -120,8 +128,8 @@
     if (mat.colorRule) {
       var c = COLOR_RULE[tcolor] || COLOR_RULE.rouge;
       return [
-        { lam: c.dark, role: 'Assombrit le motif', why: 'Une couleur complémentaire rend le motif plus sombre sur un fond clair' + (c.darkAlt ? ' (aussi ' + c.darkAlt + ')' : '') + '. Valeurs de LED usuelles.' },
-        { lam: c.bright, role: 'Éclaircit le motif', why: 'Une couleur proche de celle du motif le rend plus clair. Valeur de LED usuelle.' }
+        { lam: c.dark, role: tr('Assombrit le motif'), why: c.darkAlt ? tr('Une couleur complémentaire rend le motif plus sombre sur un fond clair (aussi {alt}). Valeurs de LED usuelles.', { alt: tr(c.darkAlt) }) : tr('Une couleur complémentaire rend le motif plus sombre sur un fond clair. Valeurs de LED usuelles.') },
+        { lam: c.bright, role: tr('Éclaircit le motif'), why: tr('Une couleur proche de celle du motif le rend plus clair. Valeur de LED usuelle.') }
       ];
     }
     return mat.bands;
@@ -130,13 +138,13 @@
     var mat = materialById(inp.material);
     var fw = inp.lamFwhm > 0 ? inp.lamFwhm : 25;
     var r = { mat: mat, fwhm: fw };
-    if (inp.lamCons === 'source' && inp.lamC > 0) { r.lam = inp.lamC; r.from = 'source imposée'; r.mode = 'source'; }
+    if (inp.lamCons === 'source' && inp.lamC > 0) { r.lam = inp.lamC; r.from = tr('source imposée'); r.mode = 'source'; }
     else if (inp.lamCons === 'band' && inp.lamMax > inp.lamMin && inp.lamMin > 0) {
-      r.lam = (inp.lamMin + inp.lamMax) / 2; r.fwhm = inp.lamMax - inp.lamMin; r.from = 'plage imposée'; r.mode = 'band';
+      r.lam = (inp.lamMin + inp.lamMax) / 2; r.fwhm = inp.lamMax - inp.lamMin; r.from = tr('plage imposée'); r.mode = 'band';
     } else {
       var b = materialBands(mat, inp.tcolor);
       r.lam = mat.colorRule ? b[0].lam : mat.lam;
-      r.from = mat.id === 'general' ? 'défaut (lumière visible)' : 'matière';
+      r.from = mat.id === 'general' ? tr('défaut (lumière visible)') : tr('matière');
       r.mode = 'material';
     }
     return r;
@@ -153,10 +161,10 @@
     var ppd = inp.defect * m / s.p;
     var status = ppd >= kEff ? 'ok' : (ppd >= 0.75 * kEff ? 'limite' : 'insuffisant');
     var why = '';
-    if (inp.globalOnly && s.sh !== 'global') why = 'obturateur roulant';
+    if (inp.globalOnly && s.sh !== 'global') why = tr('obturateur roulant');
     var lam = inp.lambda || 550;
-    if (!why && lam > 1100 && !s.swir) why = 'hors plage spectrale';
-    if (!why && lam > 1700) why = 'hors plage spectrale';
+    if (!why && lam > 1100 && !s.swir) why = tr('hors plage spectrale');
+    if (!why && lam > 1700) why = tr('hors plage spectrale');
     return {
       sensor: s, dims: d, m: m, portrait: portrait, ppd: ppd, kEff: kEff, pixObj: s.p / m,
       status: status, excluded: !!why, why: why,
@@ -195,29 +203,29 @@
     var reasons = [], tele = false;
     if (meas && perrPx > 1) {
       tele = true;
-      reasons.push({ t: 'info', m: 'Mesure avec ' + fmt(inp.depth, 1) + ' mm de variation de hauteur : un objectif standard fait varier l\'échelle de ' + fmt(perr, 2) + ' mm sur le champ, soit ' + fmt(perrPx, 1) + ' pixels. Un télécentrique supprime cette erreur de perspective.' });
+      reasons.push({ t: 'info', m: tr('Mesure avec {d} mm de variation de hauteur : un objectif standard fait varier l\'échelle de {e} mm sur le champ, soit {px} pixels. Un télécentrique supprime cette erreur de perspective.', { d: fmt(inp.depth, 1), e: fmt(perr, 2), px: fmt(perrPx, 1) }) });
     }
     if (meas && inp.backlight) {
       tele = true;
-      reasons.push({ t: 'info', m: 'Mesure en contre-jour : un télécentrique donne des bords nets, sans effet de perspective (à associer à un contre-jour collimaté).' });
+      reasons.push({ t: 'info', m: tr('Mesure en contre-jour : un télécentrique donne des bords nets, sans effet de perspective (à associer à un contre-jour collimaté).') });
     }
     var kind, alt = [];
     if (tele && fovMax > TELE_MAX_FOV) {
-      reasons.push({ t: 'warn', m: 'Champ de ' + fmt(fovMax, 0) + ' mm : un télécentrique doit avoir une lentille frontale plus grande que le champ, peu courant au-delà de ' + TELE_MAX_FOV + ' mm (seuil de travail du prototype). Objectif standard avec calibration, ou découpage du champ.' });
+      reasons.push({ t: 'warn', m: tr('Champ de {f} mm : un télécentrique doit avoir une lentille frontale plus grande que le champ, peu courant au-delà de {max} mm (seuil de travail du prototype). Objectif standard avec calibration, ou découpage du champ.', { f: fmt(fovMax, 0), max: TELE_MAX_FOV }) });
       kind = m > MACRO_M ? 'macro' : 'standard';
     } else if (tele) {
       kind = 'telecentrique';
-      reasons.push({ t: 'info', m: 'Grossissement fixe et distance de travail imposée par l\'objectif ; à choisir près de ' + fmt(m, 3) + '× et de ' + fmt(inp.wd, 0) + ' mm.' });
+      reasons.push({ t: 'info', m: tr('Grossissement fixe et distance de travail imposée par l\'objectif ; à choisir près de {m}× et de {wd} mm.', { m: fmt(m, 3), wd: fmt(inp.wd, 0) }) });
       alt.push(m > MACRO_M ? 'macro' : 'standard');
     } else if (m > MACRO_M) {
       kind = 'macro';
-      reasons.push({ t: 'info', m: 'Grossissement de ' + fmt(m, 3) + '×, au-dessus de ' + MACRO_M + '× : objectif macro, ou standard avec bague allonge (résolution et ouverture à vérifier). Seuil de travail du prototype.' });
+      reasons.push({ t: 'info', m: tr('Grossissement de {m}×, au-dessus de {lim}× : objectif macro, ou standard avec bague allonge (résolution et ouverture à vérifier). Seuil de travail du prototype.', { m: fmt(m, 3), lim: MACRO_M }) });
       alt.push('standard');
       if (meas) alt.push('telecentrique');
     } else {
       kind = 'standard';
-      reasons.push({ t: 'info', m: 'Grossissement de ' + fmt(m, 3) + '×, jusqu\'à ' + MACRO_M + '× : objectif standard à focale fixe.' });
-      if (meas && inp.depth > 0) reasons.push({ t: 'info', m: 'Variation de hauteur faible (' + fmt(perrPx, 1) + ' px d\'erreur de perspective) : un standard calibré suffit.' });
+      reasons.push({ t: 'info', m: tr('Grossissement de {m}×, jusqu\'à {lim}× : objectif standard à focale fixe.', { m: fmt(m, 3), lim: MACRO_M }) });
+      if (meas && inp.depth > 0) reasons.push({ t: 'info', m: tr('Variation de hauteur faible ({px} px d\'erreur de perspective) : un standard calibré suffit.', { px: fmt(perrPx, 1) }) });
     }
     return { kind: kind, label: KIND_LABEL[kind], alt: alt, reasons: reasons, perr: perr, perrPx: perrPx };
   }
@@ -329,15 +337,15 @@
   function parseCatalog(text) {
     var res = { entries: [], errors: [], delimiter: ';' };
     var lines = String(text || '').replace(/^﻿/, '').split(/\r?\n/).filter(function (l) { return l.trim() !== ''; });
-    if (lines.length < 2) { res.errors.push('Fichier vide ou sans ligne de données.'); return res; }
+    if (lines.length < 2) { res.errors.push(tr('Fichier vide ou sans ligne de données.')); return res; }
     var head = lines[0], best = ';', cnt = -1;
     [';', '\t', ','].forEach(function (d) { var c = head.split(d).length; if (c > cnt) { cnt = c; best = d; } });
     res.delimiter = best;
     var commaDec = best !== ',';
     var cols = splitLine(head, best).map(strip), idx = {};
     Object.keys(ALIAS).forEach(function (k) { idx[k] = -1; ALIAS[k].forEach(function (a) { var i = cols.indexOf(a); if (i >= 0 && idx[k] < 0) idx[k] = i; }); });
-    if (idx.type < 0) res.errors.push('Colonne « type » absente (standard, macro ou telecentrique).');
-    if (idx.f < 0 && idx.mag < 0) res.errors.push('Colonne « focale_mm » ou « grossissement » absente.');
+    if (idx.type < 0) res.errors.push(tr('Colonne « type » absente (standard, macro ou telecentrique).'));
+    if (idx.f < 0 && idx.mag < 0) res.errors.push(tr('Colonne « focale_mm » ou « grossissement » absente.'));
     if (res.errors.length) return res;
     function get(parts, k) { return idx[k] >= 0 ? parts[idx[k]] : ''; }
     for (var li = 1; li < lines.length; li++) {
@@ -357,13 +365,13 @@
       if (!isFinite(e.pixmax)) e.pixmax = null;
       if (!e.series) e.series = (e.brand || '') + '|' + e.type + '|' + (e.circle || '') + '|' + (e.res ? Math.round(e.res) : '');
       if (type === 'telecentrique') {
-        if (!(e.mag > 0)) { res.errors.push('Ligne ' + line + ' : un télécentrique demande un grossissement.'); continue; }
+        if (!(e.mag > 0)) { res.errors.push(tr('Ligne {n} : un télécentrique demande un grossissement.', { n: line })); continue; }
         if (!isFinite(e.f)) e.f = null;
       } else {
-        if (!(e.f > 0)) { res.errors.push('Ligne ' + line + ' : focale manquante.'); continue; }
+        if (!(e.f > 0)) { res.errors.push(tr('Ligne {n} : focale manquante.', { n: line })); continue; }
         e.mag = null;
       }
-      if (!e.ref) e.ref = 'Ligne ' + line;
+      if (!e.ref) e.ref = tr('Ligne {n}', { n: line });
       res.entries.push(e);
     }
     return res;
@@ -397,21 +405,21 @@
       out.verdict = e.res >= out.nyq ? 'plein' : (e.res >= nuK ? 'suffisant' : (e.res >= nuReq ? 'limite' : 'insuffisant'));
     }
     if (e.f && e.type !== 'telecentrique') out.dof = dof(e.f, inp.nom, inp.cocPx * s.p / 1000, wd);
-    if (e.circle != null && e.circle < d.D) out.flags.push({ t: 'bad', m: 'Cercle d\'image (' + fmt(e.circle, 1) + ' mm) plus petit que la diagonale du capteur (' + fmt(d.D, 1) + ' mm) : vignetage.' });
-    else if (e.circle != null && e.circle < d.D * 1.03) out.flags.push({ t: 'warn', m: 'Cercle d\'image à peine suffisant : vérifier l\'éclairement dans les coins.' });
-    if (e.circle == null) out.flags.push({ t: 'warn', m: 'Cercle d\'image non renseigné : compatibilité avec le capteur non vérifiée.' });
-    if (e.res == null) out.flags.push({ t: 'warn', m: 'Résolution non renseignée : verdict impossible.' });
+    if (e.circle != null && e.circle < d.D) out.flags.push({ t: 'bad', m: tr('Cercle d\'image ({c} mm) plus petit que la diagonale du capteur ({d} mm) : vignetage.', { c: fmt(e.circle, 1), d: fmt(d.D, 1) }) });
+    else if (e.circle != null && e.circle < d.D * 1.03) out.flags.push({ t: 'warn', m: tr('Cercle d\'image à peine suffisant : vérifier l\'éclairement dans les coins.') });
+    if (e.circle == null) out.flags.push({ t: 'warn', m: tr('Cercle d\'image non renseigné : compatibilité avec le capteur non vérifiée.') });
+    if (e.res == null) out.flags.push({ t: 'warn', m: tr('Résolution non renseignée : verdict impossible.') });
     if (e.type !== 'telecentrique') {
-      if (e.wdmin != null && wd < e.wdmin) out.flags.push({ t: 'warn', m: 'Distance de travail sous la mise au point minimale (' + fmt(e.wdmin, 0) + ' mm) : bague allonge ou macro.' });
-      if (e.wdmax != null && wd > e.wdmax) out.flags.push({ t: 'warn', m: 'Distance de travail au-delà de la plage (' + fmt(e.wdmax, 0) + ' mm).' });
-    } else if (Math.abs(wd - inp.wd) > 0.1 * inp.wd) out.flags.push({ t: 'warn', m: 'Distance de travail imposée de ' + fmt(wd, 0) + ' mm, contre ' + fmt(inp.wd, 0) + ' mm demandés.' });
-    if (e.fmin != null && inp.nom < e.fmin) out.flags.push({ t: 'warn', m: 'Ouverture f/' + inp.nom + ' plus ouverte que le minimum de l\'objectif (f/' + e.fmin + ').' });
-    if (e.fmax != null && inp.nom > e.fmax) out.flags.push({ t: 'warn', m: 'Ouverture f/' + inp.nom + ' plus fermée que le maximum de l\'objectif (f/' + e.fmax + ').' });
-    if (out.mtfNyq < 0.2) out.flags.push({ t: 'warn', m: 'Diffraction : contraste théorique au Nyquist ' + Math.round(out.mtfNyq * 100) + ' % (<20 %). Ouvrir le diaphragme.' });
-    if (inp.depth > 0 && out.dof && out.dof.total < inp.depth) out.flags.push({ t: 'warn', m: 'Profondeur de champ (' + fmt(out.dof.total, 1) + ' mm) inférieure à la variation de hauteur (' + inp.depth + ' mm).' });
+      if (e.wdmin != null && wd < e.wdmin) out.flags.push({ t: 'warn', m: tr('Distance de travail sous la mise au point minimale ({v} mm) : bague allonge ou macro.', { v: fmt(e.wdmin, 0) }) });
+      if (e.wdmax != null && wd > e.wdmax) out.flags.push({ t: 'warn', m: tr('Distance de travail au-delà de la plage ({v} mm).', { v: fmt(e.wdmax, 0) }) });
+    } else if (Math.abs(wd - inp.wd) > 0.1 * inp.wd) out.flags.push({ t: 'warn', m: tr('Distance de travail imposée de {a} mm, contre {b} mm demandés.', { a: fmt(wd, 0), b: fmt(inp.wd, 0) }) });
+    if (e.fmin != null && inp.nom < e.fmin) out.flags.push({ t: 'warn', m: tr('Ouverture f/{n} plus ouverte que le minimum de l\'objectif (f/{v}).', { n: inp.nom, v: e.fmin }) });
+    if (e.fmax != null && inp.nom > e.fmax) out.flags.push({ t: 'warn', m: tr('Ouverture f/{n} plus fermée que le maximum de l\'objectif (f/{v}).', { n: inp.nom, v: e.fmax }) });
+    if (out.mtfNyq < 0.2) out.flags.push({ t: 'warn', m: tr('Diffraction : contraste théorique au Nyquist {p} % (<20 %). Ouvrir le diaphragme.', { p: Math.round(out.mtfNyq * 100) }) });
+    if (inp.depth > 0 && out.dof && out.dof.total < inp.depth) out.flags.push({ t: 'warn', m: tr('Profondeur de champ ({a} mm) inférieure à la variation de hauteur ({b} mm).', { a: fmt(out.dof.total, 1), b: inp.depth }) });
     if (inp.speed > 0) {
       out.blur = inp.speed * inp.exposure * 1e-6 / ((s.p / m) / 1000);
-      if (out.blur > 0.5) out.flags.push({ t: 'warn', m: 'Flou de bougé ' + out.blur.toFixed(2) + ' px (>0,5 px) : réduire l\'exposition ou stroboscoper.' });
+      if (out.blur > 0.5) out.flags.push({ t: 'warn', m: tr('Flou de bougé {b} px (>0,5 px) : réduire l\'exposition ou stroboscoper.', { b: out.blur.toFixed(2) }) });
     }
     return out;
   }
@@ -480,19 +488,19 @@
 
     // compatibilité capteur et optique
     var s = ev.sensor;
-    if (lam > 1700) A.flags.push({ t: 'bad', m: 'Au-delà de 1700 nm : hors de la plage SWIR traitée par ce prototype.' });
-    else if (lam > 1100) A.flags.push({ t: 'warn', m: 'Au-delà de 1100 nm : capteur SWIR requis (la gamme SenSWIR couvre 400 à 1700 nm). Objectif et éclairage prévus pour cette bande.' });
-    else if (lam > 1000) A.flags.push({ t: 'warn', m: 'Entre 1000 et 1100 nm : limite du silicium (sensibilité vers 1 µm), rendement faible.' });
-    else if (lam >= 700) A.flags.push({ t: 'info', m: 'Proche infrarouge : prévoir un objectif traité pour cette bande (décalage de mise au point). Capteur monochrome, car les capteurs couleur portent un filtre IR-cut.' });
-    if (lam < 370) A.flags.push({ t: 'bad', m: 'Sous 370 nm : les capteurs CMOS standard ne répondent plus. Capteur UV dédié et optique en quartz nécessaires (un capteur Pregius S de la gamme UV couvre environ 200 à 1000 nm).' });
-    else if (lam < 400) A.flags.push({ t: 'warn', m: 'Entre 370 et 400 nm : sensibilité réduite, et les objectifs standard et leurs vitres absorbent une grande part des UV. Optique compatible UV à vérifier.' });
-    if (inp.color && lam >= 700) A.flags.push({ t: 'warn', m: 'Capteur couleur coché : son filtre IR-cut bloque cette bande. Choisir un capteur monochrome.' });
-    if (s.swir === true && lam <= 1000) A.flags.push({ t: 'info', m: 'Capteur SWIR sélectionné alors que la bande reste visible : un capteur silicium convient et coûte moins.' });
+    if (lam > 1700) A.flags.push({ t: 'bad', m: tr('Au-delà de 1700 nm : hors de la plage SWIR traitée par ce prototype.') });
+    else if (lam > 1100) A.flags.push({ t: 'warn', m: tr('Au-delà de 1100 nm : capteur SWIR requis (la gamme SenSWIR couvre 400 à 1700 nm). Objectif et éclairage prévus pour cette bande.') });
+    else if (lam > 1000) A.flags.push({ t: 'warn', m: tr('Entre 1000 et 1100 nm : limite du silicium (sensibilité vers 1 µm), rendement faible.') });
+    else if (lam >= 700) A.flags.push({ t: 'info', m: tr('Proche infrarouge : prévoir un objectif traité pour cette bande (décalage de mise au point). Capteur monochrome, car les capteurs couleur portent un filtre IR-cut.') });
+    if (lam < 370) A.flags.push({ t: 'bad', m: tr('Sous 370 nm : les capteurs CMOS standard ne répondent plus. Capteur UV dédié et optique en quartz nécessaires (un capteur Pregius S de la gamme UV couvre environ 200 à 1000 nm).') });
+    else if (lam < 400) A.flags.push({ t: 'warn', m: tr('Entre 370 et 400 nm : sensibilité réduite, et les objectifs standard et leurs vitres absorbent une grande part des UV. Optique compatible UV à vérifier.') });
+    if (inp.color && lam >= 700) A.flags.push({ t: 'warn', m: tr('Capteur couleur coché : son filtre IR-cut bloque cette bande. Choisir un capteur monochrome.') });
+    if (s.swir === true && lam <= 1000) A.flags.push({ t: 'info', m: tr('Capteur SWIR sélectionné alors que la bande reste visible : un capteur silicium convient et coûte moins.') });
 
     // recoupement avec la matière, quand une contrainte est imposée
     if (lr.mode !== 'material' && mat.id !== 'general') {
       var inBand = A.bands.some(function (b) { return b.lam != null ? Math.abs(lam - b.lam) <= 40 : (lam >= b.lo && lam <= b.hi); });
-      if (!inBand) A.flags.push({ t: 'warn', m: 'Votre longueur d\'onde (' + fmt(lam, 0) + ' nm) est hors des bandes conseillées pour cette matière : vérifier le contraste par un essai.' });
+      if (!inBand) A.flags.push({ t: 'warn', m: tr('Votre longueur d\'onde ({l} nm) est hors des bandes conseillées pour cette matière : vérifier le contraste par un essai.', { l: fmt(lam, 0) }) });
     }
 
     // filtre
@@ -501,45 +509,46 @@
     if (lam < 400 && kind === 'bandpass' && mat.id !== 'pcb' && lr.mode === 'source') kind = 'fluo';
     if (kind === 'fluo') {
       var x0 = lam + fw / 2;
-      F.kind = 'longpass'; F.name = 'Passe-haut';
+      F.kind = 'longpass'; F.name = tr('Passe-haut');
       F.cut = x0 + sh(x0);
-      F.text = 'Placé sur la caméra, il bloque la lumière UV d\'excitation et laisse passer la fluorescence visible. Coupure à ' + fmt(F.cut, 0) + ' nm minimum : borne haute de la source (' + fmt(x0, 0) + ' nm) plus le décalage vers le bleu en bord de champ (' + fmt(sh(x0), 1) + ' nm).';
+      F.text = tr('Placé sur la caméra, il bloque la lumière UV d\'excitation et laisse passer la fluorescence visible. Coupure à {cut} nm minimum : borne haute de la source ({x0} nm) plus le décalage vers le bleu en bord de champ ({sh} nm).', { cut: fmt(F.cut, 0), x0: fmt(x0, 0), sh: fmt(sh(x0), 1) });
       F.need = 'recommandé';
-      A.notes.push('Si l\'UV sert en réflexion et non en fluorescence, un passe-bande centré sur la source remplace le passe-haut.');
+      A.notes.push(tr('Si l\'UV sert en réflexion et non en fluorescence, un passe-bande centré sur la source remplace le passe-haut.'));
     } else if (kind === 'swirlp') {
       var c0 = mat.swirCut;
-      F.kind = 'longpass'; F.name = 'Passe-haut';
+      F.kind = 'longpass'; F.name = tr('Passe-haut');
       F.cut = c0 + sh(c0);
-      F.text = 'Il ne laisse passer que l\'infrarouge où le silicium est transparent. Coupure à ' + fmt(F.cut, 0) + ' nm minimum (1100 nm plus le décalage de bord de champ).';
+      F.text = tr('Il ne laisse passer que l\'infrarouge où le silicium est transparent. Coupure à {cut} nm minimum (1100 nm plus le décalage de bord de champ).', { cut: fmt(F.cut, 0) });
       F.need = 'recommandé';
     } else {
-      F.kind = 'bandpass'; F.name = 'Passe-bande';
+      F.kind = 'bandpass'; F.name = tr('Passe-bande');
       F.c0 = lam + A.shift / 2;
       F.bmin = fw + A.shift;
-      F.text = 'Centré à ' + fmt(F.c0, 0) + ' nm, largeur à mi-hauteur de ' + fmt(F.bmin, 0) + ' nm au minimum : largeur de la source (' + fmt(fw, 0) + ' nm) plus le décalage vers le bleu en bord de champ (' + fmt(A.shift, 1) + ' nm). Arrondir à la largeur de catalogue supérieure, puis ajouter la tolérance de la fiche du filtre.';
+      F.text = tr('Centré à {c0} nm, largeur à mi-hauteur de {b} nm au minimum : largeur de la source ({fw} nm) plus le décalage vers le bleu en bord de champ ({sh} nm). Arrondir à la largeur de catalogue supérieure, puis ajouter la tolérance de la fiche du filtre.', { c0: fmt(F.c0, 0), b: fmt(F.bmin, 0), fw: fmt(fw, 0), sh: fmt(A.shift, 1) });
       if (lr.mode !== 'material' || mat.hot || lam < 400 || lam > 1000) F.need = 'recommandé';
-      if (mat.hot) A.notes.push('Ajouter un filtre thermique et un passe-bande : seule la lumière réfléchie de la source doit atteindre la caméra, pas le rayonnement de la pièce chaude.');
+      if (mat.hot) A.notes.push(tr('Ajouter un filtre thermique et un passe-bande : seule la lumière réfléchie de la source doit atteindre la caméra, pas le rayonnement de la pièce chaude.'));
     }
     if (inp.ambient === 'forte') {
       F.need = 'recommandé';
-      A.notes.push('Lumière ambiante forte : filtre au plus près de la largeur minimale, éclairage dominant et exposition courte. Une densité optique de 4 dépasse le besoin de la plupart des applications.');
+      A.notes.push(tr('Lumière ambiante forte : filtre au plus près de la largeur minimale, éclairage dominant et exposition courte. Une densité optique de 4 dépasse le besoin de la plupart des applications.'));
     } else if (F.need === 'optionnel') {
-      A.notes.push('Ambiance maîtrisée : le filtre est optionnel. Il devient utile dès que la lumière du jour ou un éclairage d\'atelier entre dans le champ.');
+      A.notes.push(tr('Ambiance maîtrisée : le filtre est optionnel. Il devient utile dès que la lumière du jour ou un éclairage d\'atelier entre dans le champ.'));
     }
-    if (A.telecentric) A.notes.push('Objectif télécentrique côté objet : les rayons arrivent presque parallèles à l\'axe, le décalage angulaire du filtre est négligeable.');
-    else if (A.thetaDeg > 15) A.flags.push({ t: 'warn', m: 'Angle de champ de ' + fmt(A.thetaDeg, 0) + '° : la formule de décalage est donnée pour 15° au plus (Andover). Élargir la bande, ou prendre un verre coloré, insensible à l\'angle mais à bandes plus larges.' });
-    if (F.kind === 'bandpass' && F.bmin && lr.mode === 'band' && A.shift > 0.2 * fw) A.flags.push({ t: 'warn', m: 'Le décalage de ' + fmt(A.shift, 1) + ' nm dépasse 20 % de votre plage de ' + fmt(fw, 0) + ' nm : en bord de champ, une partie de la plage sera coupée.' });
+    if (A.telecentric) A.notes.push(tr('Objectif télécentrique côté objet : les rayons arrivent presque parallèles à l\'axe, le décalage angulaire du filtre est négligeable.'));
+    else if (A.thetaDeg > 15) A.flags.push({ t: 'warn', m: tr('Angle de champ de {a}° : la formule de décalage est donnée pour 15° au plus (Andover). Élargir la bande, ou prendre un verre coloré, insensible à l\'angle mais à bandes plus larges.', { a: fmt(A.thetaDeg, 0) }) });
+    if (F.kind === 'bandpass' && F.bmin && lr.mode === 'band' && A.shift > 0.2 * fw) A.flags.push({ t: 'warn', m: tr('Le décalage de {sh} nm dépasse 20 % de votre plage de {fw} nm : en bord de champ, une partie de la plage sera coupée.', { sh: fmt(A.shift, 1), fw: fmt(fw, 0) }) });
+    F.need = tr(F.need);
     A.filter = F;
     A.filterNstar = nstar;
 
     // polarisation
     var pol = { use: !!(mat.pol || inp.glare) };
     if (pol.use) {
-      pol.text = (mat.polWhy || 'Reflets spéculaires : polariseur sur l\'éclairage et analyseur croisé à 90° sur l\'objectif.') + ' Compter environ 50 % de lumière perdue en théorie, 60 à 65 % en pratique : compenser par l\'éclairage ou l\'exposition.';
+      pol.text = tr(mat.polWhy || 'Reflets spéculaires : polariseur sur l\'éclairage et analyseur croisé à 90° sur l\'objectif.') + tr(' Compter environ 50 % de lumière perdue en théorie, 60 à 65 % en pratique : compenser par l\'éclairage ou l\'exposition.');
       A.src.push('edmundP');
     }
     A.pol = pol;
-    if (lr.mode === 'material' && mat.colorRule) A.notes.push('Les longueurs d\'onde sont des valeurs de LED usuelles. Avec une caméra monochrome, vérifier par un essai sur la pièce réelle.');
+    if (lr.mode === 'material' && mat.colorRule) A.notes.push(tr('Les longueurs d\'onde sont des valeurs de LED usuelles. Avec une caméra monochrome, vérifier par un essai sur la pièce réelle.'));
     A.src.push('edmundF', 'andover');
     A.src = A.src.filter(function (k, i, a) { return a.indexOf(k) === i; });
     return A;
@@ -556,16 +565,16 @@
   var PRICE_SPREAD = 0.25;
   function roundPrice(v) { return v < 1000 ? Math.round(v / 10) * 10 : Math.round(v / 50) * 50; }
   function estimatePrice(s) {
-    if (s.swir) return { quote: true, why: 'Caméra SWIR : prix non publics, demander un devis.' };
+    if (s.swir) return { quote: true, why: tr('Caméra SWIR : prix non publics, demander un devis.') };
     var mpx = s.w * s.h / 1e6, pts = PRICE_POINTS.filter(function (p) { return p.sh === s.sh; }).map(function (p) { return { m: p.w * p.h / 1e6, usd: p.usd }; }).sort(function (a, b) { return a.m - b.m; });
     var mid = null, basis = '';
-    pts.forEach(function (p) { if (mid == null && Math.abs(p.m / mpx - 1) <= 0.03) { mid = p.usd; basis = 'caméra de même résolution relevée'; } });
+    pts.forEach(function (p) { if (mid == null && Math.abs(p.m / mpx - 1) <= 0.03) { mid = p.usd; basis = tr('caméra de même résolution relevée'); } });
     if (mid == null) {
       for (var i = 0; i < pts.length - 1; i++) {
-        if (mpx > pts[i].m && mpx < pts[i + 1].m) { mid = pts[i].usd + (pts[i + 1].usd - pts[i].usd) * (mpx - pts[i].m) / (pts[i + 1].m - pts[i].m); basis = 'interpolé entre deux caméras relevées'; }
+        if (mpx > pts[i].m && mpx < pts[i + 1].m) { mid = pts[i].usd + (pts[i + 1].usd - pts[i].usd) * (mpx - pts[i].m) / (pts[i + 1].m - pts[i].m); basis = tr('interpolé entre deux caméras relevées'); }
       }
     }
-    if (mid == null) return { quote: true, why: 'Hors des prix relevés (' + (s.sh === 'rolling' ? 'obturateur roulant au-delà de 8 Mpx' : 'résolution hors plage') + ') : demander un devis.' };
+    if (mid == null) return { quote: true, why: tr('Hors des prix relevés ({r}) : demander un devis.', { r: s.sh === 'rolling' ? tr('obturateur roulant au-delà de 8 Mpx') : tr('résolution hors plage') }) };
     mid = roundPrice(mid);
     return { usd: mid, lo: roundPrice(mid * (1 - PRICE_SPREAD)), hi: roundPrice(mid * (1 + PRICE_SPREAD)), basis: basis };
   }
@@ -607,32 +616,34 @@
     });
     return out;
   }
-  function mountAdvice(R, mountId) {
+  function mountAdvice(R, mountId, tubeAcc) {
     var diag = R.dims.D, M = { flags: [], rec: [] };
     var rule = diag <= 9 ? ['s', 'cs', 'c'] : diag <= 16 ? ['c', 'cs'] : diag <= 22 ? ['c'] : diag <= 28.5 ? ['tfl', 'm42', 'f'] : diag <= 44 ? ['f', 'm42', 't2', 'm58', 'm72'] : ['m58', 'm72'];
     M.rec = rule.map(mountById);
-    M.recText = diag <= 9 ? 'Capteur de ' + fmt(diag, 1) + ' mm de diagonale : S-mount (M12), CS ou C.' :
-      diag <= 16 ? 'Capteur de ' + fmt(diag, 1) + ' mm de diagonale : monture C ou CS.' :
-      diag <= 22 ? 'Capteur de ' + fmt(diag, 1) + ' mm de diagonale : monture C avec un objectif grand format (cercle d\'image d\'au moins ' + fmt(diag, 1) + ' mm).' :
-      diag <= 28.5 ? 'Capteur de ' + fmt(diag, 1) + ' mm de diagonale : TFL, M42 ou F.' :
-      diag <= 44 ? 'Capteur de ' + fmt(diag, 1) + ' mm de diagonale : F, M42, T2, M58 ou M72.' :
-      'Capteur de ' + fmt(diag, 1) + ' mm de diagonale, très grand : M58 ou M72, avec un objectif conçu pour ce format.';
+    var dg = { d: fmt(diag, 1) };
+    M.recText = diag <= 9 ? tr('Capteur de {d} mm de diagonale : S-mount (M12), CS ou C.', dg) :
+      diag <= 16 ? tr('Capteur de {d} mm de diagonale : monture C ou CS.', dg) :
+      diag <= 22 ? tr('Capteur de {d} mm de diagonale : monture C avec un objectif grand format (cercle d\'image d\'au moins {d} mm).', dg) :
+      diag <= 28.5 ? tr('Capteur de {d} mm de diagonale : TFL, M42 ou F.', dg) :
+      diag <= 44 ? tr('Capteur de {d} mm de diagonale : F, M42, T2, M58 ou M72.', dg) :
+      tr('Capteur de {d} mm de diagonale, très grand : M58 ou M72, avec un objectif conçu pour ce format.', dg);
     var m = mountId && mountId !== 'none' ? mountById(mountId) : null;
     M.chosen = m;
     if (!m) return M;
     var lim = m.diagExt || m.diagStd;
     if (lim != null) {
-      if (diag > lim * 1.02) M.flags.push({ t: 'bad', m: 'Capteur trop grand pour cette monture : diagonale de ' + fmt(diag, 1) + ' mm contre ' + fmt(lim, 1) + ' mm environ. Vignetage assuré dans les coins.' });
-      else if (m.diagExt && diag > m.diagStd) M.flags.push({ t: 'warn', m: 'Diagonale de ' + fmt(diag, 1) + ' mm : au-delà du format courant de cette monture (' + fmt(m.diagStd, 1) + ' mm). Choisir un objectif grand format dont le cercle d\'image dépasse ' + fmt(diag, 1) + ' mm.' });
-      else M.flags.push({ t: 'good', m: 'Le capteur (' + fmt(diag, 1) + ' mm de diagonale) entre dans le format de cette monture.' });
-      if (diag < lim * 0.35) M.flags.push({ t: 'info', m: 'Monture surdimensionnée pour ce capteur : encombrement et coût inutiles. ' + M.recText });
-    } else M.flags.push({ t: 'info', m: 'Cercle d\'image maximal non renseigné pour cette monture : le demander au fabricant de l\'objectif.' });
+      if (diag > lim * 1.02) M.flags.push({ t: 'bad', m: tr('Capteur trop grand pour cette monture : diagonale de {d} mm contre {l} mm environ. Vignetage assuré dans les coins.', { d: fmt(diag, 1), l: fmt(lim, 1) }) });
+      else if (m.diagExt && diag > m.diagStd) M.flags.push({ t: 'warn', m: tr('Diagonale de {d} mm : au-delà du format courant de cette monture ({s} mm). Choisir un objectif grand format dont le cercle d\'image dépasse {d} mm.', { d: fmt(diag, 1), s: fmt(m.diagStd, 1) }) });
+      else M.flags.push({ t: 'good', m: tr('Le capteur ({d} mm de diagonale) entre dans le format de cette monture.', dg) });
+      if (diag < lim * 0.35) M.flags.push({ t: 'info', m: tr('Monture surdimensionnée pour ce capteur : encombrement et coût inutiles. {rec}', { rec: M.recText }) });
+    } else M.flags.push({ t: 'info', m: tr('Cercle d\'image maximal non renseigné pour cette monture : le demander au fabricant de l\'objectif.') });
     if (m.fr && R.lt.kind !== 'telecentrique') {
-      if (R.fNeed < m.fr[0] * 0.8 || R.fNeed > m.fr[1] * 1.2) M.flags.push({ t: 'warn', m: 'Focale de ≈ ' + fmt(R.fNeed, 1) + ' mm peu courante dans cette monture (plage usuelle ' + m.fr[0] + ' à ' + m.fr[1] + ' mm, valeur de travail). Vérifier l\'offre ou changer de monture.' });
+      if (R.fNeed < m.fr[0] * 0.8 || R.fNeed > m.fr[1] * 1.2) M.flags.push({ t: 'warn', m: tr('Focale de ≈ {f} mm peu courante dans cette monture (plage usuelle {a} à {b} mm, valeur de travail). Vérifier l\'offre ou changer de monture.', { f: fmt(R.fNeed, 1), a: m.fr[0], b: m.fr[1] }) });
     }
-    if (m.id === 'c' && R.rec && R.rec.f < 8) M.flags.push({ t: 'info', m: 'Courtes focales en monture C : objectifs plus encombrants qu\'en S-mount, mais plus stables mécaniquement.' });
-    if (R.rec && (R.rec.tube > 0.3 || R.lt.kind === 'macro' || R.acc.some(function (a) { return /allonge|additionnelle/i.test(a.n); }))) M.flags.push({ t: 'info', m: 'Allonges : ' + m.ext });
-    M.flags.push({ t: 'info', m: (m.flange != null ? 'Tirage de ' + String(parseFloat(m.flange.toFixed(3))).replace('.', ',') + ' mm : l\'objectif et la caméra doivent avoir le même tirage. ' : 'Tirage non normalisé : à confirmer avec le fabricant. ') + m.note });
+    if (m.id === 'c' && R.rec && R.rec.f < 8) M.flags.push({ t: 'info', m: tr('Courtes focales en monture C : objectifs plus encombrants qu\'en S-mount, mais plus stables mécaniquement.') });
+    // tubeAcc : un accessoire d'allonge ou de lentille additionnelle est proposé (calculé avant traduction des noms)
+    if (R.rec && (R.rec.tube > 0.3 || R.lt.kind === 'macro' || (tubeAcc != null ? tubeAcc : R.acc.some(function (a) { return /allonge|additionnelle/i.test(a.n); })))) M.flags.push({ t: 'info', m: tr('Allonges : {ext}', { ext: tr(m.ext) }) });
+    M.flags.push({ t: 'info', m: (m.flange != null ? tr('Tirage de {t} mm : l\'objectif et la caméra doivent avoir le même tirage. ', { t: dc(String(parseFloat(m.flange.toFixed(3)))) }) : tr('Tirage non normalisé : à confirmer avec le fabricant. ')) + tr(m.note) });
     return M;
   }
 
@@ -664,24 +675,29 @@
     R.distPct = dist * 100;
     if (meas && R.distErr > s.prec && lt.kind !== 'telecentrique') {
       if (fovMaxDim <= TELE_MAX_FOV) {
-        lt = { kind: 'telecentrique', label: KIND_LABEL.telecentrique, alt: ['standard'], perr: lt.perr, perrPx: lt.perrPx, reasons: lt.reasons.concat([{ t: 'info', m: 'Distorsion d\'un objectif standard estimée à ' + fmt(R.distPct, 1) + ' % : ' + fmt(R.distErr, 0) + ' µm en bord de champ, au-dessus de la précision visée (' + fmt(s.prec, 0) + ' µm). Un télécentrique (distorsion typique sous 0,1 %) évite ce défaut. Un standard exige une calibration soignée.' }]) };
+        lt = { kind: 'telecentrique', label: KIND_LABEL.telecentrique, alt: ['standard'], perr: lt.perr, perrPx: lt.perrPx, reasons: lt.reasons.concat([{ t: 'info', m: tr('Distorsion d\'un objectif standard estimée à {p} % : {e} µm en bord de champ, au-dessus de la précision visée ({prec} µm). Un télécentrique (distorsion typique sous 0,1 %) évite ce défaut. Un standard exige une calibration soignée.', { p: fmt(R.distPct, 1), e: fmt(R.distErr, 0), prec: fmt(s.prec, 0) }) }]) };
       } else {
-        flags.push({ t: 'warn', m: 'Distorsion estimée de ' + fmt(R.distErr, 0) + ' µm en bord de champ, au-dessus de la précision visée. Champ trop grand pour un télécentrique : calibration par mire et correction de distorsion obligatoires.' });
+        flags.push({ t: 'warn', m: tr('Distorsion estimée de {e} µm en bord de champ, au-dessus de la précision visée. Champ trop grand pour un télécentrique : calibration par mire et correction de distorsion obligatoires.', { e: fmt(R.distErr, 0) }) });
       }
     } else if (meas && lt.kind !== 'telecentrique') {
-      notes.push('Distorsion estimée de ' + fmt(R.distPct, 1) + ' % (' + fmt(R.distErr, 0) + ' µm en bord de champ) : compatible avec la précision visée après calibration.');
+      notes.push(tr('Distorsion estimée de {p} % ({e} µm en bord de champ) : compatible avec la précision visée après calibration.', { p: fmt(R.distPct, 1), e: fmt(R.distErr, 0) }));
     }
     R.lt = lt;
     var spec = lensSpec(ev, inp, lt); R.spec = spec;
-    if (meas && subdiv > 5) flags.push({ t: 'warn', m: 'Interpolation à 1/' + subdiv + ' de pixel : demande des bords très nets (contre-jour, télécentrique), un bon éclairage et peu de bruit. Au-delà de 1/5, la précision annoncée est optimiste.' });
+    if (meas && subdiv > 5) flags.push({ t: 'warn', m: tr('Interpolation à 1/{s} de pixel : demande des bords très nets (contre-jour, télécentrique), un bon éclairage et peu de bruit. Au-delà de 1/5, la précision annoncée est optimiste.', { s: subdiv }) });
     // capteur
     if (R.status !== 'ok') {
       var lack = [];
-      if (nW < R.need.nH) lack.push(R.need.nH + ' px sur la largeur');
-      if (nH < R.need.nV) lack.push(R.need.nV + ' px sur la hauteur');
-      flags.push({ t: R.status === 'limite' ? 'warn' : 'bad', m: 'Capteur ' + (R.status === 'limite' ? 'à la limite' : 'insuffisant') + ' pour ce champ : il faudrait ' + R.need.nH + ' × ' + R.need.nV + ' px (' + fmt(R.need.mpx, 1) + ' Mpx), ' + (lack.length ? 'il manque ' + lack.join(' et ') + '. ' : '') + 'Options : réduire le champ à ' + fmt(R.fovMax.H, 0) + ' × ' + fmt(R.fovMax.V, 0) + ' mm, accepter ' + fmt(R.capab, 0) + ' µm de ' + (meas ? 'précision' : 'défaut minimal') + ', ou choisir un capteur plus grand.' });
+      if (nW < R.need.nH) lack.push(tr('{n} px sur la largeur', { n: R.need.nH }));
+      if (nH < R.need.nV) lack.push(tr('{n} px sur la hauteur', { n: R.need.nV }));
+      var cv = { nh: R.need.nH, nv: R.need.nV, mpx: fmt(R.need.mpx, 1), lack: lack.length ? tr('il manque {l}. ', { l: lack.join(tr(' et ')) }) : '', fh: fmt(R.fovMax.H, 0), fv: fmt(R.fovMax.V, 0), c: fmt(R.capab, 0) };
+      flags.push({ t: R.status === 'limite' ? 'warn' : 'bad', m: R.status === 'limite'
+        ? (meas ? tr('Capteur à la limite pour ce champ : il faudrait {nh} × {nv} px ({mpx} Mpx), {lack}Options : réduire le champ à {fh} × {fv} mm, accepter {c} µm de précision, ou choisir un capteur plus grand.', cv)
+          : tr('Capteur à la limite pour ce champ : il faudrait {nh} × {nv} px ({mpx} Mpx), {lack}Options : réduire le champ à {fh} × {fv} mm, accepter {c} µm de défaut minimal, ou choisir un capteur plus grand.', cv))
+        : (meas ? tr('Capteur insuffisant pour ce champ : il faudrait {nh} × {nv} px ({mpx} Mpx), {lack}Options : réduire le champ à {fh} × {fv} mm, accepter {c} µm de précision, ou choisir un capteur plus grand.', cv)
+          : tr('Capteur insuffisant pour ce champ : il faudrait {nh} × {nv} px ({mpx} Mpx), {lack}Options : réduire le champ à {fh} × {fv} mm, accepter {c} µm de défaut minimal, ou choisir un capteur plus grand.', cv)) });
     }
-    if (s.p <= 3.5) notes.push('Pixel de ' + fmt(s.p, 2) + ' µm : prévoir un objectif conçu pour ce pas (classe 5 Mpx et plus), sinon la résolution de l\'objectif limite l\'image.');
+    if (s.p <= 3.5) notes.push(tr('Pixel de {p} µm : prévoir un objectif conçu pour ce pas (classe 5 Mpx et plus), sinon la résolution de l\'objectif limite l\'image.', { p: fmt(s.p, 2) }));
     // options de focale
     var opts = [], kind = lt.kind;
     if (kind !== 'telecentrique') {
@@ -708,31 +724,31 @@
     R.options.forEach(function (o) { if (!rec || o.wdRel < rec.wdRel - 0.02 || (Math.abs(o.wdRel - rec.wdRel) <= 0.02 && o.tube < rec.tube)) rec = o; });
     R.rec = rec;
     // accessoires
-    var acc = [];
+    var acc = [], tubeAcc = false;
     if (kind === 'telecentrique') {
-      acc.push({ t: 'info', n: 'Aucun accessoire d\'optique', m: 'Un télécentrique a un grossissement fixe : choisir la référence la plus proche de ' + fmt(ev.m, 3) + '× (champ objet = capteur ÷ grossissement). La distance de travail est imposée par l\'objectif, à comparer aux ' + fmt(s.wd, 0) + ' mm demandés. Éclairage : contre-jour collimaté ou éclairage coaxial.' });
+      acc.push({ t: 'info', n: tr('Aucun accessoire d\'optique'), m: tr('Un télécentrique a un grossissement fixe : choisir la référence la plus proche de {m}× (champ objet = capteur ÷ grossissement). La distance de travail est imposée par l\'objectif, à comparer aux {wd} mm demandés. Éclairage : contre-jour collimaté ou éclairage coaxial.', { m: fmt(ev.m, 3), wd: fmt(s.wd, 0) }) });
     } else {
       if (fNeed > FOCAL_MAX_STD) {
-        acc.push({ t: 'warn', n: 'Doubleur de focale', m: 'Il faut ≈ ' + fmt(fNeed, 0) + ' mm, au-delà des focales fixes usuelles (' + FOCAL_MAX_STD + ' mm). Un doubleur ×2 sur un objectif de ≈ ' + fmt(fNeed / 2, 0) + ' mm donne la focale voulue, au prix de 2 diaphragmes (f/' + fmt(s.nom, 1) + ' demande un objectif ouvrant à f/' + fmt(s.nom / 2, 1) + ') et d\'une perte de résolution. Alternative : un objectif macro ou télécentrique, ou rapprocher la caméra.' });
+        acc.push({ t: 'warn', n: tr('Doubleur de focale'), m: tr('Il faut ≈ {f} mm, au-delà des focales fixes usuelles ({max} mm). Un doubleur ×2 sur un objectif de ≈ {h} mm donne la focale voulue, au prix de 2 diaphragmes (f/{n} demande un objectif ouvrant à f/{n2}) et d\'une perte de résolution. Alternative : un objectif macro ou télécentrique, ou rapprocher la caméra.', { f: fmt(fNeed, 0), max: FOCAL_MAX_STD, h: fmt(fNeed / 2, 0), n: fmt(s.nom, 1), n2: fmt(s.nom / 2, 1) }) });
       }
-      if (fNeed < 6) acc.push({ t: 'warn', n: 'Focale très courte', m: 'Environ ' + fmt(fNeed, 1) + ' mm : distorsion forte et vignetage. Augmenter la distance de travail ou découper le champ avec plusieurs caméras.' });
+      if (fNeed < 6) acc.push({ t: 'warn', n: tr('Focale très courte'), m: tr('Environ {f} mm : distorsion forte et vignetage. Augmenter la distance de travail ou découper le champ avec plusieurs caméras.', { f: fmt(fNeed, 1) }) });
       if (ev.m > MACRO_M) {
         var fr = rec ? rec.f : 50, mt = fr * ev.m;
-        acc.push({ t: 'info', n: 'Bague allonge ou macro', m: 'Grossissement de ' + fmt(ev.m, 3) + '×. Deux voies : un objectif macro, ou un objectif standard de ' + fr + ' mm avec une allonge totale de ≈ ' + fmt(mt, 1) + ' mm (formule f × m, à valider sur la fiche de l\'objectif). Les allonges réduisent la profondeur de champ et la lumière reçue.' });
+        acc.push({ t: 'info', n: tr('Bague allonge ou macro'), m: tr('Grossissement de {m}×. Deux voies : un objectif macro, ou un objectif standard de {f} mm avec une allonge totale de ≈ {t} mm (formule f × m, à valider sur la fiche de l\'objectif). Les allonges réduisent la profondeur de champ et la lumière reçue.', { m: fmt(ev.m, 3), f: fr, t: fmt(mt, 1) }) }); tubeAcc = true;
       } else if (rec && s.wd < rec.mfd) {
-        acc.push({ t: 'warn', n: 'Lentille additionnelle ou allonge', m: 'Distance de travail de ' + fmt(s.wd, 0) + ' mm sous la mise au point minimale d\'un ' + rec.f + ' mm (≈ ' + rec.mfd + ' mm, valeur type). Une allonge de ≈ ' + fmt(rec.tube, 1) + ' mm ou une lentille additionnelle d\'environ ' + fmt(1000 / s.wd, 1) + ' dioptries corrige cela.' });
+        acc.push({ t: 'warn', n: tr('Lentille additionnelle ou allonge'), m: tr('Distance de travail de {wd} mm sous la mise au point minimale d\'un {f} mm (≈ {mfd} mm, valeur type). Une allonge de ≈ {t} mm ou une lentille additionnelle d\'environ {dpt} dioptries corrige cela.', { wd: fmt(s.wd, 0), f: rec.f, mfd: rec.mfd, t: fmt(rec.tube, 1), dpt: fmt(1000 / s.wd, 1) }) }); tubeAcc = true;
       } else if (rec && rec.tube > 0.5) {
-        acc.push({ t: 'info', n: 'Allonge', m: 'Une allonge d\'environ ' + fmt(rec.tube, 1) + ' mm au-delà du tirage de l\'objectif est utile pour cette distance.' });
+        acc.push({ t: 'info', n: tr('Allonge'), m: tr('Une allonge d\'environ {t} mm au-delà du tirage de l\'objectif est utile pour cette distance.', { t: fmt(rec.tube, 1) }) }); tubeAcc = true;
       }
-      if (!acc.length) acc.push({ t: 'good', n: 'Aucun accessoire nécessaire', m: 'Un objectif à focale fixe suffit, sans doubleur ni allonge.' });
+      if (!acc.length) acc.push({ t: 'good', n: tr('Aucun accessoire nécessaire'), m: tr('Un objectif à focale fixe suffit, sans doubleur ni allonge.') });
     }
     R.acc = acc; R.flags = flags; R.notes = notes;
     // objectif retenu en une phrase
     R.headline = kind === 'telecentrique'
-      ? 'Télécentrique, grossissement ≈ ' + fmt(ev.m, 3) + '×'
-      : (rec ? (kind === 'macro' ? 'Macro ou standard avec allonge, ' : 'Standard, ') + 'focale ' + rec.f + ' mm' : 'Focale ≈ ' + fmt(fNeed, 1) + ' mm');
+      ? tr('Télécentrique, grossissement ≈ {m}×', { m: fmt(ev.m, 3) })
+      : (rec ? (kind === 'macro' ? tr('Macro ou standard avec allonge, focale {f} mm', { f: rec.f }) : tr('Standard, focale {f} mm', { f: rec.f })) : tr('Focale ≈ {f} mm', { f: fmt(fNeed, 1) }));
     R.fNeed = fNeed;
-    R.mount = mountAdvice(R, s.mount);
+    R.mount = mountAdvice(R, s.mount, tubeAcc);
     return R;
   }
 

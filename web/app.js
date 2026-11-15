@@ -8,6 +8,8 @@
   var BASE=location.origin+location.pathname;
   var sb=null, session=null, profile=null, recovery=false, admFactor=null, linkError='';
   var PROTECTED={calculateur:1,optique:1,compte:1};
+  var I=window.I18N, t=function(x,v){ return I.t(x,v); };
+  var curView='home', curTab=null;
 
   /* ---------- Utilitaires ---------- */
   function esc(t){return String(t==null?'':t).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
@@ -31,13 +33,13 @@
       [/user already registered|already been registered/i,'Un compte existe déjà avec cette adresse. Connectez-vous ou utilisez « Mot de passe oublié ».'],
       [/otp_expired|link is invalid|has expired/i,'Ce lien a expiré ou a déjà servi. Demandez-en un nouveau.']
     ];
-    for(var i=0;i<map.length;i++) if(map[i][0].test(m)) return map[i][1];
-    return m||'Une erreur est survenue.';
+    for(var i=0;i<map.length;i++) if(map[i][0].test(m)) return t(map[i][1]);
+    return m||t('Une erreur est survenue.');
   }
   function log(action, detail){ if(sb&&session) sb.rpc('log_action',{p_action:action,p_detail:detail||null}).then(function(){},function(){}); }
   function pwSet(){ var u=session&&session.user; return !!(u&&u.user_metadata&&u.user_metadata.pw_set); }
   function isAdmin(){ return profile&&profile.role==='admin'; }
-  function date(d){ try{ return new Date(d).toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'}); }catch(e){ return d; } }
+  function date(d){ try{ return new Date(d).toLocaleString(I.locale,{dateStyle:'short',timeStyle:'short'}); }catch(e){ return d; } }
 
   /* stockage de session : appareil (localStorage) ou onglet seulement (sessionStorage) */
   function remember(){ try{ return localStorage.getItem('lp_remember')!=='0'; }catch(e){ return true; } }
@@ -61,7 +63,7 @@
     else if(PROTECTED[h]){ view='app'; tab=h; }
 
     if(DEMO){
-      if(view==='login'||view==='signup'||view==='forgot'||view==='password'){ toast('Démonstration : l\'inscription fonctionne sur le site en ligne.'); return go('calculateur'); }
+      if(view==='login'||view==='signup'||view==='forgot'||view==='password'){ toast(t('Démonstration : l\'inscription fonctionne sur le site en ligne.')); return go('calculateur'); }
       if(view==='admin-login') return go('admin/tableau');
       if(tab==='compte') return go('calculateur');
     } else {
@@ -76,7 +78,13 @@
     show(view, tab);
   }
   function go(h){ if(location.hash==='#/'+h) route(); else location.hash='#/'+h; }
+  function setTitle(){
+    var view=curView, tab=curTab;
+    document.title = {home:'Vision Path',login:t('Connexion · Vision Path'),signup:t('Créer un accès · Vision Path'),forgot:t('Mot de passe oublié · Vision Path'),password:t('Mot de passe · Vision Path'),'admin-login':t('Administration · Vision Path'),admin:t('Administration · Vision Path')}[view] || t({calculateur:'Calculateur complet',optique:'Optique conseillée',compte:'Mon compte'}[tab])+' · Vision Path';
+  }
+  function setPwCap(){ $('pwCap').textContent=recovery?t('Nouveau mot de passe'):t('Étape 3 sur 3 · Mot de passe'); }
   function show(view, tab){
+    curView=view; curTab=tab;
     [].forEach.call(document.querySelectorAll('[data-view]'),function(el){ el.hidden=el.dataset.view!==view; });
     if(view==='app'){
       [].forEach.call(document.querySelectorAll('[data-tab-view]'),function(el){ el.hidden=el.dataset.tabView!==tab; });
@@ -86,10 +94,10 @@
       if(tab==='optique'&&window.LumenOptique&&window.LumenOptique.animate) window.LumenOptique.animate();
     }
     if(view==='admin') loadAdmin();
-    if(view==='password'){ $('pwMail').textContent=session&&session.user.email||''; $('pwCap').textContent=recovery?'Nouveau mot de passe':'Étape 3 sur 3 · Mot de passe'; }
+    if(view==='password'){ $('pwMail').textContent=session&&session.user.email||''; setPwCap(); }
     if(view==='login'){ $('loginMsg').textContent=linkError; $('loginMsg').className='msg'+(linkError?' bad':''); linkError=''; }
     if(view==='admin-login') resetAdminForm();
-    document.title = {home:'Vision Path',login:'Connexion · Vision Path',signup:'Créer un accès · Vision Path',forgot:'Mot de passe oublié · Vision Path',password:'Mot de passe · Vision Path','admin-login':'Administration · Vision Path',admin:'Administration · Vision Path'}[view] || ({calculateur:'Calculateur complet',optique:'Optique conseillée',compte:'Mon compte'}[tab]+' · Vision Path');
+    setTitle();
     adminTimer(view==='admin');
     window.scrollTo(0,0);
   }
@@ -103,7 +111,7 @@
 
   function setWho(){
     var w=$('whoTxt');
-    if(DEMO){ w.textContent='Visiteur démo'; return; }
+    if(DEMO){ w.textContent=t('Visiteur démo'); return; }
     var p=profile||{}; w.textContent=((p.prenom||'')+' '+(p.nom||'')).trim()+(p.societe?' · '+p.societe:'');
     if(!w.textContent) w.textContent=session&&session.user.email||'';
   }
@@ -124,24 +132,24 @@
 
   /* ---------- Copier, enregistrer ---------- */
   function copy(text){
-    var done=function(){ toast('Spécification copiée.'); }, fail=function(){ toast('Copie refusée par le navigateur : sélectionnez le texte.'); };
+    var done=function(){ toast(t('Spécification copiée.')); }, fail=function(){ toast(t('Copie refusée par le navigateur : sélectionnez le texte.')); };
     try{ navigator.clipboard.writeText(text).then(done,fail); }catch(e){ fail(); }
   }
   function act(a){
     var calc=a.indexOf('calc')>0, st=calc?window.LumenCalc.state():window.LumenOptique.state();
     if(!st) return;
     if(a.indexOf('copy')===0) return copy(st.spec);
-    if(DEMO) return toast('Démonstration : l\'enregistrement des projets fonctionne sur le site en ligne.');
-    var name=window.prompt('Nom du projet', st.title||'Projet');
+    if(DEMO) return toast(t('Démonstration : l\'enregistrement des projets fonctionne sur le site en ligne.'));
+    var name=window.prompt(t('Nom du projet'), st.title||t('Projet'));
     if(name===null) return;
     sb.from('projects').insert({ tool:calc?'calculateur':'optique', name:name.trim()||st.title, inputs:st.inputs, results:{ summary:st.summary, spec:st.spec } })
-      .then(function(r){ if(r.error) return toast(fr(r.error)); log('projet_enregistre',{tool:calc?'calculateur':'optique'}); toast('Projet enregistré. Retrouvez-le dans « Mon compte ».'); });
+      .then(function(r){ if(r.error) return toast(fr(r.error)); log('projet_enregistre',{tool:calc?'calculateur':'optique'}); toast(t('Projet enregistré. Retrouvez-le dans « Mon compte ».')); });
   }
 
   /* ---------- Connexion ---------- */
   $('loginForm').addEventListener('submit',function(e){
     e.preventDefault(); var f=this, em=$('l_email').value.trim(), pw=$('l_pw').value; $('l_err').textContent='';
-    if(!em||!pw){ $('l_err').textContent='Saisissez votre adresse et votre mot de passe.'; return; }
+    if(!em||!pw){ $('l_err').textContent=t('Saisissez votre adresse et votre mot de passe.'); return; }
     try{ localStorage.setItem('lp_remember',$('l_remember').checked?'1':'0'); }catch(x){}
     busy(f,true);
     sb.auth.signInWithPassword({email:em,password:pw}).then(function(r){
@@ -156,12 +164,12 @@
   /* ---------- Mot de passe oublié ---------- */
   $('forgotForm').addEventListener('submit',function(e){
     e.preventDefault(); var f=this, em=$('fg_email').value.trim(); $('fg_err').textContent=''; $('fg_ok').textContent='';
-    if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)){ $('fg_err').textContent='Saisissez une adresse e-mail valide.'; return; }
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)){ $('fg_err').textContent=t('Saisissez une adresse e-mail valide.'); return; }
     busy(f,true);
     sb.auth.resetPasswordForEmail(em,{redirectTo:BASE}).then(function(r){
       busy(f,false);
       if(r.error){ $('fg_err').textContent=fr(r.error); return; }
-      $('fg_ok').textContent='Si un compte existe pour cette adresse, un lien vient d\'être envoyé. Il est à usage unique.';
+      $('fg_ok').textContent=t('Si un compte existe pour cette adresse, un lien vient d\'être envoyé. Il est à usage unique.');
     });
   });
 
@@ -179,13 +187,13 @@
   }
   $('regForm').addEventListener('submit',function(e){
     e.preventDefault(); var f=this, ok=true;
-    ok=rerr('prenom',rv('r_prenom')?'':'Renseignez votre prénom.')&&ok;
-    ok=rerr('nom',rv('r_nom')?'':'Renseignez votre nom.')&&ok;
-    ok=rerr('societe',rv('r_societe')?'':'Renseignez le nom de la société.')&&ok;
-    ok=rerr('dept',$('r_dept').value?'':'Choisissez votre département.')&&ok;
-    ok=rerr('email',/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(rv('r_email'))?'':'Saisissez une adresse e-mail valide, par exemple prenom.nom@societe.com.')&&ok;
-    var tel=rv('r_tel'); ok=rerr('tel',!tel||/^\+?[0-9 ().-]{7,20}$/.test(tel)?'':'Numéro non reconnu : chiffres, espaces et un + éventuel.')&&ok;
-    ok=rerr('cgu',$('r_cgu').checked?'':'Cochez la case pour continuer.')&&ok;
+    ok=rerr('prenom',rv('r_prenom')?'':t('Renseignez votre prénom.'))&&ok;
+    ok=rerr('nom',rv('r_nom')?'':t('Renseignez votre nom.'))&&ok;
+    ok=rerr('societe',rv('r_societe')?'':t('Renseignez le nom de la société.'))&&ok;
+    ok=rerr('dept',$('r_dept').value?'':t('Choisissez votre département.'))&&ok;
+    ok=rerr('email',/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(rv('r_email'))?'':t('Saisissez une adresse e-mail valide, par exemple prenom.nom@societe.com.'))&&ok;
+    var tel=rv('r_tel'); ok=rerr('tel',!tel||/^\+?[0-9 ().-]{7,20}$/.test(tel)?'':t('Numéro non reconnu : chiffres, espaces et un + éventuel.'))&&ok;
+    ok=rerr('cgu',$('r_cgu').checked?'':t('Cochez la case pour continuer.'))&&ok;
     rerr('reg','');
     if(!ok) return;
     regData={prenom:rv('r_prenom'),nom:rv('r_nom'),societe:rv('r_societe'),dept:$('r_dept').value,email:rv('r_email').toLowerCase(),tel:tel};
@@ -199,20 +207,21 @@
   $('regBack').addEventListener('click',function(){ regStep(1); });
   $('regResend').addEventListener('click',function(){
     var b=this; b.disabled=true;
-    sendLink().then(function(r){ b.disabled=false; $('regResendMsg').textContent=r.error?fr(r.error):'Nouveau lien envoyé. Le précédent ne fonctionne plus.'; });
+    sendLink().then(function(r){ b.disabled=false; $('regResendMsg').textContent=r.error?fr(r.error):t('Nouveau lien envoyé. Le précédent ne fonctionne plus.'); });
   });
 
   /* ---------- Choix du mot de passe ---------- */
   function score(p){ var s=0; if(p.length>=12)s++; if(p.length>=16)s++; if(/[a-z]/.test(p)&&/[A-Z]/.test(p))s++; if(/\d/.test(p)&&/[^A-Za-z0-9]/.test(p))s++; return p.length<12?Math.min(s,1):s; }
-  $('pw1').addEventListener('input',function(){
-    var s=score(this.value);
+  function pwHint(){
+    var v=$('pw1').value, s=score(v);
     [].forEach.call(document.querySelectorAll('.meter i'),function(b,i){ b.className=i<s?'on'+s:''; });
-    $('pwHint').textContent=!this.value?'Mélangez majuscules, minuscules, chiffres et symboles, ou choisissez une longue phrase.':(s<=1?'Trop court ou trop simple.':s===2?'Correct. Ajoutez de la longueur pour plus de sécurité.':'Bon niveau.');
-  });
+    $('pwHint').textContent=!v?t('Mélangez majuscules, minuscules, chiffres et symboles, ou choisissez une longue phrase.'):(s<=1?t('Trop court ou trop simple.'):s===2?t('Correct. Ajoutez de la longueur pour plus de sécurité.'):t('Bon niveau.'));
+  }
+  $('pw1').addEventListener('input',pwHint);
   $('pwForm').addEventListener('submit',function(e){
     e.preventDefault(); var f=this, a=$('pw1').value, b=$('pw2').value, ok=true;
-    $('e_pw1').textContent=a.length<12?'12 caractères minimum.':''; if(a.length<12) ok=false;
-    $('e_pw2').textContent=a!==b?'Les deux mots de passe sont différents.':''; if(a!==b) ok=false;
+    $('e_pw1').textContent=a.length<12?t('12 caractères minimum.'):''; if(a.length<12) ok=false;
+    $('e_pw2').textContent=a!==b?t('Les deux mots de passe sont différents.'):''; if(a!==b) ok=false;
     $('e_pw').textContent='';
     if(!ok) return;
     busy(f,true);
@@ -222,7 +231,7 @@
       $('pw1').value=''; $('pw2').value='';
       var was=recovery; recovery=false;
       return sb.auth.getSession().then(function(s){ return refreshSession(s.data.session); }).then(function(){
-        log(was?'mot_de_passe_reinitialise':'compte_active'); toast(was?'Mot de passe modifié.':'Votre accès est activé.'); go('calculateur');
+        log(was?'mot_de_passe_reinitialise':'compte_active'); toast(was?t('Mot de passe modifié.'):t('Votre accès est activé.')); go('calculateur');
       });
     });
   });
@@ -233,10 +242,10 @@
     var signedAdmin=session&&isAdmin()&&pwSet();
     admStage=signedAdmin?'mfa':'creds';
     $('a_err').textContent='';
-    if(signedAdmin) prepareMfa(); else { $('admCreds').hidden=false; $('admEnroll').hidden=true; $('admCodeW').hidden=true; $('admBtn').textContent='Se connecter'; }
+    if(signedAdmin) prepareMfa(); else { $('admCreds').hidden=false; $('admEnroll').hidden=true; $('admCodeW').hidden=true; $('admBtn').textContent=t('Se connecter'); }
   }
   function prepareMfa(){
-    $('admCreds').hidden=true; $('admCodeW').hidden=false; $('admBtn').textContent='Valider le code';
+    $('admCreds').hidden=true; $('admCodeW').hidden=false; $('admBtn').textContent=t('Valider le code');
     return sb.auth.mfa.listFactors().then(function(r){
       if(r.error){ $('a_err').textContent=fr(r.error); return; }
       var verified=(r.data.totp||[]).filter(function(f){return f.status==='verified'})[0];
@@ -254,7 +263,7 @@
     e.preventDefault(); var f=this; $('a_err').textContent='';
     if(admStage==='creds'){
       var em=$('a_email').value.trim(), pw=$('a_pw').value;
-      if(!em||!pw){ $('a_err').textContent='Saisissez l\'adresse et le mot de passe.'; return; }
+      if(!em||!pw){ $('a_err').textContent=t('Saisissez l\'adresse et le mot de passe.'); return; }
       try{ localStorage.setItem('lp_remember','0'); }catch(x){}
       busy(f,true);
       sb.auth.signInWithPassword({email:em,password:pw}).then(function(r){
@@ -262,13 +271,13 @@
         $('a_pw').value='';
         return (pwSet()?Promise.resolve():sb.auth.updateUser({data:{pw_set:true}})).then(function(){ return sb.auth.getSession(); }).then(function(s){ return refreshSession(s.data.session); }).then(function(){
           busy(f,false);
-          if(!isAdmin()){ log('connexion_admin_refusee'); return sb.auth.signOut().then(function(){ session=null; profile=null; $('a_err').textContent='Ce compte n\'a pas les droits d\'administration.'; }); }
+          if(!isAdmin()){ log('connexion_admin_refusee'); return sb.auth.signOut().then(function(){ session=null; profile=null; $('a_err').textContent=t('Ce compte n\'a pas les droits d\'administration.'); }); }
           admStage='mfa'; return prepareMfa();
         });
       });
     } else {
       var code=$('a_code').value.replace(/\s/g,'');
-      if(!/^\d{6}$/.test(code)){ $('a_err').textContent='Saisissez les 6 chiffres affichés dans l\'application.'; return; }
+      if(!/^\d{6}$/.test(code)){ $('a_err').textContent=t('Saisissez les 6 chiffres affichés dans l\'application.'); return; }
       busy(f,true);
       sb.auth.mfa.challengeAndVerify({factorId:admFactor,code:code}).then(function(r){
         busy(f,false);
@@ -280,7 +289,7 @@
   });
   /* déconnexion après 30 minutes d'inactivité en administration */
   var admT=null, admOn=false;
-  function admBump(){ if(!admOn) return; clearTimeout(admT); admT=setTimeout(function(){ toast('Session administrateur fermée après 30 minutes d\'inactivité.'); log('deconnexion_inactivite'); sb.auth.signOut().then(function(){ session=null; profile=null; go('admin'); }); }, 30*60*1000); }
+  function admBump(){ if(!admOn) return; clearTimeout(admT); admT=setTimeout(function(){ toast(t('Session administrateur fermée après 30 minutes d\'inactivité.')); log('deconnexion_inactivite'); sb.auth.signOut().then(function(){ session=null; profile=null; go('admin'); }); }, 30*60*1000); }
   function adminTimer(on){ admOn=on; if(on) admBump(); else clearTimeout(admT); }
   ['click','keydown','scroll','pointermove'].forEach(function(ev){ document.addEventListener(ev,admBump,{passive:true}); });
 
@@ -288,10 +297,14 @@
   var AUDIT_LABEL={connexion:'connexion',connexion_admin:'connexion administrateur',connexion_admin_refusee:'connexion administrateur refusée',compte_active:'compte activé',
     mot_de_passe_reinitialise:'mot de passe réinitialisé',projet_enregistre:'projet enregistré',projet_supprime:'projet supprimé',accord_donne:'accord donné',accord_retire:'accord retiré',
     profil_modifie:'profil modifié',deconnexion:'déconnexion',deconnexion_inactivite:'déconnexion après inactivité',bot_role_modifie:'rôle modifié (Telegram)',bot_compte_bloque:'compte bloqué (Telegram)',bot_compte_debloque:'compte débloqué (Telegram)'};
-  var admUsers=[], admCons={};
+  var admUsers=[], admCons={}, admAuditRows=null;
+  function renderAudit(){
+    if(!admAuditRows) return;
+    $('admAudit').innerHTML=admAuditRows.length?admAuditRows.map(function(a){ return '<li>'+esc(date(a.at))+' · '+esc(t(a.label||AUDIT_LABEL[a.action]||a.action.replace(/_/g,' ')))+' · '+esc(a.name)+(a.ip?' · '+esc(a.ip):'')+'</li>'; }).join(''):'<li>'+t('Aucune entrée pour l\'instant.')+'</li>';
+  }
   /* Démonstration : tableau de bord rempli d'exemples fictifs, sans base de données */
   function loadAdminDemo(){
-    $('admWho').textContent='Aperçu (démonstration)';
+    $('admWho').textContent=t('Aperçu (démonstration)');
     var now=Date.now(), d=function(h){ return new Date(now-h*3600e3).toISOString(); };
     admUsers=[
       {id:'d1',prenom:'Camille',nom:'Exemple',societe:'Société A',departement:'Qualité',role:'admin',created_at:d(400)},
@@ -302,12 +315,13 @@
     admCons={d2:['ia','bureau_etudes'],d3:['ia']};
     $('stUsers').textContent='4'; $('stAdmins').textContent='2'; $('stIa').textContent='2'; $('stBe').textContent='1';
     var A=[[0.2,'connexion admin','Camille Exemple'],[3,'projet enregistré','Sarah Exemple'],[5,'compte activé','Marc Exemple'],[26,'accord donné','Julien Exemple']];
-    $('admAudit').innerHTML=A.map(function(a){ return '<li>'+esc(date(d(a[0])))+' · '+a[1]+' · '+a[2]+'</li>'; }).join('');
+    admAuditRows=A.map(function(a){ return {at:d(a[0]),label:a[1],name:a[2]}; });
+    renderAudit();
     renderUsers();
   }
   function loadAdmin(){
     if(DEMO) return loadAdminDemo();
-    var p=profile||{}; $('admWho').textContent=((p.prenom||'')+' '+(p.nom||'')).trim()||'Administrateur';
+    var p=profile||{}; $('admWho').textContent=((p.prenom||'')+' '+(p.nom||'')).trim()||t('Administrateur');
     Promise.all([
       sb.from('profiles').select('*').order('created_at',{ascending:false}),
       sb.from('consents').select('*'),
@@ -322,7 +336,8 @@
       $('stBe').textContent=(r[1].data||[]).filter(function(c){return c.granted&&c.kind==='bureau_etudes'}).length;
       var names={}; admUsers.forEach(function(u){ names[u.id]=((u.prenom||'')+' '+(u.nom||'')).trim(); });
       var au=r[2].data||[];
-      $('admAudit').innerHTML=au.length?au.map(function(a){ return '<li>'+esc(date(a.at))+' · '+esc(AUDIT_LABEL[a.action]||a.action.replace(/_/g,' '))+' · '+esc(names[a.actor]||'—')+(a.ip?' · '+esc(a.ip):'')+'</li>'; }).join(''):'<li>Aucune entrée pour l\'instant.</li>';
+      admAuditRows=au.map(function(a){ return {at:a.at,action:a.action,name:names[a.actor]||'—',ip:a.ip}; });
+      renderAudit();
       renderUsers();
     });
   }
@@ -331,24 +346,28 @@
     var q=$('admQ').value.trim().toLowerCase();
     var rows=admUsers.filter(function(u){ return !q||[u.prenom,u.nom,u.societe,u.departement,u.telephone].join(' ').toLowerCase().indexOf(q)>=0; });
     $('admRows').innerHTML=rows.length?rows.map(function(u){
-      var r=ROLE[u.role]||[u.role,''], c=(admCons[u.id]||[]).map(function(k){return k==='ia'?'IA':'mise en relation'}).join(' · ')||'aucun';
-      return '<tr><td><div style="font-weight:500">'+esc((u.prenom+' '+u.nom).trim()||'—')+'</div>'+(u.telephone?'<div class="mono muted" style="font-size:12px">'+esc(u.telephone)+'</div>':'')+'</td><td>'+esc(u.societe)+'</td><td class="muted">'+esc(u.departement)+'</td><td><span class="pill '+r[1]+'">'+esc(r[0])+'</span></td><td class="num muted">'+esc(c)+'</td><td class="num muted">'+esc(date(u.created_at))+'</td></tr>';
-    }).join(''):'<tr><td colspan="6" class="muted">Aucun utilisateur'+(q?' pour cette recherche':'')+'.</td></tr>';
+      var r=ROLE[u.role]||[u.role,''], c=(admCons[u.id]||[]).map(function(k){return k==='ia'?t('IA'):t('mise en relation')}).join(' · ')||t('aucun');
+      return '<tr><td><div style="font-weight:500">'+esc((u.prenom+' '+u.nom).trim()||'—')+'</div>'+(u.telephone?'<div class="mono muted" style="font-size:12px">'+esc(u.telephone)+'</div>':'')+'</td><td>'+esc(t(u.societe))+'</td><td class="muted">'+esc(t(u.departement))+'</td><td><span class="pill '+r[1]+'">'+esc(t(r[0]))+'</span></td><td class="num muted">'+esc(c)+'</td><td class="num muted">'+esc(date(u.created_at))+'</td></tr>';
+    }).join(''):'<tr><td colspan="6" class="muted">'+(q?t('Aucun utilisateur pour cette recherche.'):t('Aucun utilisateur.'))+'</td></tr>';
   }
   $('admQ').addEventListener('input',renderUsers);
 
   /* ---------- Mon compte : projets, accords, profil ---------- */
-  var projects=[];
+  var projects=[], projectsLoaded=false;
+  function renderProjects(){
+    if(!projectsLoaded) return;
+    $('accProjects').innerHTML=projects.length?'<div class="scroll"><table class="t cards" style="min-width:560px"><thead><tr><th>'+t('Projet')+'</th><th>'+t('Outil')+'</th><th>'+t('Date')+'</th><th></th></tr></thead><tbody>'+projects.map(function(x){
+      return '<tr><td style="font-weight:500;white-space:normal">'+esc(x.name||t('Sans nom'))+'</td><td class="muted"><span class="lbl">'+t('Outil')+' </span>'+(x.tool==='optique'?t('optique conseillée'):t('calculateur complet'))+'</td><td class="num muted"><span class="lbl">'+t('Date')+' </span>'+esc(date(x.created_at))+'</td><td class="n"><button class="btn sm" type="button" data-open="'+x.id+'">'+t('Ouvrir')+'</button> <button class="btn sm ghost" type="button" data-del="'+x.id+'">'+t('Supprimer')+'</button></td></tr>';
+    }).join('')+'</tbody></table></div>':'<div class="empty">'+t('Aucun projet. Utilisez « Enregistrer le projet » dans un calculateur.')+'</div>';
+  }
   function loadAccount(){
     var p=profile||{};
-    $('accName').textContent=((p.prenom||'')+' '+(p.nom||'')).trim()||'Mon compte';
+    $('accName').textContent=((p.prenom||'')+' '+(p.nom||'')).trim()||t('Mon compte');
     $('accSub').textContent=[session&&session.user.email,p.societe,p.departement].filter(Boolean).join(' · ');
     $('ac_prenom').value=p.prenom||''; $('ac_nom').value=p.nom||''; $('ac_societe').value=p.societe||''; $('ac_dept').value=p.departement||''; $('ac_tel').value=p.telephone||'';
     sb.from('projects').select('id,tool,name,inputs,created_at').order('created_at',{ascending:false}).then(function(r){
-      projects=r.data||[];
-      $('accProjects').innerHTML=projects.length?'<div class="scroll"><table class="t cards" style="min-width:560px"><thead><tr><th>Projet</th><th>Outil</th><th>Date</th><th></th></tr></thead><tbody>'+projects.map(function(x){
-        return '<tr><td style="font-weight:500;white-space:normal">'+esc(x.name||'Sans nom')+'</td><td class="muted"><span class="lbl">Outil </span>'+(x.tool==='optique'?'optique conseillée':'calculateur complet')+'</td><td class="num muted"><span class="lbl">Date </span>'+esc(date(x.created_at))+'</td><td class="n"><button class="btn sm" type="button" data-open="'+x.id+'">Ouvrir</button> <button class="btn sm ghost" type="button" data-del="'+x.id+'">Supprimer</button></td></tr>';
-      }).join('')+'</tbody></table></div>':'<div class="empty">Aucun projet. Utilisez « Enregistrer le projet » dans un calculateur.</div>';
+      projects=r.data||[]; projectsLoaded=true;
+      renderProjects();
     });
     sb.from('consents').select('*').then(function(r){
       var g={}; (r.data||[]).forEach(function(c){ g[c.kind]=c.granted; });
@@ -361,15 +380,15 @@
     if(o){ var x=projects.filter(function(p){return p.id===o.dataset.open})[0]; if(!x) return;
       if(x.tool==='optique'){ window.LumenOptique.load(x.inputs); go('optique'); } else { window.LumenCalc.load(x.inputs); go('calculateur'); } return; }
     var d=e.target.closest('[data-del]');
-    if(d){ if(!window.confirm('Supprimer ce projet ? Cette action est définitive.')) return;
+    if(d){ if(!window.confirm(t('Supprimer ce projet ? Cette action est définitive.'))) return;
       sb.from('projects').delete().eq('id',d.dataset.del).then(function(r){ if(r.error) return toast(fr(r.error)); log('projet_supprime'); loadAccount(); }); }
   });
   document.addEventListener('change',function(e){
     var cb=e.target.closest&&e.target.closest('[data-consent]'); if(!cb) return;
-    $('accConsentMsg').textContent='Enregistrement…';
+    $('accConsentMsg').textContent=t('Enregistrement…');
     sb.from('consents').upsert({user_id:session.user.id,kind:cb.dataset.consent,granted:cb.checked,updated_at:new Date().toISOString()}).then(function(r){
       if(r.error){ cb.checked=!cb.checked; $('accConsentMsg').textContent=fr(r.error); return; }
-      log(cb.checked?'accord_donne':'accord_retire',{kind:cb.dataset.consent}); $('accConsentMsg').textContent=cb.checked?'Accord enregistré.':'Accord retiré.';
+      log(cb.checked?'accord_donne':'accord_retire',{kind:cb.dataset.consent}); $('accConsentMsg').textContent=cb.checked?t('Accord enregistré.'):t('Accord retiré.');
     });
   });
   $('accForm').addEventListener('submit',function(e){
@@ -377,23 +396,34 @@
     var v={prenom:$('ac_prenom').value.trim(),nom:$('ac_nom').value.trim(),societe:$('ac_societe').value.trim(),departement:$('ac_dept').value.trim(),telephone:$('ac_tel').value.trim()||null};
     sb.from('profiles').update(v).eq('id',session.user.id).then(function(r){
       busy(f,false); if(r.error){ $('accMsg').textContent=fr(r.error); return; }
-      log('profil_modifie'); loadProfile().then(loadAccount); $('accMsg').textContent='Profil enregistré.';
+      log('profil_modifie'); loadProfile().then(loadAccount); $('accMsg').textContent=t('Profil enregistré.');
     });
+  });
+
+  /* ---------- Langue : textes posés par ce script, calculateurs, titre ---------- */
+  I.onChange(function(){
+    if(window.LumenCalc&&window.LumenCalc.rerender) window.LumenCalc.rerender();
+    if(window.LumenOptique&&window.LumenOptique.rerender) window.LumenOptique.rerender();
+    setWho(); setTitle();
+    if(curView==='password') setPwCap();
+    if($('pw1').value) pwHint();
+    if(curView==='admin'){ renderUsers(); renderAudit(); if(DEMO) $('admWho').textContent=t('Aperçu (démonstration)'); }
+    if(curView==='app'&&curTab==='compte'){ renderProjects(); if(!((profile||{}).prenom||(profile||{}).nom)) $('accName').textContent=t('Mon compte'); }
   });
 
   /* ---------- Démarrage ---------- */
   if(DEMO){
     $('demoBand').hidden=false; setWho();
     $('admDemo').hidden=false;
-    document.querySelector('.app-head .tabs').insertAdjacentHTML('beforeend','<a href="#/admin/tableau"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/></svg>Aperçu admin</a>');
+    document.querySelector('.app-head .tabs').insertAdjacentHTML('beforeend','<a href="#/admin/tableau"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/></svg>'+t('Aperçu admin')+'</a>');
     [].forEach.call(document.querySelectorAll('[data-logout],[data-tab="compte"]'),function(el){ el.hidden=true; });
     route(); return;
   }
-  if(!window.supabase||!CFG.url||!CFG.anonKey){ document.body.insertAdjacentHTML('afterbegin','<div class="demo-band">Le service de comptes est indisponible pour le moment. Les calculateurs restent accessibles après connexion une fois le service rétabli.</div>'); route(); return; }
+  if(!window.supabase||!CFG.url||!CFG.anonKey){ document.body.insertAdjacentHTML('afterbegin','<div class="demo-band">'+t('Le service de comptes est indisponible pour le moment. Les calculateurs restent accessibles après connexion une fois le service rétabli.')+'</div>'); route(); return; }
   var fromLink=/access_token=/.test(location.hash);
   var hp=new URLSearchParams(location.hash.replace(/^#\/?/,''));
   if(hp.get('type')==='recovery') recovery=true;
-  if(hp.get('error_description')) linkError=(hp.get('error_code')==='otp_expired'?'Ce lien a expiré ou a déjà servi. ':'Lien invalide. ')+'Demandez-en un nouveau.';
+  if(hp.get('error_description')) linkError=hp.get('error_code')==='otp_expired'?t('Ce lien a expiré ou a déjà servi. Demandez-en un nouveau.'):t('Lien invalide. Demandez-en un nouveau.');
   sb=window.supabase.createClient(CFG.url,CFG.anonKey,{auth:{flowType:'implicit',detectSessionInUrl:true,persistSession:true,autoRefreshToken:true,storage:storage}});
   sb.auth.onAuthStateChange(function(ev,s){
     if(ev==='PASSWORD_RECOVERY'){ recovery=true; refreshSession(s).then(function(){ go('mot-de-passe'); }); }
