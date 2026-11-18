@@ -752,6 +752,236 @@
     return R;
   }
 
+  /* ---------- Environnement, contraintes mécaniques et boîtier (calculateur complet, option) ----------
+     Règles de travail et ordres de grandeur typiques : à confirmer sur les fiches techniques et avec le fabricant du boîtier.
+     Code IP (CEI 60529) : 1er chiffre poussière (5 protégé, 6 étanche), 2e chiffre eau (5 jets, 6 jets puissants,
+     7 immersion temporaire 1 m / 30 min, 8 immersion prolongée selon le fabricant) ; IP69K (ISO 20653) : jets à 80 °C, 80 à 100 bar. */
+  var ENV_EXPO = {
+    sec: { label: 'Intérieur propre et sec', ip: 'IP40', rank: 0, light: 'IP50 à IP54', cam: 'std' },
+    poussiere: { label: 'Atelier poussiéreux', ip: 'IP65', rank: 1, light: 'IP65', cam: 'ip' },
+    projections: { label: 'Projections d\'eau ou d\'huile', ip: 'IP65', rank: 2, light: 'IP65', cam: 'ip' },
+    lavage: { label: 'Lavage haute pression (agroalimentaire, pharmaceutique)', ip: 'IP69K', rank: 4, light: 'IP69K', cam: 'inox' },
+    exterieur: { label: 'Extérieur (pluie, UV)', ip: 'IP66 / IP67', rank: 3, light: 'IP67', cam: 'ip' },
+    immersion: { label: 'Immersion temporaire', ip: 'IP67 / IP68', rank: 5, light: 'IP68', cam: 'immersion' }
+  };
+  var ENV_VIB = { aucune: 'Aucune', moderees: 'Modérées (machine, convoyeur)', fortes: 'Fortes (robot, presse, véhicule)' };
+  var ENV_SHOCK = { aucun: 'Aucun', ponctuels: 'Ponctuels (manutention)', repetes: 'Répétés (robot, impact)' };
+  // Valeurs typiques de conception (mm)
+  var HOUSING = { gap: 4, filter: 5, pol: 5, rearStraight: 55, rearAngled: 25, side: 8, plate: 10, wall: 5, front: 10, margin: 4 };
+  // Corps de caméra typique selon la diagonale du capteur
+  function cameraBody(s, D) {
+    if (s.swir) return { w: 55, h: 55, l: 65, label: tr('caméra SWIR refroidie (module Peltier), compacte') };
+    if (D <= 17.7) return { w: 29, h: 29, l: 42, label: tr('boîtier compact monture C') };
+    if (D <= 28.5) return { w: 40, h: 40, l: 45, label: tr('boîtier moyen format (jusqu\'à APS-C)') };
+    return { w: 60, h: 60, l: 60, label: tr('boîtier grand format (plein format, type 2.5)') };
+  }
+  // Longueur d'un objectif à focale fixe en fonction de la focale (table de travail, interpolée)
+  var LENS_LEN = [[8, 30], [16, 35], [25, 40], [35, 45], [50, 55], [75, 70], [100, 90]];
+  function lensLength(f) {
+    if (!(f > 0)) return 40;
+    if (f <= LENS_LEN[0][0]) return LENS_LEN[0][1];
+    for (var i = 1; i < LENS_LEN.length; i++) {
+      var a = LENS_LEN[i - 1], b = LENS_LEN[i];
+      if (f <= b[0]) return a[1] + (b[1] - a[1]) * (f - a[0]) / (b[0] - a[0]);
+    }
+    return 90 + (f - 100) * 0.8;
+  }
+  function lensDiameter(circle) { return circle <= 11.1 ? 30 : circle <= 17.7 ? 35 : circle <= 22.1 ? 40 : circle <= 28.5 ? 45 : 60; }
+  function lensEnvelope(ev, inp, lt, sp) {
+    var circle = sp && sp.circleMin ? sp.circleMin : ev.dims.D, dBody = lensDiameter(circle), m = sp ? sp.m : ev.m;
+    if (lt.kind === 'telecentrique') {
+      var diag = Math.sqrt(inp.fovH * inp.fovH + inp.fovV * inp.fovV);
+      var d = Math.max(dBody, diag * 1.1 + 10);
+      return { d: d, l: Math.max(100, 2.5 * d), how: tr('télécentrique : lentille frontale ≥ diagonale du champ ({g} mm) plus une marge, longueur ≈ 2,5 × ce diamètre (au moins 100 mm), estimation prudente', { g: fmt(diag, 0) }) };
+    }
+    var f = sp && sp.fAbove ? sp.fAbove : (sp && sp.f ? sp.f : 25), l = lensLength(f);
+    if (lt.kind === 'macro') {
+      var ext = f * m;
+      return { d: dBody, l: l + ext, f: f, how: tr('macro : objectif de {f} mm (≈ {l} mm) plus ≈ {e} mm d\'allonge de mise au point (f × m)', { f: f, l: fmt(l, 0), e: fmt(ext, 0) }) };
+    }
+    return { d: dBody, l: l, f: f, how: tr('focale fixe de {f} mm en monture C ou équivalente : longueur ≈ {l} mm, diamètre ≈ {d} mm selon le cercle d\'image', { f: f, l: fmt(l, 0), d: fmt(dBody, 0) }) };
+  }
+
+  function environmentAdvice(env, ev, inp, lt, sp, L) {
+    if (!env || !env.on) return null;
+    var X = ENV_EXPO[env.expo] || ENV_EXPO.sec, key = ENV_EXPO[env.expo] ? env.expo : 'sec';
+    var tMin = isFinite(env.tMin) ? env.tMin : 10, tMax = isFinite(env.tMax) ? env.tMax : 35;
+    var vib = ENV_VIB[env.vib] ? env.vib : 'aucune', shock = ENV_SHOCK[env.shock] ? env.shock : 'aucun';
+    var food = !!env.food, humid = !!env.humid, atex = !!env.atex;
+    var lam = L && L.lam ? L.lam : (inp.lambda || 550), s = ev.sensor;
+    var mech = vib !== 'aucune' || shock !== 'aucun', hard = vib === 'fortes' || shock === 'repetes';
+    var R = { expo: key, expoLabel: tr(X.label), tMin: tMin, tMax: tMax, vib: vib, shock: shock, food: food, humid: humid, atex: atex, flags: [], notes: [] };
+    function flag(t, m) { R.flags.push({ t: t, m: m }); }
+
+    // 1. Indice de protection
+    var ip = X.ip;
+    if (food && X.rank < 4) R.notes.push(tr('Contact alimentaire : si la zone est nettoyée au jet, choisir « Lavage haute pression » (IP69K).'));
+    R.ip = { code: ip, rank: X.rank };
+    R.ip.text = {
+      sec: tr('Intérieur propre et sec : IP40 suffit (protection contre les corps de plus de 1 mm). Une caméra industrielle standard (IP30 typique) convient sans boîtier.'),
+      poussiere: tr('Poussière : IP5X (protégé) à IP6X (étanche à la poussière). Viser IP65 au minimum, IP6X si la poussière est fine ou conductrice.'),
+      projections: tr('Projections d\'eau ou d\'huile : IP65 au minimum (étanche à la poussière, protégé contre les jets d\'eau). Huiles de coupe : vérifier la compatibilité des joints.'),
+      lavage: tr('Lavage haute pression : IP69K (jets d\'eau à 80 °C, 80 à 100 bar). Inox AISI 316L, joints de qualité alimentaire, formes arrondies, aucun recoin où l\'eau stagne.'),
+      exterieur: tr('Extérieur : IP66 / IP67, matériaux résistants aux UV et pare-soleil.'),
+      immersion: tr('Immersion temporaire : IP67 (1 m pendant 30 min) au minimum, IP68 si l\'immersion est plus profonde ou plus longue (conditions fixées par le fabricant).')
+    }[key];
+    R.ip.explain = tr('Code IP : le 1er chiffre donne la protection contre la poussière (5 protégé, 6 étanche), le 2e contre l\'eau (5 jets, 6 jets puissants, 7 immersion 1 m pendant 30 min, 8 immersion prolongée). IP69K : jets à 80 °C, 80 à 100 bar.');
+
+    // 2. Caméra
+    var camStdTemp = tMin >= 0 && tMax <= 45;
+    var C = { std: X.cam === 'std' && camStdTemp };
+    if (X.cam === 'inox') { C.head = tr('Caméra standard en boîtier inox IP69K'); C.text = tr('Au lavage haute pression, toujours un boîtier inox : même une caméra IP67 ne tient pas les jets IP69K.'); }
+    else if (X.cam === 'immersion') { C.head = tr('Boîtier étanche IP68'); C.text = tr('Caméra standard dans un boîtier étanche IP68 (profondeur et durée à préciser). Une caméra IP67 ne tient que 1 m pendant 30 min.'); }
+    else if (X.cam === 'ip') { C.head = tr('Caméra IP65 / IP67 ou en boîtier'); C.text = tr('Deux voies : une caméra IP65 / IP67 (certaines existent avec un tube de protection d\'objectif), ou une caméra standard dans un boîtier de protection.'); }
+    else if (C.std) { C.head = tr('Caméra standard'); C.text = tr('Une caméra industrielle standard (IP30 typique) convient. Boîtier facultatif, pour la protection mécanique.'); }
+    else { C.head = tr('Caméra standard en boîtier'); C.text = tr('Température hors de la plage typique de la caméra : boîtier avec gestion thermique.'); }
+    C.v = X.cam === 'inox' ? tr('Boîtier IP69K') : X.cam === 'immersion' ? tr('Boîtier IP68') : X.cam === 'ip' ? 'IP65 / IP67' : C.std ? 'IP30' : tr('En boîtier');
+    C.typ = tr('Caméra industrielle standard : IP30 et 0 à 50 °C de température de boîtier typiques, à vérifier sur la fiche.');
+    R.camera = C;
+
+    // 3. Objectif
+    var O = { rugged: mech, items: [] };
+    if (mech) {
+      O.head = tr('Objectif durci (anti-vibration)');
+      O.items.push(tr('Objectif durci : lentilles collées ou fixées, mise au point et diaphragme bloqués par vis, sans bague libre. Un objectif standard peut perdre sa mise au point sous vibrations.'));
+      if (s.p <= 3.45) O.items.push(tr('Pixel de {p} µm : un léger décentrement des lentilles se voit sur l\'image, l\'objectif durci est d\'autant plus important.', { p: fmt(s.p, 2) }));
+      O.items.push(tr('Demander au fournisseur les essais selon CEI 60068-2-6 (vibrations) et CEI 60068-2-27 (chocs). Ordre de grandeur typique annoncé pour les gammes durcies : quelques g à une dizaine de g en vibration, plusieurs dizaines de g en choc, à comparer aux mesures sur votre machine.'));
+    } else {
+      O.head = tr('Objectif standard');
+      O.items.push(tr('Sans vibrations ni chocs : objectif standard, bagues bloquées par leurs vis après réglage.'));
+    }
+    if (X.rank >= 1 && X.cam === 'ip') O.items.push(tr('Avec une caméra IP65 / IP67 : tube de protection d\'objectif avec hublot, à la même classe IP que la caméra.'));
+    var LE = lensEnvelope(ev, inp, lt, sp);
+    if (mech && (LE.l > 60 || lt.kind === 'telecentrique')) O.items.push(tr('Objectif long ou lourd (≈ {l} mm) : le soutenir par un collier, pas seulement par la monture.', { l: fmt(LE.l, 0) }));
+    O.v = mech ? tr('Durci') : tr('Standard');
+    R.lens = O;
+
+    // 4. Éclairage
+    var G = { ip: X.light, items: [] };
+    G.head = tr('Éclairage {ip}', { ip: X.light });
+    G.v = X.light;
+    if (key === 'sec') G.items.push(tr('Éclairages standard (IP50 à IP54 typiques).'));
+    else if (key === 'lavage') G.items.push(tr('Versions lavables IP69K : corps inox, face avant en PMMA ou en verre, sans vis apparente.'));
+    else G.items.push(tr('Barres et rampes {ip} : face avant en PMMA, polycarbonate ou verre selon l\'environnement.', { ip: X.light }));
+    if (X.rank >= 1) G.items.push(tr('Connecteurs M12 IP67 ou presse-étoupes de même classe ; câbles adaptés (PUR, ou résistants aux huiles et aux détergents).'));
+    if (food || shock !== 'aucun') G.items.push(tr('Face avant en PMMA ou polycarbonate plutôt qu\'en verre (risque d\'éclats).'));
+    if (key === 'exterieur') {
+      G.items.push(tr('Lumière du jour : éclairage dominant en mode flash (surintensité), exposition courte, filtre passe-bande sur la longueur d\'onde de l\'éclairage, pare-soleil.'));
+      if (inp.ambient !== 'forte') flag('warn', tr('Poste en extérieur avec une lumière ambiante réglée sur « Maîtrisée » : passer « Lumière ambiante » à « Forte » dans les options avancées.'));
+    }
+    if (key === 'immersion') flag('warn', tr('Immersion : la plupart des éclairages industriels s\'arrêtent à IP67. Prendre un éclairage IP68 submersible, ou le placer dans le boîtier derrière le hublot.'));
+    R.light = G;
+
+    // 5. Thermique
+    var T = { items: [], cool: 'aucun', heat: false, anticond: false, purge: false, power: false, air: false, water: false };
+    if (tMax > 100) { T.cool = 'eau'; T.water = true; flag('bad', tr('{t} °C : très haute température. Boîtier à double paroi refroidi par eau, écran thermique, à étudier avec le fabricant.', { t: fmt(tMax, 0) })); }
+    else if (tMax > 60) { T.cool = 'vortex'; T.air = true; T.items.push(tr('Au-dessus de 60 °C : refroidissement actif par tube vortex (air comprimé) ou chemise à circulation d\'eau.')); }
+    else if (tMax > 45) { T.cool = 'air'; T.power = true; T.items.push(tr('{t} °C : refroidissement nécessaire. Ventilation forcée si l\'air soufflé reste sous la limite de la caméra, sinon module Peltier ou tube vortex.', { t: fmt(tMax, 0) })); }
+    if (tMax > 45) T.items.push(tr('La caméra chauffe : l\'intérieur du boîtier dépasse l\'ambiante de quelques degrés (souvent 5 à 15 °C, valeur typique).'));
+    if (tMin < 0) { T.heat = true; T.power = true; T.anticond = true; T.items.push(tr('Sous 0 °C : résistance de chauffage avec thermostat dans le boîtier. Risque de condensation au réchauffage.')); }
+    if (humid) { T.anticond = true; T.power = true; T.items.push(tr('Humidité et condensation : hublot chauffant ou purge d\'air sec, et membrane de mise à l\'air ou dessiccant.')); }
+    if (key === 'poussiere' || key === 'projections') { T.purge = true; T.air = true; T.items.push(tr('Purge d\'air ou lame d\'air devant le hublot pour le garder propre.')); }
+    if (key === 'exterieur') T.items.push(tr('Soleil direct : le pare-soleil limite l\'échauffement du boîtier, qui peut dépasser nettement l\'ambiante.'));
+    if (tMin > tMax) flag('warn', tr('Température minimale supérieure à la maximale : vérifier la saisie.'));
+    if (!T.items.length) T.items.push(tr('Aucune gestion thermique particulière : {a} à {b} °C reste dans la plage typique d\'une caméra.', { a: fmt(tMin, 0), b: fmt(tMax, 0) }));
+    T.head = T.cool === 'eau' ? tr('Refroidissement par eau') : T.cool === 'vortex' ? tr('Tube vortex ou eau') : T.cool === 'air' ? tr('Refroidissement') : T.heat ? tr('Chauffage') : T.anticond ? tr('Anti-condensation') : tr('Passive');
+    R.thermal = T;
+
+    // 6. Boîtier : enveloppe intérieure estimée
+    var cam = cameraBody(s, ev.dims.D), H = HOUSING;
+    var filt = L && L.filter && L.filter.need === tr('recommandé') ? H.filter : 0, pol = L && L.pol && L.pol.use ? H.pol : 0;
+    var len = H.rearStraight + cam.l + LE.l + filt + pol + H.gap;
+    var wid = Math.max(cam.w, LE.d) + 2 * H.side, hei = Math.max(cam.h, LE.d) + 2 * H.side + H.plate;
+    var B = { cam: cam, lens: LE, filter: filt, pol: pol, gap: H.gap, rear: H.rearStraight, side: H.side, plate: H.plate };
+    B.L = Math.ceil(len / 5) * 5; B.W = Math.ceil(wid / 5) * 5; B.H = Math.ceil(hei / 5) * 5;
+    B.ext = { L: B.L + 2 * H.wall + H.front, W: B.W + 2 * H.wall, H: B.H + 2 * H.wall };
+    B.angledGain = H.rearStraight - H.rearAngled;
+    // hublot
+    var tw = (food || shock !== 'aucun' || key === 'lavage' || key === 'immersion') ? 6 : 4;
+    var half = L && L.telecentric ? 0 : (L && isFinite(L.thetaDeg) ? L.thetaDeg : Math.atan(Math.sqrt(inp.fovH * inp.fovH + inp.fovV * inp.fovV) / 2 / inp.wd) * 180 / Math.PI);
+    var dist = filt + pol + H.gap + tw;
+    B.win = { ap: Math.ceil(LE.d + 2 * dist * Math.tan(half * Math.PI / 180) + H.margin), thick: tw, half: half };
+    var mats = [];
+    if (lam < 380) mats.push(tr('silice fondue (quartz) : le verre courant absorbe les UV sous 380 nm'));
+    else if (lam > 1000) mats.push(tr('borosilicate ou silice fondue, transmission à vérifier sur la bande SWIR (le verre flotté courant absorbe en partie vers 1 µm)'));
+    if (food || key === 'lavage') mats.push(tr('polycarbonate ou PMMA, sans risque d\'éclats de verre'));
+    else if (shock !== 'aucun') mats.push(tr('polycarbonate, ou verre trempé ou feuilleté (chocs)'));
+    else if (key === 'poussiere') mats.push(tr('saphir ou verre trempé (abrasion)'));
+    if (!mats.length) mats.push(lam >= 700 ? tr('verre flotté ou borosilicate avec traitement antireflet proche infrarouge') : tr('verre flotté ou borosilicate avec traitement antireflet visible'));
+    B.win.mat = mats.join(' ; ');
+    if (lam < 380 && (food || key === 'lavage')) flag('warn', tr('UV et hygiène alimentaire : la silice fondue est un verre. PMMA transmettant les UV, ou silice fondue avec film anti-éclats, à valider.'));
+    B.win.note = tr('Éviter que les reflets de l\'éclairage sur le hublot entrent dans l\'objectif : éclairage hors du boîtier, hublot légèrement incliné ou cache entre éclairage et hublot.');
+    // matière, fixation, passages de câbles
+    B.material = (food || key === 'lavage') ? tr('Inox AISI 316L, joints de qualité alimentaire, conception hygiénique (EHEDG)')
+      : key === 'immersion' ? tr('Inox 316L (eau salée) ou aluminium anodisé, joints toriques')
+      : key === 'exterieur' ? tr('Aluminium anodisé ou inox, matériaux résistants aux UV, pare-soleil')
+      : tr('Aluminium anodisé');
+    B.mount = mech ? tr('Fixation rigide sur la structure, vis freinées (frein-filet) ; plots antivibratoires seulement si la fréquence de la machine le permet.')
+      : tr('Équerre ou rotule réglable, bloquée après réglage.');
+    var glands = 2 + (T.power ? 1 : 0), ext = [];
+    if (T.air) ext.push(tr('raccord d\'air comprimé'));
+    if (T.water) ext.push(tr('2 raccords d\'eau'));
+    B.glands = { n: glands, extra: ext };
+    B.glandsText = tr('{n} passages : données (ou PoE), E/S et déclenchement', { n: glands }) + (T.power ? tr(', alimentation chauffage ou refroidissement') : '') + (ext.length ? ' ; ' + ext.join(', ') : '') + '. '
+      + (key === 'lavage' ? tr('Presse-étoupes inox hygiéniques IP69K.') : X.rank >= 1 ? tr('Presse-étoupes ou connecteurs M12 traversants, IP67 au minimum.') : tr('Presse-étoupes standard.'));
+    B.thermal = T.items.join(' ');
+    // contrôle de l'encombrement
+    var sL = env.spL, sW = env.spW, sH = env.spH;
+    if (sL > 0 && sW > 0 && sH > 0) {
+      var e = B.ext, fitsWH = function (k) { return (e.W * k <= sW && e.H * k <= sH) || (e.W * k <= sH && e.H * k <= sW); };
+      var fits = e.L <= sL && fitsWH(1), roomy = e.L * 1.1 <= sL && fitsWH(1.1);
+      B.fit = { status: fits ? (roomy ? 'ok' : 'juste') : 'trop', space: { L: sL, W: sW, H: sH } };
+      if (!fits) {
+        var gain = e.L - B.angledGain <= sL && fitsWH(1);
+        flag('bad', tr('Boîtier estimé à {a} × {b} × {c} mm (extérieur) : il ne tient pas dans {x} × {y} × {z} mm.', { a: e.L, b: e.W, c: e.H, x: fmt(sL, 0), y: fmt(sW, 0), z: fmt(sH, 0) }));
+        B.fit.text = (gain ? tr('Des connecteurs coudés (≈ {g} mm gagnés à l\'arrière) suffisent à le faire tenir. ', { g: B.angledGain }) : '')
+          + tr('Options : connecteurs coudés, focale plus courte à distance de travail plus courte, caméra à tête déportée, ou renvoi d\'angle par miroir.');
+      } else if (!roomy) {
+        B.fit.text = tr('Tient de justesse (moins de 10 % de marge) : prévoir des connecteurs coudés et confirmer les cotes réelles.');
+      } else B.fit.text = tr('Tient dans l\'espace disponible, avec plus de 10 % de marge.');
+    } else B.fit = null;
+    R.housing = B;
+
+    // 7. Drapeaux d'ensemble
+    if (atex) flag('bad', tr('Atmosphère explosive (ATEX) : boîtier certifié ATEX obligatoire (zone et catégorie à définir), hors du périmètre de cette estimation.'));
+    if (hard) flag('warn', tr('Vibrations fortes ou chocs répétés : objectif durci, fixation rigide et câbles avec maintien (serre-câbles, boucle de détente) ; vérifier aussi la tenue de la caméra sur sa fiche.'));
+    if (X.cam === 'std' && !camStdTemp) flag('warn', tr('{a} à {b} °C : hors de la plage typique d\'une caméra standard (0 à 50 °C de boîtier). Boîtier avec gestion thermique.', { a: fmt(tMin, 0), b: fmt(tMax, 0) }));
+    if (lt.kind === 'telecentrique') R.notes.push(tr('Télécentrique : l\'objectif est long et sa lentille frontale dépasse le champ ; le hublot doit couvrir tout le champ.'));
+    R.notes.push(tr('Dimensions estimées à partir de valeurs typiques (corps de caméra, objectif) : à remplacer par les cotes des fiches techniques et à confirmer avec le fabricant du boîtier.'));
+
+    // Cahier des charges du boîtier (texte)
+    var cond = [R.expoLabel, tr('{a} à {b} °C', { a: fmt(tMin, 0), b: fmt(tMax, 0) })];
+    if (humid) cond.push(tr('humidité et condensation'));
+    if (vib !== 'aucune') cond.push(tr('vibrations : {v}', { v: tr(ENV_VIB[vib]) }));
+    if (shock !== 'aucun') cond.push(tr('chocs : {v}', { v: tr(ENV_SHOCK[shock]) }));
+    if (food) cond.push(tr('contact alimentaire'));
+    if (atex) cond.push(tr('ATEX'));
+    var lines = [
+      tr('Cahier des charges du boîtier (estimation)'),
+      tr('Environnement : {c}', { c: cond.join(', ') }),
+      tr('Indice de protection : {ip}', { ip: ip }),
+      tr('Matière : {m}', { m: B.material }),
+      tr('Dimensions intérieures minimales : {l} × {w} × {h} mm (longueur × largeur × hauteur)', { l: B.L, w: B.W, h: B.H }),
+      tr('Dont : caméra ≈ {cw} × {ch} × {cl} mm ({cn}), objectif ≈ ⌀ {ld} × {ll} mm, filtres {f} mm, jeu au hublot {g} mm, connecteurs droits {r} mm', { cw: cam.w, ch: cam.h, cl: cam.l, cn: cam.label, ld: fmt(LE.d, 0), ll: fmt(LE.l, 0), f: filt + pol, g: H.gap, r: H.rearStraight }),
+      tr('Encombrement extérieur estimé : {l} × {w} × {h} mm', { l: B.ext.L, w: B.ext.W, h: B.ext.H }),
+      tr('Hublot : ouverture utile ≥ {a} mm, épaisseur ≈ {t} mm, {m}', { a: B.win.ap, t: tw, m: B.win.mat }),
+      tr('Gestion thermique : {t}', { t: B.thermal }),
+      tr('Passages de câbles : {g}', { g: B.glandsText }),
+      tr('Fixation : {m}', { m: B.mount }),
+      tr('Caméra : {c}', { c: C.head }),
+      tr('Objectif : {o}', { o: O.head }),
+      tr('Éclairage : {l}', { l: G.head })
+    ];
+    if (B.fit) lines.push(tr('Encombrement disponible : {x} × {y} × {z} mm, {r}', { x: fmt(sL, 0), y: fmt(sW, 0), z: fmt(sH, 0), r: B.fit.status === 'ok' ? tr('compatible') : B.fit.status === 'juste' ? tr('compatible de justesse') : tr('insuffisant') }));
+    if (atex) lines.push(tr('ATEX : boîtier certifié obligatoire, hors estimation'));
+    lines.push(tr('Valeurs estimées, à confirmer sur les fiches techniques et avec le fabricant du boîtier.'));
+    R.spec = lines.join('\n');
+    R.summary = { exposition: key, ip: ip, t_min_c: tMin, t_max_c: tMax, humidite: humid, vibrations: vib, chocs: shock, alimentaire: food, atex: atex,
+      objectif_durci: mech, refroidissement: T.cool, chauffage: T.heat, boitier_int_mm: [B.L, B.W, B.H], boitier_ext_mm: [B.ext.L, B.ext.W, B.ext.H],
+      hublot_mm: B.win.ap, encombrement_mm: B.fit ? [sL, sW, sH] : null, encombrement_ok: B.fit ? B.fit.status !== 'trop' : null };
+    return R;
+  }
+
   var api = {
     SRC: SRC, PRICE_POINTS: PRICE_POINTS, estimatePrice: estimatePrice, SENSORS: SENSORS, MATERIALS: MATERIALS, COLOR_RULE: COLOR_RULE, DEMO_CATALOG: DEMO_CATALOG, CSV_TEMPLATE: CSV_TEMPLATE,
     KIND_LABEL: KIND_LABEL, MACRO_M: MACRO_M, TELE_MAX_FOV: TELE_MAX_FOV,
@@ -761,7 +991,8 @@
     evalSensor: evalSensor, requiredPixels: requiredPixels, rankSensors: rankSensors,
     lensType: lensType, lensSpec: lensSpec, apertureWindow: apertureWindow,
     parseCatalog: parseCatalog, evalEntry: evalEntry, matchCatalog: matchCatalog,
-    lightAdvice: lightAdvice, adviseOptic: adviseOptic, MOUNTS: MOUNTS, IMX_EXTRA: IMX_EXTRA, findSensor: findSensor, mountById: mountById, minFocusMm: minFocusMm, fmt: fmt
+    lightAdvice: lightAdvice, adviseOptic: adviseOptic, MOUNTS: MOUNTS, IMX_EXTRA: IMX_EXTRA, findSensor: findSensor, mountById: mountById, minFocusMm: minFocusMm, fmt: fmt,
+    ENV_EXPO: ENV_EXPO, ENV_VIB: ENV_VIB, ENV_SHOCK: ENV_SHOCK, environmentAdvice: environmentAdvice
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.OptiCalc = api;
 })(typeof self !== 'undefined' ? self : this);

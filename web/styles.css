@@ -335,6 +335,19 @@ pre.spec-txt{margin:0 22px 22px;padding:16px 18px;border-radius:var(--r);border:
 .side .grp{display:flex;flex-direction:column;gap:14px;border-top:1px solid var(--line);padding-top:20px}
 .side .grp:first-of-type{border-top:0;padding-top:0}
 .two-col{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+.three-col{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.three-col .inp input{padding-left:10px;padding-right:2px;min-width:0;width:100%}
+.three-col .inp i{padding-right:8px;font-size:13px}
+.env-box{display:flex;flex-direction:column;gap:14px}
+div.f{display:flex;flex-direction:column;gap:2px;font-size:13px;color:var(--muted)}
+div.f small{color:var(--muted);font-size:13px;letter-spacing:-.01em}
+dl.kv.kv-text{grid-template-columns:minmax(0,1fr)}
+.grid.g4{grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr))}
+.grid.g4 .cell .v{font-size:24px}
+#c-env dl.kv:not(.kv-text) dd{white-space:nowrap}
+.env-txt{font-size:15px;line-height:1.45;letter-spacing:-.016em;overflow-wrap:anywhere}
+dl.kv.kv-text dt{margin-top:4px}
+dl.kv.kv-text dd{text-align:left;font-size:14px;line-height:1.45}
 .step{display:flex;gap:10px;align-items:baseline;font-family:var(--display);font-weight:600;font-size:17px;letter-spacing:-.022em}
 .step em{font-style:normal;font-family:var(--font);font-weight:400;font-size:14px;color:var(--faint);font-variant-numeric:tabular-nums;flex:none}
 .side details{border-top:1px solid var(--line);padding-top:4px}

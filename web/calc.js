@@ -7,7 +7,8 @@
   function num(id){ return parseFloat($(id).value); }
   function esc(t){return String(t).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 
-  var FIELDS = ['fovH','fovV','wd','depth','defect','k','color','globalOnly','speed','exposure','nom','coc','task','backlight','material','tcolor','lamCons','lamC','lamFwhm','lamMin','lamMax','ambient','showPrice','cur','rate','glare','useDemo','showBrand'];
+  var FIELDS = ['fovH','fovV','wd','depth','defect','k','color','globalOnly','speed','exposure','nom','coc','task','backlight','material','tcolor','lamCons','lamC','lamFwhm','lamMin','lamMax','ambient','showPrice','cur','rate','glare','useDemo','showBrand','envOn','envExpo','envTmin','envTmax','envHumid','envVib','envShock','envFood','envAtex','envSpL','envSpW','envSpH'];
+  var ENV_DEF={envOn:false,envExpo:'sec',envTmin:'10',envTmax:'35',envHumid:false,envVib:'aucune',envShock:'aucun',envFood:false,envAtex:false,envSpL:'',envSpW:'',envSpH:''};
   function readInputs(){
     return { fovH:num('fovH'), fovV:num('fovV'), wd:num('wd'), depth:num('depth')||0, defect:num('defect'), k:num('k'),
       color:$('color').checked, globalOnly:$('globalOnly').checked, speed:num('speed')||0, exposure:num('exposure')||0,
@@ -15,6 +16,11 @@
       material:$('material').value, tcolor:$('tcolor').value, lamCons:$('lamCons').value,
       lamC:num('lamC'), lamFwhm:num('lamFwhm'), lamMin:num('lamMin'), lamMax:num('lamMax'),
       ambient:$('ambient').value, showPrice:$('showPrice').checked, rate:num('rate')>0?num('rate'):1, glare:$('glare').checked, nstar:2 };
+  }
+  function readEnv(){
+    return { on:$('envOn').checked, expo:$('envExpo').value, tMin:num('envTmin'), tMax:num('envTmax'), humid:$('envHumid').checked,
+      vib:$('envVib').value, shock:$('envShock').value, food:$('envFood').checked, atex:$('envAtex').checked,
+      spL:num('envSpL'), spW:num('envSpW'), spH:num('envSpH') };
   }
   function snapshot(){ var o={}; FIELDS.forEach(function(k){ var el=$(k); if(el) o[k]=el.type==='checkbox'?el.checked:el.value; }); o._sensor=picked?sel:null; return o; }
   function apply(o){
@@ -39,6 +45,7 @@
     $('tcolorW').classList.toggle('hidden', !m.colorRule);
     $('lamSrcW').classList.toggle('hidden', c!=='source');
     $('lamBandW').classList.toggle('hidden', c!=='band');
+    $('envBox').classList.toggle('hidden', !$('envOn').checked);
   }
   function syncTask(){ var v=$('task').value; [].forEach.call(document.querySelectorAll('[data-task]'),function(b){ b.classList.toggle('on', b.dataset.task===v); b.setAttribute('aria-pressed', b.dataset.task===v); }); }
 
@@ -117,6 +124,7 @@
     var ev = ranked.filter(function(x){return x.sensor.id===sel})[0];
     if(!ev || !picked){ ev = ranked.filter(function(x){return !x.excluded && x.status==='ok'})[0] || ranked.filter(function(x){return !x.excluded})[0] || ranked[0]; sel = ev.sensor.id; }
     var lt = C.lensType(ev, inp), sp = C.lensSpec(ev, inp, lt), L = C.lightAdvice(inp, ev, lt.kind, lr);
+    var E = C.environmentAdvice(readEnv(), ev, inp, lt, sp, L);
     var pixTarget = inp.defect/inp.k, st = ev.excluded ? 'insuffisant' : ev.status;
     var shortId = ev.sensor.id.split(' / ')[0];
     var ltLabel = t(lt.label);
@@ -137,12 +145,13 @@
       t('Lumière : {l} nm ({from}), filtre {f}',{l:n(L.lam),from:t(L.from),f:L.filter.name})+(L.pol.use?t(', polarisation conseillée'):'')
     ].join('\n');
     last = { inputs: snapshot(), spec: spec, summary: { capteur: ev.sensor.id, statut: st, type: lt.label, focale: sp.f||null, grandissement: sp.m, resolution_lpmm: sp.nuK, cercle_mm: sp.circleMin, lambda_nm: L.lam }, title: title.replace(/&[^;]+;/g,'') };
+    if(E){ last.spec += '\n\n'+E.spec; last.summary.environnement = E.summary; }
 
     var ratio = ev.ppd/ev.kEff;
     var h = '<section class="card verdict '+st+'"><div class="l">'+gauge(ratio/2, n(ev.ppd,1)+' px', t('sur le défaut · {k} requis',{k:n(ev.kEff)}), st, t('{p} pixels sur le défaut pour {k} requis',{p:n(ev.ppd,1),k:n(ev.kEff)}))
       + '<div><span class="eyebrow">'+(st==='ok'?t('Capteur suffisant'):st==='limite'?t('À la limite'):t('Insuffisant'))+'</span><h1 style="margin-top:6px">'+title+'</h1><p>'+fTxt+apTxt+t(', résolution d\'au moins {v} lp/mm.',{v:n(sp.nuK,0)})+'</p></div></div>'
       + '<div class="btns"><button type="button" class="btn" data-act="copy-calc">'+t('Copier la spécification')+'</button><button type="button" class="btn pri" data-act="save-calc">'+t('Enregistrer le projet')+'</button></div></section>';
-    h += '<nav class="anchors" aria-label="'+t('Sections')+'"><a class="chip" href="#c-resume">'+t('Résumé')+'</a><a class="chip" href="#c-capteurs">'+t('Capteurs')+'</a><a class="chip" href="#c-objectif">'+t('Objectif')+'</a><a class="chip" href="#c-lumiere">'+t('Lumière')+'</a><a class="chip" href="#c-contraste">'+t('Contraste')+'</a></nav>';
+    h += '<nav class="anchors" aria-label="'+t('Sections')+'"><a class="chip" href="#c-resume">'+t('Résumé')+'</a><a class="chip" href="#c-capteurs">'+t('Capteurs')+'</a><a class="chip" href="#c-objectif">'+t('Objectif')+'</a><a class="chip" href="#c-lumiere">'+t('Lumière')+'</a>'+(E?'<a class="chip" href="#c-env">'+t('Environnement')+'</a>':'')+'<a class="chip" href="#c-contraste">'+t('Contraste')+'</a></nav>';
 
     h += '<section id="c-resume" class="card grid">'
       + '<div class="cell"><span class="cap">'+t('Pixels requis')+'</span><span class="v">'+n(req.nH)+' × '+n(req.nV)+'</span><span class="n">'+t('{mpx} Mpx au minimum, {k} px par défaut',{mpx:n(req.mpx,1),k:n(req.kEff)})+'</span></div>'
@@ -201,6 +210,8 @@
     h += '<ul class="srcs">'+L.src.concat(inp.showPrice?['mvstore']:[]).map(function(k){var s=C.SRC[k]; return s?'<li><a href="'+s.u+'" target="_blank" rel="noopener noreferrer">'+esc(t(s.t))+'</a></li>':''}).join('')+'</ul>';
     h += '<p class="note">'+t('Le décalage vers le bleu suit λ = λ₀ √(1 − (sin θ ÷ n*)²) avec n* ≈ 2 supposé, une valeur indicative : la fiche du filtre donne la valeur exacte.')+'</p></div></section>';
 
+    if(E) h += envSection(E, inp);
+
     h+='<section id="c-contraste" class="card"><div class="ch"><b>'+t('Contraste limité par la diffraction')+'</b><span>'+t('f/{a}, f/{b} effectif, {l} nm',{a:n(inp.nom,1),b:n(sp.nEff,1),l:n(inp.lambda)})+'</span></div><div class="pad">'+chartSvg(sp)
       +'<div class="legend"><span class="l1">'+t('contraste théorique sans aberration')+'</span><span class="l2">'+t('Nyquist du capteur')+'</span><span class="l3">'+t('fréquence requise pour le défaut')+'</span></div>'
       +'<p class="note">'+t('Un objectif réel reste sous cette courbe : c\'est le plafond de la physique. Contraste théorique de {p} % au Nyquist.',{p:n(sp.mtfNyq*100,0)})+'</p>'
@@ -218,6 +229,43 @@
       +'</div></details></div></section>';
     out.innerHTML = h;
     out.classList.toggle('anim', animNext); animNext = false;
+  }
+  /* Environnement et boîtier : affiché seulement si l'option est cochée */
+  function envSection(E, inp){
+    var B=E.housing, T=E.thermal, mm=function(v){ return n(v,0)+' mm'; }, FIT={ok:'ok',juste:'warn',trop:'bad'};
+    var h='<section id="c-env" class="card" style="overflow:hidden"><div class="ch"><b>'+t('Environnement et boîtier')+'</b><span>'+esc(E.expoLabel)+' · '+t('{a} à {b} °C',{a:n(E.tMin),b:n(E.tMax)})+'</span></div>';
+    h+='<div class="grid g4" style="border-top:1px solid var(--line)">'
+      +'<div class="cell"><span class="cap">'+t('Protection requise')+'</span><span class="v">'+esc(E.ip.code)+'</span><span class="n">'+esc(B.material)+'</span></div>'
+      +'<div class="cell"><span class="cap">'+t('Caméra')+'</span><span class="v">'+esc(E.camera.v)+'</span><span class="n">'+esc(E.camera.head)+'</span></div>'
+      +'<div class="cell"><span class="cap">'+t('Objectif')+'</span><span class="v">'+esc(E.lens.v)+'</span><span class="n">'+esc(E.lens.head)+'</span></div>'
+      +'<div class="cell"><span class="cap">'+t('Éclairage')+'</span><span class="v">'+esc(E.light.v)+'</span><span class="n">'+esc(E.light.head)+'</span></div></div>';
+    var li=function(a){ return flagsHtml(a.map(function(m){return {t:'info',m:m};})); };
+    h+='<div class="spec">'
+      +'<div><span class="cap">'+t('Protection requise')+'</span><p class="env-txt">'+esc(E.ip.text)+'</p><p class="note">'+esc(E.ip.explain)+'</p></div>'
+      +'<div><span class="cap">'+t('Caméra')+'</span><p class="env-txt">'+esc(E.camera.text)+'</p><p class="note">'+esc(E.camera.typ)+'</p></div>'
+      +'<div><span class="cap">'+t('Objectif')+'</span>'+li(E.lens.items)+'</div>'
+      +'<div><span class="cap">'+t('Éclairage')+'</span>'+li(E.light.items)+'</div></div>';
+    h+='<div class="ch" style="border-top:1px solid var(--line)"><b>'+t('Boîtier')+'</b><span>'+t('Cahier des charges estimé pour choisir un boîtier')+'</span></div><div class="spec">';
+    h+='<div><span class="cap">'+t('Dimensions intérieures minimales')+'</span><span class="big">'+n(B.L)+' × '+n(B.W)+' × '+n(B.H)+' mm</span>'
+      +'<dl class="kv"><dt>'+t('Caméra')+'</dt><dd>'+n(B.cam.w)+' × '+n(B.cam.h)+' × '+n(B.cam.l)+' mm</dd>'
+      +'<dt>'+t('Objectif')+'</dt><dd>⌀ '+n(B.lens.d)+' × '+mm(B.lens.l)+'</dd>'
+      +(B.filter+B.pol?'<dt>'+t('Filtre et polariseur')+'</dt><dd>'+mm(B.filter+B.pol)+'</dd>':'')
+      +'<dt>'+t('Jeu avant le hublot')+'</dt><dd>'+mm(B.gap)+'</dd>'
+      +'<dt>'+t('Connecteurs droits et câbles')+'</dt><dd>'+mm(B.rear)+'</dd>'
+      +'<dt>'+t('Marge latérale')+'</dt><dd>'+t('{v} mm par côté',{v:n(B.side)})+'</dd>'
+      +'<dt>'+t('Extérieur estimé')+'</dt><dd>'+n(B.ext.L)+' × '+n(B.ext.W)+' × '+n(B.ext.H)+' mm</dd></dl>'
+      +'<p class="note">'+t('Longueur × largeur × hauteur. Caméra : {c}. Objectif : {o}.',{c:esc(B.cam.label),o:esc(B.lens.how)})+'</p></div>';
+    h+='<div><span class="cap">'+t('Hublot')+'</span><span class="big">≥ '+mm(B.win.ap)+'</span>'
+      +'<dl class="kv"><dt>'+t('Ouverture utile')+'</dt><dd>≥ '+mm(B.win.ap)+'</dd><dt>'+t('Épaisseur')+'</dt><dd>≈ '+mm(B.win.thick)+'</dd><dt>'+t('Demi-angle de champ')+'</dt><dd>'+n(B.win.half,1)+'°</dd></dl>'
+      +'<p class="env-txt" style="margin-top:8px">'+esc(B.win.mat)+'</p><p class="note">'+esc(B.win.note)+'</p></div>';
+    h+='<div><span class="cap">'+t('Gestion thermique')+'</span><span class="big">'+esc(T.head)+'</span>'+li(T.items)+'</div>';
+    h+='<div><span class="cap">'+t('Matière, fixation, câbles')+'</span><dl class="kv kv-text"><dt>'+t('Matière')+'</dt><dd>'+esc(B.material)+'</dd><dt>'+t('Fixation')+'</dt><dd>'+esc(B.mount)+'</dd><dt>'+t('Passages')+'</dt><dd>'+esc(B.glandsText)+'</dd></dl></div>';
+    h+='<div><span class="cap">'+t('Encombrement disponible')+'</span>'+(B.fit
+      ?'<span class="big">'+n(B.fit.space.L)+' × '+n(B.fit.space.W)+' × '+n(B.fit.space.H)+' mm</span><div><span class="pill '+FIT[B.fit.status]+'">'+(B.fit.status==='ok'?t('compatible'):B.fit.status==='juste'?t('compatible de justesse'):t('insuffisant'))+'</span></div><p class="note">'+esc(B.fit.text)+'</p>'
+      :'<span class="big">'+t('Non renseigné')+'</span><p class="note">'+t('Saisissez la longueur, la largeur et la hauteur disponibles pour vérifier que le boîtier tient.')+'</p>')+'</div>';
+    h+='</div><div class="pad" style="padding-top:0">'+flagsHtml(E.flags.concat(E.notes.map(function(m){return {t:'info',m:m}})))
+      +'<details style="margin-top:12px"><summary>'+t('Cahier des charges du boîtier')+'</summary><pre class="spec-txt" style="margin:12px 0 0">'+esc(E.spec)+'</pre></details></div></section>';
+    return h;
   }
   window.LumenAnimate = function(){ animNext = true; render(); };
   function setMsg(t){ $('csvMsg').textContent=t; }
@@ -248,7 +296,7 @@
   });
   window.LumenCalc = {
     state: function(){ return last; },
-    load: function(o){ apply(o); clearPreset(); if(o._sensor){ sel=o._sensor; picked=true; } else picked=false; render(); },
+    load: function(o){ apply(Object.assign({}, ENV_DEF, o)); clearPreset(); if(o._sensor){ sel=o._sensor; picked=true; } else picked=false; render(); },
     /* changement de langue : listes construites en JS, puis résultats */
     rerender: function(){ buildMaterials(); render(); }
   };

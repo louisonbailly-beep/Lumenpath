@@ -336,6 +336,30 @@
         <label class="f strong hidden" id="tcolorW">Couleur du motif à contraster<select id="tcolor"><option value="rouge">Rouge</option><option value="vert">Vert</option><option value="bleu">Bleu</option><option value="jaune">Jaune</option></select></label>
         <label class="check"><input id="glare" type="checkbox"> Reflets gênants sur la surface (polarisation).</label>
       </div>
+      <div class="grp">
+        <div class="step"><em>4</em>Environnement</div>
+        <label class="check"><input id="envOn" type="checkbox"> Ajouter des contraintes d'environnement</label>
+        <div class="env-box hidden" id="envBox">
+          <label class="f strong">Environnement / exposition<select id="envExpo"><option value="sec" selected>Intérieur propre et sec</option><option value="poussiere">Atelier poussiéreux</option><option value="projections">Projections d'eau ou d'huile</option><option value="lavage">Lavage haute pression (agroalimentaire, pharmaceutique)</option><option value="exterieur">Extérieur (pluie, UV)</option><option value="immersion">Immersion temporaire</option></select></label>
+          <div class="two-col">
+            <label class="f">Température min.<span class="inp"><input id="envTmin" type="number" inputmode="decimal" step="any" value="10"><i>°C</i></span></label>
+            <label class="f">Température max.<span class="inp"><input id="envTmax" type="number" inputmode="decimal" step="any" value="35"><i>°C</i></span></label>
+          </div>
+          <label class="check"><input id="envHumid" type="checkbox"> Humidité ou condensation</label>
+          <div class="two-col">
+            <label class="f">Vibrations<select id="envVib"><option value="aucune" selected>Aucune</option><option value="moderees">Modérées (machine, convoyeur)</option><option value="fortes">Fortes (robot, presse, véhicule)</option></select></label>
+            <label class="f">Chocs<select id="envShock"><option value="aucun" selected>Aucun</option><option value="ponctuels">Ponctuels (manutention)</option><option value="repetes">Répétés (robot, impact)</option></select></label>
+          </div>
+          <label class="check"><input id="envFood" type="checkbox"> Hygiène alimentaire, contact produit</label>
+          <label class="check"><input id="envAtex" type="checkbox"> Atmosphère explosive (ATEX)</label>
+          <div class="f">Encombrement maximal disponible<small>Facultatif. Longueur dans l'axe de visée × largeur × hauteur.</small></div>
+          <div class="three-col">
+            <span class="inp"><input id="envSpL" type="number" inputmode="decimal" min="0" step="any" placeholder="longueur" aria-label="Longueur disponible"><i>mm</i></span>
+            <span class="inp"><input id="envSpW" type="number" inputmode="decimal" min="0" step="any" placeholder="largeur" aria-label="Largeur disponible"><i>mm</i></span>
+            <span class="inp"><input id="envSpH" type="number" inputmode="decimal" min="0" step="any" placeholder="hauteur" aria-label="Hauteur disponible"><i>mm</i></span>
+          </div>
+        </div>
+      </div>
       <details>
         <summary>Options avancées</summary>
         <div>
