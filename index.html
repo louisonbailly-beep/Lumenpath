@@ -20,16 +20,56 @@
 <div data-view="home" hidden>
   <header class="site-head"><div class="wrap">
     <a class="brand" href="#/"><svg width="28" height="21" aria-hidden="true"><use href="#logo"/></svg><span>vision<span class="light">path</span></span></a>
-    <nav aria-label="Sections"><a href="#/" data-scroll="applications">Applications</a><a href="#/" data-scroll="outils">Outils</a><a href="#/" data-scroll="methode">Méthode</a><a href="#/" data-scroll="donnees">Données</a></nav>
+    <nav aria-label="Sections"><a href="#/" data-scroll="assemblage">Assemblage</a><a href="#/" data-scroll="exemple">Exemple</a><a href="#/" data-scroll="outils">Outils</a><a href="#/" data-scroll="methode">Méthode</a><a href="#/" data-scroll="donnees">Données</a></nav>
     <div class="actions"><div class="lang" role="group" aria-label="Langue"><button type="button" data-lang="fr" lang="fr" title="Français" aria-pressed="true">FR</button><button type="button" data-lang="en" lang="en" title="English" aria-pressed="false">EN</button><button type="button" data-lang="de" lang="de" title="Deutsch" aria-pressed="false">DE</button></div><a class="btn sm" href="#/connexion">Se connecter</a><a class="btn sm pri" href="#/inscription">Créer un accès</a></div>
   </div></header>
 
-  <section class="wrap hero">
-    <span class="eyebrow">Calcul optique pour la vision industrielle</span>
-    <h1>Du champ de vue à l'objectif, au capteur et au filtre.</h1>
-    <p class="lead">Décrivez votre inspection : distance, champ, plus petit défaut, matière. Vision Path calcule la résolution requise et spécifie l'objectif, la monture, le capteur et la lumière, formules à l'appui.</p>
-    <div class="actions"><a class="btn lg pri" href="#/inscription">Créer un accès</a><a class="btn lg" href="#/connexion">Se connecter</a></div>
-    <span class="fine">Accès réservé aux professionnels. Chaque résultat affiche sa formule.</span>
+  <section class="story" id="assemblage" aria-label="Assemblage d'un poste de vision">
+    <div class="stage" aria-hidden="true"><canvas></canvas></div>
+    <div class="steps">
+      <div class="step step-hero" data-step="0"><div class="wrap"><div class="step-in">
+        <span class="eyebrow">Calcul optique pour la vision industrielle</span>
+        <h1>Du champ de vue à l'objectif, au capteur et au filtre.</h1>
+        <p class="lead">Décrivez votre inspection : distance, champ, plus petit défaut, matière. Vision Path calcule la résolution requise et spécifie l'objectif, la monture, le capteur et la lumière, formules à l'appui.</p>
+        <div class="actions"><a class="btn lg pri" href="#/inscription">Créer un accès</a><a class="btn lg" href="#/connexion">Se connecter</a></div>
+        <span class="fine">Accès réservé aux professionnels. Chaque résultat affiche sa formule.</span>
+        <span class="hint">Faites défiler pour assembler le poste</span>
+      </div></div></div>
+      <div class="step" data-step="1"><div class="wrap"><div class="step-in">
+        <span class="n">01</span>
+        <h2>L'objectif</h2>
+        <p>Focale et cercle d'image calculés pour votre champ et votre distance de travail, sans marque imposée.</p>
+        <dl><div><dt>Focale</dt><dd>≈ 23,4 mm</dd></div><div><dt>Cercle d'image</dt><dd>≥ 11,0 mm</dd></div></dl>
+      </div></div></div>
+      <div class="step" data-step="2"><div class="wrap"><div class="step-in">
+        <span class="n">02</span>
+        <h2>La caméra</h2>
+        <p>Capteurs classés selon le plus petit défaut à voir : taille de pixel, définition, prix indicatif.</p>
+        <dl><div><dt>Capteur</dt><dd>2448 × 2048 px</dd></div><div><dt>Pixel</dt><dd>3,45 µm</dd></div></dl>
+      </div></div></div>
+      <div class="step" data-step="3"><div class="wrap"><div class="step-in">
+        <span class="n">03</span>
+        <h2>Le filtre</h2>
+        <p>Passe-bande centré sur votre éclairage, élargi du décalage vers le bleu en bord de champ.</p>
+        <dl><div><dt>Longueur d'onde centrale</dt><dd>660 nm</dd></div><div><dt>Décalage en bord de champ</dt><dd>3,6 nm</dd></div></dl>
+      </div></div></div>
+      <div class="step" data-step="4"><div class="wrap"><div class="step-in">
+        <span class="n">04</span>
+        <h2>Le câblage</h2>
+        <p>À la vitesse de votre ligne, le temps d'exposition maximal pour garder le flou de bougé sous 0,5 pixel.</p>
+        <dl><div><dt>Vitesse</dt><dd>500 mm/s</dd></div><div><dt>Exposition max.</dt><dd>41 µs</dd></div></dl>
+      </div></div></div>
+      <div class="step" data-step="5"><div class="wrap"><div class="step-in">
+        <span class="n">05</span>
+        <h2>Le poste de vision</h2>
+        <p>Champ, distance de travail, éclairage et profondeur de champ réunis dans une fiche à transmettre au fabricant.</p>
+        <dl><div><dt>Champ</dt><dd>100 × 80 mm</dd></div><div><dt>Distance de travail</dt><dd>300 mm</dd></div><div><dt>Grandissement</dt><dd>0,0845×</dd></div></dl>
+      </div></div></div>
+    </div>
+  </section>
+
+  <section class="wrap sec" id="exemple">
+    <div class="head2"><span class="eyebrow">Exemple de calcul</span><h2>Chaque valeur, avec sa formule.</h2><p class="sub">Le poste ci-dessus, tel que Vision Path le dimensionne : grandissement, focale, résolution de l'objectif et plage d'ouverture.</p></div>
     <div class="card sample">
       <div class="top"><span>Exemple de calcul</span><span>Champ 100 × 80 mm · défaut 200 µm</span></div>
       <svg viewBox="0 0 520 170" role="img" aria-label="Schéma : pièce, objectif, capteur, distance de travail">
@@ -50,28 +90,6 @@
         <div><dt>Résolution objectif</dt><dd>≥ 89 lp/mm</dd></div>
         <div><dt>Cercle d'image</dt><dd>≥ 11,0 mm</dd></div>
         <div><dt>Ouverture</dt><dd>f/2,4 à f/7,9</dd></div>
-      </dl>
-    </div>
-  </section>
-
-  <section class="wrap sec" id="applications">
-    <div class="head2"><span class="eyebrow">Applications</span><h2>Pensé pour les postes de contrôle réels.</h2><p class="sub">Aspect, mesure, lecture de codes, fluorescence ou infrarouge : chaque cas part de la pièce et du défaut à voir.</p></div>
-    <div class="shots">
-      <figure class="shot big"><img src="web/img/robot.jpg" alt="Bras robotisé bleu sur une ligne d'assemblage automatisée" width="1600" height="1003" loading="lazy"><figcaption><span class="k">Ligne robotisée</span><span class="t">Contrôle d'aspect en cadence</span><span class="d">Obturateur global, temps d'exposition et flou de bougé calculés pour la vitesse de la pièce.</span></figcaption></figure>
-      <figure class="shot"><img src="web/img/pcb.jpg" alt="Gros plan d'une carte électronique bleu foncé avec composants" width="1600" height="1201" loading="lazy"><figcaption><span class="k">Électronique</span><span class="t">Cartes et soudures</span><span class="d">Détails fins, éclairage UV et résolution d'objectif adaptée au pas du capteur.</span></figcaption></figure>
-      <figure class="shot"><img src="web/img/lens2.jpg" alt="Diaphragme d'un objectif vu de près, avec reflets du traitement antireflet" width="1600" height="1063" loading="lazy"><figcaption><span class="k">Optique</span><span class="t">L'objectif juste</span><span class="d">Focale, ouverture et cercle d'image, sans marque imposée, à envoyer au fabricant.</span></figcaption></figure>
-    </div>
-  </section>
-
-  <section class="photo-band">
-    <img src="web/img/lens.jpg" alt="" width="1800" height="1000" loading="lazy" aria-hidden="true">
-    <div class="wrap">
-      <h2>Du défaut de 10&nbsp;µm au champ de 600&nbsp;mm.</h2>
-      <p>Une base de capteurs, de montures et de matières pour aller de la contrainte à la spécification.</p>
-      <dl class="figs">
-        <div><dt>capteurs Sony IMX</dt><dd>21</dd></div>
-        <div><dt>montures d'objectif</dt><dd>15</dd></div>
-        <div><dt>matières et effets</dt><dd>12</dd></div>
       </dl>
     </div>
   </section>
@@ -106,10 +124,10 @@
   <section class="wrap cta-band">
     <h2>Prêt à dimensionner votre prochain poste ?</h2>
     <p class="muted" style="font-size:19px">Créez un accès professionnel en deux minutes.</p>
-    <div class="actions" style="justify-content:center"><a class="btn lg pri" href="#/inscription">Créer un accès</a></div>
+    <div class="actions" style="justify-content:center"><a class="btn lg pri" href="#/inscription">Créer un accès</a><a class="btn lg" href="#/connexion">Se connecter</a></div>
   </section>
 
-  <footer class="site-foot"><div class="wrap"><span>Vision Path · conseil optique pour la vision industrielle</span><span>Photos : <a href="https://unsplash.com/license" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline">Unsplash</a> · Confidentialité · Conditions · Contact</span><div class="lang" role="group" aria-label="Langue"><button type="button" data-lang="fr" lang="fr" title="Français" aria-pressed="true">FR</button><button type="button" data-lang="en" lang="en" title="English" aria-pressed="false">EN</button><button type="button" data-lang="de" lang="de" title="Deutsch" aria-pressed="false">DE</button></div></div></footer>
+  <footer class="site-foot"><div class="wrap"><span>Vision Path · conseil optique pour la vision industrielle</span><span>Confidentialité · Conditions · Contact</span><div class="lang" role="group" aria-label="Langue"><button type="button" data-lang="fr" lang="fr" title="Français" aria-pressed="true">FR</button><button type="button" data-lang="en" lang="en" title="English" aria-pressed="false">EN</button><button type="button" data-lang="de" lang="de" title="Deutsch" aria-pressed="false">DE</button></div></div></footer>
 </div>
 
 <!-- ================= Connexion utilisateur ================= -->
@@ -465,5 +483,7 @@
 <script src="web/calc.js"></script>
 <script src="web/optique.js"></script>
 <script src="web/app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
+<script src="web/landing3d.js"></script>
 </body>
 </html>

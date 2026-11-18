@@ -14,7 +14,10 @@ html = (ROOT / "index.html").read_text(encoding="utf-8")
 css = (ROOT / "web/styles.css").read_text(encoding="utf-8")
 js = {name: (ROOT / path).read_text(encoding="utf-8") for name, path in {
     "i18n": "web/i18n.js", "i18n_en": "web/i18n-en.js", "i18n_de": "web/i18n-de.js",
-    "core": "app/src/core.js", "calc": "web/calc.js", "optique": "web/optique.js", "app": "web/app.js"}.items()}
+    "core": "app/src/core.js", "calc": "web/calc.js", "optique": "web/optique.js", "app": "web/app.js",
+    "landing3d": "web/landing3d.js"}.items()}
+# Three.js r149 (build UMD) : hôte autorisé pour l'artefact, version figée
+THREE = '<script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>\n'
 
 body = re.search(r"<body>(.*)</body>", html, re.S).group(1)
 body = re.sub(r"<script[^>]*>\s*</script>\s*", "", body)  # retire les scripts externes
@@ -32,6 +35,7 @@ page = (
     + script("window.LUMENPATH_DEMO = true;")
     + script(js["i18n"]) + script(js["i18n_en"]) + script(js["i18n_de"])
     + script(js["core"]) + script(js["calc"]) + script(js["optique"]) + script(js["app"])
+    + THREE + script(js["landing3d"])
 )
 out.write_text(page, encoding="utf-8")
 print(out, len(page.encode("utf-8")), "octets")
